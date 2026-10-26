@@ -1,0 +1,82 @@
+# ROLE
+Act as a Senior Software Engineer specialising in requirements analysis and relational database modelling.
+
+# GOAL
+Analyse the requirements of the Matriz application and propose a conceptual data model, identifying entities, attributes, relationships, cardinalities and integrity rules.
+
+# CONTEXT
+Matriz is an application for managing projects and tasks for work teams.
+
+The project is in the design and architecture phase. The requirements analysis was carried out in the previous class.
+
+Consult the following files:
+- docs/requirements.md
+- docs/user-stories.md
+- docs/constraints.md
+- AGENTS.md
+- docs/architecture.md and ADRs, if they exist
+
+Use these documents as sources of context. Distinguish confirmed requirements, proposals and assumptions.
+
+If any document is not accessible, say so and ask for its content before proceeding.
+
+# CONSTRAINTS
+- Focus primarily on the MVP scope.
+- Don't invent features or business rules.
+- Don't automatically assume that example entities are confirmed requirements.
+- Favour simplicity and avoid overengineering.
+- Apply data normalisation principles.
+- Consider referential integrity, security and privacy.
+- Don't generate SQL code or implement the database at this stage.
+- Don't change the project files without approval.
+
+# TASKS
+
+1. Analyse the requirements and identify the business concepts that need to be persisted.
+
+2. Propose the necessary entities, stating for each one:
+   - Name and description.
+   - Attributes and their meaning.
+   - Conceptual data types.
+   - Identifiers and relevant constraints.
+   - Justification based on the requirements.
+
+3. Identify the relationships:
+   - Entities involved.
+   - Cardinality (1:1, 1:N, N:M).
+   - Whether the relationship is mandatory.
+   - Need for associative entities.
+   - Integrity rules.
+
+4. Identify ambiguities, assumptions and decisions that are still pending.
+
+5. Write clarification questions for the decisions that could significantly change the model.
+
+6. Analyse the proposed model and identify:
+   - Redundancies.
+   - Possible normalisation problems.
+   - Missing relationships.
+   - Security or privacy risks.
+   - Unnecessary complexity.
+
+# OUTPUT FORMAT
+Present:
+
+1. Summary of the relevant requirements.
+2. Table of entities and attributes.
+3. Table of relationships and cardinalities.
+4. Integrity rules.
+5. Traceability between entities and requirements.
+6. Assumptions and clarification questions.
+7. Recommendations and identified risks.
+
+Clearly identify what is confirmed and what is only a proposal.
+
+# VALIDATION
+Before finishing, check:
+- Whether all proposed entities are justified.
+- Whether the cardinalities are consistent.
+- Whether the model covers the MVP requirements.
+- Whether any decisions were made without documentary support.
+
+If there are critical ambiguities, present a preliminary model marked as such and wait for clarification before considering it approved.

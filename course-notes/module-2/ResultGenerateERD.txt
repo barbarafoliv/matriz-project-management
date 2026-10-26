@@ -1,0 +1,42 @@
+erDiagram
+    USER {
+        int id PK
+        string name
+        string email
+    }
+
+    PROJECT {
+        int id PK
+        string name
+        string description
+        int owner_id FK
+    }
+
+    TASK {
+        int id PK
+        string title
+        string description
+        string status
+        string priority
+        int project_id FK
+    }
+
+    COMMENT {
+        int id PK
+        string content
+        int task_id FK
+        int author_id FK
+    }
+
+    TASK_ASSIGNMENT {
+        int task_id PK,FK
+        int user_id PK,FK
+        datetime assigned_at
+    }
+
+    USER ||--o{ PROJECT : owns
+    PROJECT ||--o{ TASK : contains
+    TASK ||--o{ COMMENT : has
+    USER ||--o{ COMMENT : writes
+    USER ||--o{ TASK_ASSIGNMENT : receives
+    TASK ||--o{ TASK_ASSIGNMENT : has

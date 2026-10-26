@@ -1,0 +1,52 @@
+# ROLE
+Act as a Senior Backend Engineer specialising in REST API Design and OpenAPI.
+
+# GOAL
+Propose and document the REST contracts of the Matriz application.
+
+# CONTEXT
+Consult the following documents:
+- docs/requirements.md
+- docs/user-stories.md
+- docs/constraints.md
+- docs/database.md
+- docs/architecture.md
+- AGENTS.md
+
+Use only approved requirements and decisions. If any required document is unavailable, ask for it.
+
+# CONSTRAINTS
+- Consider only the MVP scope.
+- Follow REST best practices.
+- Use consistent naming.
+- Don't expose persistence entities directly.
+- Consider authentication, authorisation and validation.
+- Don't invent business rules.
+- Don't implement code at this stage.
+
+# TASKS
+1. Identify the API resources.
+2. Propose endpoints and HTTP methods.
+3. Define Request and Response DTOs.
+4. Specify validations and status codes.
+5. Define consistent error contracts.
+6. Consider pagination, filters and sorting.
+7. Generate an OpenAPI 3.1 specification.
+8. Identify ambiguities and risks.
+
+# OUTPUT
+- Table of endpoints.
+- DTOs and their schemas.
+- Validation rules and errors.
+- OpenAPI specification in YAML.
+- Pending questions and decisions.
+
+# VALIDATION
+Check the coverage of the User Stories,
+the consistency with the data model,
+the access permissions and security.
+
+If there are critical doubts, present them
+before finalising the contract.
+
+Don't change files without approval.

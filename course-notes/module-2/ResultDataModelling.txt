@@ -1,0 +1,44 @@
+Identification of Entities and Relationships
+
+Entities and attributes
+
+USER — User
+- id (PK)
+- name
+- email
+
+PROJECT — Project
+- id (PK)
+- name
+- description
+- owner_id (FK → USER)
+
+TASK — Task
+- id (PK)
+- title
+- description
+- status
+- priority
+- project_id (FK → PROJECT)
+
+COMMENT — Comment
+- id (PK)
+- content
+- task_id (FK → TASK)
+- author_id (FK → USER)
+
+TASK_ASSIGNMENT — Task Assignment
+- task_id (PK, FK → TASK)
+- user_id (PK, FK → USER)
+- assigned_at
+
+Relationships and cardinalities
+
+Entities	Relationship				Cardinality
+USER → PROJECT	User manages projects			1:N
+PROJECT → TASK	Project contains tasks			1:N
+TASK → COMMENT	Task has comments			1:N
+USER → COMMENT	User writes comments			1:N
+USER ↔ TASK	User is assigned to tasks		N:M
+
+Note: The N:M relationship between USER and TASK is implemented through the associative entity TASK_ASSIGNMENT.
