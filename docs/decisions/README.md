@@ -1,5 +1,6 @@
 ---
 title: Architecture Decision Records
+permalink: /decisions/
 ---
 
 # Architecture Decision Records
