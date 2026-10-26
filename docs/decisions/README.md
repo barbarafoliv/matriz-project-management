@@ -1,6 +1,8 @@
-# Project ADRs
+---
+title: Architecture Decision Records
+---
 
-## List of decisions
+# Architecture Decision Records
 
 - [0000 - Use Architecture Decision Records](./0000-use-architecture-decision-records.md)
 - [0001 - Use a Modular Monolith](./0001-use-modular-monolith.md)
