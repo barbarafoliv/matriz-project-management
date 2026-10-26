@@ -20,6 +20,8 @@
 | **Project manager** | Creates projects, adds members, creates and assigns tasks, follows progress. |
 | **Team member** | Creates and edits tasks, and updates their status. |
 
+These are roles in each project, not types of account: a user can be the project manager of one project and a team member of another.
+
 Users only see the projects they are members of.
 
 ## 3. Functional requirements
@@ -27,9 +29,9 @@ Users only see the projects they are members of.
 | ID | Requirement | Why | Priority |
 |---|---|---|---|
 | FR-01 | Users can sign up, sign in and sign out. | Each person needs an account to own tasks. | Must |
-| FR-02 | A project manager can create, edit and delete projects. | Projects organise the work. | Must |
+| FR-02 | A project manager can create, edit and delete projects (name and optional description). | Projects organise the work. | Must |
 | FR-03 | A project manager can add and remove project members. | Controls who works on what. | Must |
-| FR-04 | Members can create and edit tasks (title, description, assignee, due date, priority: Low, Medium or High). Only the project manager can delete tasks. | Tasks are the core of the app. | Must |
+| FR-04 | Members can create and edit tasks (title, description, assignee, due date, priority: Low, Medium or High, Low by default). Only the project manager can delete tasks. | Tasks are the core of the app. | Must |
 | FR-05 | Members can change a task's status (To Do, In Progress, Done). | Shows progress (goal 1). | Must |
 | FR-06 | Users can see a list of tasks assigned to them ("My tasks"). | One place to see your own work (goal 2). | Must |
 | FR-07 | Each project has a board with one column per status. | Progress at a glance (goal 1). | Must |

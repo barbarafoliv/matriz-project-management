@@ -3,7 +3,7 @@
 > Based on the MVP scope in [requirements.md](requirements.md): one user story per *Must* functional requirement (FR-01 to FR-08 and FR-14).
 
 **Statuses:** To Do, In Progress, Done. A new task starts as **To Do**.
-**Late task:** due date before today and status not **Done**.
+**Late task:** due date before today (in the user's local date) and status not **Done**.
 
 ## 1. User stories and priorities
 
@@ -30,17 +30,17 @@ All stories are part of the MVP (**Must**). The order is the order in which they
 - **Given** I'm not signed in, **when** I try to open a project, **then** I'm sent to the sign-in screen.
 
 ### US-02: Create, edit and delete projects
-- **Given** I'm signed in, **when** I create a project with a name, **then** it appears in my project list and I'm its project manager.
+- **Given** I'm signed in, **when** I create a project with a name and, optionally, a description, **then** it appears in my project list and I'm its project manager.
 - **Given** I'm the project manager, **when** I change the project's name and save, **then** other members see the new name when they next open the project.
 - **Given** I'm the project manager, **when** I delete the project and confirm, **then** the project and its tasks no longer appear in any member's project list or "My tasks".
 - **Given** I'm a member but not the project manager, **when** I open the project, **then** I can't edit or delete it.
 
 ### US-03: Add and remove project members
 - **Given** I'm the project manager, **when** I add a registered user by email, **then** the project appears in their project list.
-- **Given** I'm the project manager, **when** I remove a member, **then** they can no longer see the project.
+- **Given** I'm the project manager, **when** I remove a member, **then** they can no longer see the project, and the tasks assigned to them in that project are unassigned.
 
 ### US-04: Create, edit and delete tasks
-- **Given** I'm a project member, **when** I create a task with a title, **then** it's added to the project with status **To Do**.
+- **Given** I'm a project member, **when** I create a task with a title, **then** it's added to the project with status **To Do** and priority **Low**, unless I choose another priority.
 - **Given** I'm creating or editing a task, **when** I choose an assignee, **then** I can only choose from the project's members.
 - **Given** a task exists, **when** I change its details and save, **then** other members see the changes when they next open the project.
 - **Given** I'm the project manager, **when** I delete a task and confirm, **then** it's removed from the project.
@@ -64,16 +64,17 @@ All stories are part of the MVP (**Must**). The order is the order in which they
 - **Given** a late task, **when** its status changes to **Done**, **then** it's no longer shown as late.
 
 ### US-09: Delete my account
-- **Given** I'm signed in, **when** I delete my account and confirm, **then** I'm signed out and can no longer sign in with that email.
+- **Given** I'm signed in, **when** I delete my account and confirm, **then** I'm signed out and can no longer sign in with that email. The email can be used to sign up again, as a new account.
 - **Given** my account was deleted, **when** another member opens a project I belonged to, **then** my name and email aren't shown, and tasks that were assigned to me are unassigned.
 
 ## 3. Exceptional cases
 
 | ID | Situation | Expected behaviour |
 |---|---|---|
-| EC-01 | Someone signs up with an email that's already in use. | The account isn't created, and a message explains why. |
+| EC-01 | Someone signs up with an email that's already in use, ignoring upper and lower case. | The account isn't created, and a message explains why. |
 | EC-02 | Someone signs in with a wrong email or password. | Sign-in fails with the message "Email or password is incorrect". |
 | EC-03 | A project or task is created without a name or title. | It isn't saved, and the empty field is pointed out. |
 | EC-04 | A user who isn't a member tries to open a project. | The project isn't shown. |
 | EC-05 | A task is due **today**, or has no due date. | It isn't shown as late. |
 | EC-06 | A user who is the project manager of a project tries to delete their account. | The account isn't deleted until they delete that project, and a message explains why. |
+| EC-07 | The project manager tries to remove themselves from their project. | They aren't removed, and a message explains why. |

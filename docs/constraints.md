@@ -13,8 +13,8 @@
 
 - Small teams that track work in spreadsheets and chat lose track of who is doing what, and of what's late.
 - Matriz is used by small teams, in one shared workspace.
-- There are two user types: project manager and team member.
-- The user who creates a project is its project manager.
+- There are two user types: project manager and team member. These are roles in each project, not types of account: a user can be the project manager of one project and a team member of another.
+- The user who creates a project is its project manager. Each project has one project manager, who can't be removed or replaced.
 - Each task has at most one assignee.
 - The statuses To Do, In Progress and Done are enough.
 - Users work mainly on a computer.
@@ -30,9 +30,15 @@
 
 ## 4. Pending technical decisions
 
-- Type of application and the technologies to use.
-- Database for storing users, projects and tasks.
-- How users sign in.
+Decided so far:
+
+- Type of application: a modular monolith ([ADR 0001](decisions/0001-use-modular-monolith.md)), with a REST API between clients and the application ([ADR 0003](decisions/0003-use-rest-between-clients-and-api.md)).
+- Database: PostgreSQL ([ADR 0002](decisions/0002-use-postgresql.md)).
+- Sign-in: email and password, with server-side sessions ([ADR 0004](decisions/0004-use-email-password-with-server-side-sessions.md)).
+
+Still pending:
+
+- The technologies to use for the client and the application.
 - Where the application is hosted.
 
 ## 5. Scope limitations

@@ -19,7 +19,7 @@ The MVP is the smallest version where a team can **create a project, assign task
 | ID | Feature |
 |---|---|
 | FR-01 | Sign up, sign in and sign out. |
-| FR-02 | Create, edit and delete projects. |
+| FR-02 | Create, edit and delete projects (name and optional description). |
 | FR-03 | Add and remove project members. |
 | FR-04 | Create and edit tasks (title, description, assignee, due date, priority). Only the project manager can delete them. |
 | FR-05 | Change a task's status: To Do, In Progress, Done. |
@@ -39,17 +39,20 @@ Features planned for later versions (comments, filters, progress summary, notifi
 | [docs/requirements.md](docs/requirements.md) | Vision and goals, user types, functional and non-functional requirements, MVP scope, and features out of the initial scope. |
 | [docs/user-stories.md](docs/user-stories.md) | The MVP backlog: 9 user stories (one per MVP requirement) with priorities, Given / When / Then acceptance criteria, and exceptional cases. |
 | [docs/constraints.md](docs/constraints.md) | Known constraints, assumptions, security and privacy requirements, pending technical decisions, and scope limitations. |
+| [docs/architecture.md](docs/architecture.md) | Architecture alternatives, the chosen modular monolith, and its main components and responsibilities. |
+| [docs/database.md](docs/database.md) | Conceptual data model: entities, relationships, integrity rules and traceability to the requirements. |
+| [docs/decisions/](docs/decisions/) | Architecture Decision Records (ADRs). |
 | [AGENTS.md](AGENTS.md) | Instructions for coding agents working on the project. |
 
 The documents are traceable: each user story (US-xx) is linked to a functional requirement (FR-xx) in the requirements.
 
 ## Current status
 
-**Phase: requirements and analysis.** No code has been written yet.
+**Phase: technical design.** No code has been written yet.
 
 - [x] Problem analysis and clarification
 - [x] Requirements and MVP scope
 - [x] MVP user stories and acceptance criteria
-- [ ] Technical design and technology choice
+- [ ] Technical design and technology choice (in progress: architecture drafted, data model approved, sign-in method chosen; technologies and hosting pending)
 - [ ] MVP implementation
 - [ ] Testing against the acceptance criteria
