@@ -1,0 +1,9 @@
+Explica o comportamento deste módulo com referências ao código.
+
+Identifica os pontos de entrada, as dependências, as regras de negócio
+e os efeitos produzidos.
+
+Distingue o comportamento observado das suposições.
+Assinala dúvidas e riscos relevantes para uma futura alteração.
+
+Não alteres ficheiros.

@@ -1,0 +1,10 @@
+Revê os estados da interface de criação de tarefas.
+
+Verifica validação, submissão em curso, sucesso e erro.
+Confirma também o comportamento quando a listagem está vazia.
+
+Identifica situações em que o utilizador fica sem feedback,
+perde dados introduzidos ou consegue repetir a submissão
+enquanto o pedido anterior está em curso.
+
+Propõe correções limitadas aos problemas encontrados.

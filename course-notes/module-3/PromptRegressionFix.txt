@@ -1,0 +1,10 @@
+Aplica a correção para a causa confirmada.
+
+Acrescenta um teste de regressão no nível adequado ao problema,
+seguindo as ferramentas e convenções existentes.
+
+Verifica que a tarefa aparece após a criação, sem recarregar
+a página e sem duplicação.
+
+Executa o teste de regressão e os testes relacionados.
+Apresenta o diff, os resultados e as verificações pendentes.

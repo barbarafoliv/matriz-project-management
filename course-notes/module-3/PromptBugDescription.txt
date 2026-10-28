@@ -1,0 +1,19 @@
+Problema:
+Uma tarefa criada só aparece na listagem depois de recarregar a página.
+
+Passos para reproduzir:
+1. Abrir um projeto com permissão para criar tarefas.
+2. Preencher o formulário com um título válido.
+3. Submeter o formulário.
+4. Observar a listagem.
+5. Recarregar a página.
+
+Resultado esperado:
+A tarefa aparece na listagem após a confirmação da criação.
+
+Resultado observado:
+A interface confirma a criação, mas a listagem mantém-se igual.
+Depois de recarregar, a tarefa aparece.
+
+Frequência:
+O problema ocorre em todas as tentativas realizadas.

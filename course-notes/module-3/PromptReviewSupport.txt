@@ -1,0 +1,10 @@
+Revê o diff face à issue e aos critérios de aceitação.
+
+Identifica problemas concretos de correção, regressões,
+alterações fora do âmbito e lacunas de verificação.
+
+Para cada problema, indica a localização, a evidência,
+o impacto e uma possível correção.
+
+Distingue problemas confirmados de dúvidas.
+Não alteres ficheiros nesta revisão.

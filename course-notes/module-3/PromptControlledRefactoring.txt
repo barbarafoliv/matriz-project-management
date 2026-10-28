@@ -1,0 +1,17 @@
+Analisa o código relacionado com a criação e atualização de tarefas.
+
+Identifica duplicação, complexidade e responsabilidades misturadas.
+Para cada oportunidade, indica os ficheiros envolvidos,
+o benefício esperado e os riscos.
+
+Propõe uma refatoração pequena, respeitando a arquitetura existente.
+Preserva o contrato da API, as regras de negócio e as permissões.
+
+Antes de alterar, executa os testes relevantes e regista o resultado.
+Se faltar cobertura para o comportamento afetado, propõe como verificá-lo.
+
+Após a validação da proposta, implementa a refatoração
+e volta a executar as verificações.
+
+Apresenta o diff e explica como confirmaste
+que o comportamento foi preservado.

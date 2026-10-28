@@ -1,0 +1,19 @@
+Investiga o seguinte problema na Matriz:
+uma tarefa criada só aparece na listagem depois de recarregar a página.
+
+Usa os passos de reprodução e a evidência fornecida.
+
+Analisa o percurso entre:
+- Submissão do formulário.
+- Pedido e resposta da API.
+- Tratamento da resposta.
+- Atualização do estado ou da cache.
+- Apresentação da listagem e aplicação de filtros.
+
+Identifica os ficheiros envolvidos e apresenta hipóteses
+com a evidência que as suporta ou contraria.
+
+Se faltar informação, indica como a recolher.
+Distingue conclusões confirmadas de hipóteses por verificar.
+
+Não alteres ficheiros nesta fase.

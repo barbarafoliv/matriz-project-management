@@ -1,0 +1,10 @@
+Verifica a implementação da criação de tarefas.
+
+Compara o comportamento com os critérios de aceitação
+e com o contrato OpenAPI.
+
+Executa os testes relevantes e verifica os cenários de sucesso,
+validação e autorização.
+
+Apresenta os resultados observados, os comandos executados
+e os cenários que não conseguiste verificar.

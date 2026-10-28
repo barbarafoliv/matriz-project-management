@@ -1,0 +1,13 @@
+Implementa a interface de criação de tarefas da Matriz,
+seguindo o protótipo e as convenções do Frontend.
+
+Reutiliza os componentes, estilos e mecanismos de acesso à API
+já existentes.
+
+Inclui os campos definidos no contrato, validação do formulário
+e feedback durante a submissão.
+
+Após a criação, atualiza a listagem de tarefas.
+Preserva os dados introduzidos quando ocorrer um erro recuperável.
+
+Mantém a alteração limitada a esta funcionalidade.

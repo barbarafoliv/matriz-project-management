@@ -1,0 +1,12 @@
+Com base na análise anterior, propõe um plano para implementar
+o Backend da criação de tarefas.
+
+Para cada passo, indica:
+- Ficheiros a criar ou alterar.
+- Responsabilidade da alteração.
+- Dependências e dúvidas por resolver.
+- Forma de verificar o comportamento.
+
+Respeita o contrato OpenAPI e os padrões existentes.
+Mantém o âmbito limitado a esta funcionalidade.
+Aguarda a validação do plano antes de implementar.

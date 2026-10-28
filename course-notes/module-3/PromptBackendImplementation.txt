@@ -1,0 +1,10 @@
+Implementa o Backend de acordo com o plano validado.
+
+Reutiliza os mecanismos existentes de autenticação, autorização,
+validação e tratamento de erros.
+
+Respeita o contrato OpenAPI e as convenções do projeto.
+Acrescenta ou adapta os testes necessários para verificar a alteração.
+
+No final, apresenta os ficheiros alterados, as verificações executadas
+e as limitações ou problemas que ficaram por resolver.

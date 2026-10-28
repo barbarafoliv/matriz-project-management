@@ -1,0 +1,17 @@
+Vamos implementar a criação de uma tarefa num projeto da Matriz.
+
+Analisa as instruções do repositório, a arquitetura, o modelo de dados
+e o contrato OpenAPI.
+
+Localiza:
+- A estrutura do Backend e do Frontend.
+- O código relacionado com projetos e tarefas.
+- Os mecanismos de autenticação, autorização e validação.
+- O tratamento de erros e os testes existentes.
+- Os comandos usados para executar e verificar o projeto.
+
+Apresenta os ficheiros relevantes e as funcionalidades reutilizáveis.
+Distingue o que já existe do que falta implementar.
+Identifica dúvidas ou inconsistências, indicando os ficheiros envolvidos.
+
+Não alteres ficheiros nesta fase.

@@ -1,0 +1,11 @@
+Alteração realizada:
+O que mudou e qual o problema resolvido.
+
+Verificações:
+Comandos executados, cenários verificados e resultados.
+
+Limitações:
+Verificações não executadas e problemas pendentes.
+
+Revisão:
+Ficheiros ou decisões que exigem atenção do programador.
