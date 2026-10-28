@@ -2,12 +2,15 @@ openapi: 3.1.0
 
 info:
   title: Matriz API
-  version: 0.2.0
+  version: 0.3.0
   description: |
-    REST API of the Matriz MVP (FR-01 to FR-08, FR-14), using JSON over HTTP (ADR 0003).
+    REST API of the Matriz MVP (FR-01 to FR-10, FR-14 to FR-17), using JSON over HTTP (ADR 0003).
 
     - **Authentication:** server-side session identified by the `SESSION` cookie
-      (ADR 0004, ADR 0005). Every operation requires it, except sign-up and sign-in.
+      (ADR 0004, ADR 0005). Every operation requires it, except sign-up, sign-in and
+      sign-out. Demo accounts are created by a seed (FR-01).
+    - **Identity:** the caller is always taken from the session. The project manager of
+      a new project and the author of a comment are never read from the request.
     - **CSRF:** every POST, PUT and DELETE, including sign-up and sign-in, must send the
       value of the `XSRF-TOKEN` cookie in the `X-XSRF-TOKEN` header (Angular does this
       automatically). Otherwise the response is 403 `CSRF_TOKEN_INVALID`.
@@ -20,8 +23,11 @@ info:
       application runs on the user's machine (ADR 0006), so this is the user's local
       date (FR-08, EC-05).
     - **Nulls:** optional fields are always present in responses, as `null` when empty.
-    - **Lists:** returned as plain arrays, in a fixed order. There is no pagination,
-      filtering or sorting in the MVP.
+    - **Lists:** returned as plain arrays, in a fixed order. There is no pagination or
+      custom sorting in the MVP. Projects can be searched by name (FR-16) and tasks
+      filtered by status and priority (FR-10).
+    - **Text fields:** names, titles and comments are trimmed. A value made only of
+      spaces is rejected with field error `BLANK` (EC-03, EC-10).
 
 servers:
   - url: http://localhost:8080/api
@@ -32,11 +38,11 @@ security:
 
 tags:
   - name: Accounts
-    description: Sign-up, sign-in, sign-out and account deletion (FR-01, FR-14).
+    description: Sign-in, sign-out, the signed-in user, account deletion and the optional sign-up (FR-01, FR-14, FR-18).
   - name: Projects
-    description: Projects and project members (FR-02, FR-03).
+    description: Projects, project search, dashboard counts and project members (FR-02, FR-03, FR-16, FR-17).
   - name: Tasks
-    description: Tasks, project board and "My tasks" (FR-04 to FR-08).
+    description: Tasks, filters, project board, "My tasks", assignees and comments (FR-04 to FR-10, FR-15).
 
 paths:
 
@@ -46,9 +52,11 @@ paths:
     post:
       tags: [Accounts]
       operationId: signUp
-      summary: Sign up
+      summary: Sign up (optional extension)
       description: >
-        Creates an account and signs the user in (US-01).
+        **Optional extension (FR-18, Could), not part of the MVP.** Only available if
+        FR-18 is built; otherwise accounts come from the demo seed.
+        Creates an account and signs the user in.
         The email must not be used by another account, ignoring case (EC-01).
       security: []
       requestBody:
@@ -97,8 +105,9 @@ paths:
       operationId: deleteAccount
       summary: Delete my account
       description: >
-        Deletes the user and their memberships, unassigns their tasks and ends their
-        session (US-09, FR-14). The email can then be used to sign up again.
+        Deletes the user, their memberships and their assignments, keeps their comments
+        without an author (`author` becomes null), and ends their session (US-09, FR-14).
+        The email can then be used by a new account.
         Fails while the user is the project manager of any project (EC-06).
       responses:
         '204':
@@ -120,8 +129,9 @@ paths:
       operationId: listMyTasks
       summary: My tasks
       description: >
-        Tasks assigned to the signed-in user in all their projects, each with its
-        project (US-06) and late flag (US-08). Sorted by due date, tasks without one last.
+        Tasks the signed-in user is one of the assignees of, in all their projects, each
+        with its project (US-06) and late flag (US-08). Sorted by due date, tasks without
+        one last.
       responses:
         '200':
           description: Tasks assigned to the signed-in user.
@@ -194,7 +204,21 @@ paths:
       tags: [Projects]
       operationId: listProjects
       summary: List my projects
-      description: Projects the caller is a member of, sorted by name (US-01, US-02, US-03).
+      description: >
+        Projects the caller is a member of, sorted by name, each with its task counts
+        per status (US-02, US-03, US-14). Used by the dashboard and the projects screen.
+        With `q`, only projects whose name contains it, ignoring case (US-12).
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Text to search for in the project name. Trimmed; empty means no search.
+          schema:
+            type: string
+            maxLength: 100
+          examples:
+            search:
+              value: web
       responses:
         '200':
           description: The caller's projects.
@@ -286,7 +310,8 @@ paths:
       operationId: deleteProject
       summary: Delete a project
       description: >
-        Deletes the project with its tasks and memberships (US-02). Project manager only.
+        Deletes the project with its tasks, their assignments and comments, and its
+        memberships (US-02). Project manager only.
       responses:
         '204':
           description: Project deleted.
@@ -308,7 +333,7 @@ paths:
       summary: List project members
       description: >
         All members, including the project manager, sorted by name (US-03).
-        Also used to choose a task's assignee (US-04).
+        Also the list of users eligible to be assigned to the project's tasks (US-10).
       responses:
         '200':
           description: The project's members.
@@ -368,11 +393,11 @@ paths:
       operationId: removeMember
       summary: Remove a member
       description: >
-        Removes the member and unassigns their tasks in this project (US-03).
+        Removes the member and their assignments in this project (US-03).
         Project manager only. The project manager can't be removed (EC-07).
       responses:
         '204':
-          description: Member removed and their tasks unassigned.
+          description: Member and their assignments removed.
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -395,9 +420,22 @@ paths:
       operationId: listTasks
       summary: List project tasks (board)
       description: >
-        All tasks of the project, with the data for a board card and the late flag
+        Tasks of the project, with the data for a board card and the late flag
         (US-07, US-08). Sorted by due date, tasks without one last.
-        The client groups them into status columns.
+        The client groups them into status columns. `status` and `priority` filter the
+        list; both can be combined (US-13). Filters don't change the project's
+        `taskCounts`.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+        - name: priority
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Priority'
       responses:
         '200':
           description: The project's tasks.
@@ -418,8 +456,8 @@ paths:
       operationId: createTask
       summary: Create a task
       description: >
-        Creates a task with status TODO and, unless given, priority LOW (US-04).
-        The assignee must be a project member.
+        Creates a task with status TODO and, unless given, priority MEDIUM (US-04).
+        The task starts without assignees; they are added with `POST .../assignees`.
       requestBody:
         required: true
         content:
@@ -472,7 +510,7 @@ paths:
       summary: Edit a task
       description: >
         Replaces the task's details (US-04). Any member can edit. Status is changed
-        with `PUT .../status`.
+        with `PUT .../status`, and assignees with `.../assignees`.
       requestBody:
         required: true
         content:
@@ -498,7 +536,7 @@ paths:
       tags: [Tasks]
       operationId: deleteTask
       summary: Delete a task
-      description: Project manager only (US-04).
+      description: Deletes the task with its assignments and comments. Project manager only (US-04).
       responses:
         '204':
           description: Task deleted.
@@ -535,6 +573,118 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/tasks/{taskId}/assignees:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+      - $ref: '#/components/parameters/taskId'
+    post:
+      tags: [Tasks]
+      operationId: addAssignee
+      summary: Assign a member to a task
+      description: >
+        Any member can assign a project member (US-10). The user must exist and be a
+        member of the project, otherwise field error `USER_NOT_FOUND` or `NOT_A_MEMBER`
+        on `userId` (EC-09). Returns the task with its updated assignees.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddAssigneeRequest'
+      responses:
+        '201':
+          description: Assignment made.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: The user is already assigned to the task (`ALREADY_ASSIGNED`, EC-08).
+
+  /projects/{projectId}/tasks/{taskId}/assignees/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+      - $ref: '#/components/parameters/taskId'
+      - $ref: '#/components/parameters/userId'
+    delete:
+      tags: [Tasks]
+      operationId: removeAssignee
+      summary: Remove an assignment
+      description: Any member can remove an assignment (US-10).
+      responses:
+        '204':
+          description: Assignment removed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/tasks/{taskId}/comments:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+      - $ref: '#/components/parameters/taskId'
+    get:
+      tags: [Tasks]
+      operationId: listComments
+      summary: List a task's comments
+      description: All comments of the task, oldest first (US-11).
+      responses:
+        '200':
+          description: The task's comments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Tasks]
+      operationId: addComment
+      summary: Add a comment
+      description: >
+        Any member can comment (US-11). The author is the caller and the date is set by
+        the server; neither is read from the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+      responses:
+        '201':
+          description: Comment added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -647,7 +797,7 @@ components:
     NotFound:
       description: >
         `PROJECT_NOT_FOUND` (doesn't exist or caller isn't a member, EC-04),
-        `TASK_NOT_FOUND` or `MEMBER_NOT_FOUND`.
+        `TASK_NOT_FOUND`, `MEMBER_NOT_FOUND` or `ASSIGNMENT_NOT_FOUND`.
       content:
         application/problem+json:
           schema:
@@ -760,9 +910,9 @@ components:
       properties:
         name:
           type: string
-          minLength: 1
+          minLength: 3
           maxLength: 100
-          description: Trimmed; must not be empty (EC-03).
+          description: Trimmed; 3 to 100 characters, not only spaces (EC-03).
           examples: [Website redesign]
         description:
           type: [string, 'null']
@@ -771,7 +921,7 @@ components:
 
     Project:
       type: object
-      required: [id, name, description, myRole, createdAt, updatedAt]
+      required: [id, name, description, myRole, taskCounts, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -785,6 +935,8 @@ components:
         myRole:
           $ref: '#/components/schemas/Role'
           description: The caller's role, so the client can hide actions it can't do.
+        taskCounts:
+          $ref: '#/components/schemas/TaskCounts'
         createdAt:
           type: string
           format: date-time
@@ -803,6 +955,25 @@ components:
         name:
           type: string
           examples: [Website redesign]
+
+    TaskCounts:
+      type: object
+      description: >
+        Number of tasks per status, counted over all of the project's tasks (US-14).
+      required: [todo, inProgress, done]
+      properties:
+        todo:
+          type: integer
+          minimum: 0
+          examples: [4]
+        inProgress:
+          type: integer
+          minimum: 0
+          examples: [2]
+        done:
+          type: integer
+          minimum: 0
+          examples: [5]
 
     AddMemberRequest:
       type: object
@@ -844,41 +1015,34 @@ components:
       properties:
         title:
           type: string
-          minLength: 1
-          maxLength: 100
-          description: Trimmed; must not be empty (EC-03).
+          minLength: 3
+          maxLength: 150
+          description: Trimmed; 3 to 150 characters, not only spaces (EC-03).
           examples: [Write the landing page copy]
         description:
           type: [string, 'null']
-          maxLength: 1000
-        assigneeId:
-          type: [integer, 'null']
-          format: int64
-          description: Must be a project member (US-04), otherwise field error `NOT_A_MEMBER`.
+          maxLength: 2000
         dueDate:
           type: [string, 'null']
           format: date
           examples: ['2026-11-15']
         priority:
           $ref: '#/components/schemas/Priority'
-          default: LOW
+          default: MEDIUM
 
     UpdateTaskRequest:
       type: object
       description: Full replacement. `null` clears an optional field.
-      required: [title, description, assigneeId, dueDate, priority]
+      required: [title, description, dueDate, priority]
       properties:
         title:
           type: string
-          minLength: 1
-          maxLength: 100
+          minLength: 3
+          maxLength: 150
+          description: Trimmed; 3 to 150 characters, not only spaces (EC-03).
         description:
           type: [string, 'null']
-          maxLength: 1000
-        assigneeId:
-          type: [integer, 'null']
-          format: int64
-          description: Must be a project member (US-04), otherwise field error `NOT_A_MEMBER`.
+          maxLength: 2000
         dueDate:
           type: [string, 'null']
           format: date
@@ -894,7 +1058,7 @@ components:
 
     Task:
       type: object
-      required: [id, projectId, title, description, assignee, dueDate, priority, status, late, createdAt, updatedAt]
+      required: [id, projectId, title, description, assignees, dueDate, priority, status, late, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -909,10 +1073,11 @@ components:
           examples: [Write the landing page copy]
         description:
           type: [string, 'null']
-        assignee:
-          oneOf:
-            - $ref: '#/components/schemas/UserSummary'
-            - type: 'null'
+        assignees:
+          type: array
+          description: The task's assignees, sorted by name. Empty when it has none (US-10).
+          items:
+            $ref: '#/components/schemas/UserSummary'
         dueDate:
           type: [string, 'null']
           format: date
@@ -941,6 +1106,56 @@ components:
           properties:
             project:
               $ref: '#/components/schemas/ProjectSummary'
+
+    AddAssigneeRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: >
+            A project member (US-10). Otherwise field error `USER_NOT_FOUND` or
+            `NOT_A_MEMBER` (EC-09).
+          examples: [2]
+
+    CommentRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Trimmed; 1 to 2000 characters, not only spaces (EC-10).
+          examples: [I'll have a first draft by Friday.]
+
+    Comment:
+      type: object
+      required: [id, taskId, content, author, createdAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [15]
+        taskId:
+          type: integer
+          format: int64
+          examples: [42]
+        content:
+          type: string
+          examples: [I'll have a first draft by Friday.]
+        author:
+          description: >
+            The signed-in user who wrote it. Null if their account was deleted; the
+            client shows "Deleted user" (US-09).
+          oneOf:
+            - $ref: '#/components/schemas/UserSummary'
+            - type: 'null'
+        createdAt:
+          type: string
+          format: date-time
+          description: Set by the server.
 
     Priority:
       type: string
@@ -987,6 +1202,9 @@ components:
           type: string
           examples: [title]
         code:
+          description: >
+            `TOO_SHORT` and `TOO_LONG` use the limits in the request schema; `BLANK` is a
+            value made only of spaces.
           type: string
           enum: [REQUIRED, BLANK, TOO_SHORT, TOO_LONG, INVALID_FORMAT, INVALID_VALUE, NOT_A_MEMBER, USER_NOT_FOUND]
         message:
@@ -1005,8 +1223,10 @@ components:
         - PROJECT_NOT_FOUND
         - TASK_NOT_FOUND
         - MEMBER_NOT_FOUND
+        - ASSIGNMENT_NOT_FOUND
         - EMAIL_IN_USE
         - ALREADY_MEMBER
+        - ALREADY_ASSIGNED
         - PROJECT_MANAGER_NOT_REMOVABLE
         - ACCOUNT_MANAGES_PROJECTS
         - TOO_MANY_SIGN_IN_ATTEMPTS

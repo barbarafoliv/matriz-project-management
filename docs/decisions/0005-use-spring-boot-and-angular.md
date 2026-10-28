@@ -14,7 +14,7 @@ The backend will be built with **Spring Boot** and the frontend with **Angular**
 
 - Spring Boot serves the REST API, manages sessions, enforces access rules and handles all business logic.
 - Angular runs in the browser, consumes the REST API and renders the user interface.
-- Sessions and failed sign-in attempts are stored in PostgreSQL, using Spring Session with JDBC. No separate session store is needed.
+- Sessions are stored in PostgreSQL, using Spring Session with JDBC. No separate session store is needed. Failed sign-in attempts are counted by the application in its own table (see [database.md](../database.md)).
 
 ## Alternatives considered
 
@@ -24,7 +24,7 @@ The backend will be built with **Spring Boot** and the frontend with **Angular**
 ## Consequences
 
 - Spring Boot's module system supports the modular monolith structure.
-- Spring Security covers authentication, session management, rate-limiting of failed attempts and access control (NFR-02).
+- Spring Security covers authentication, session management and access control (NFR-02). It doesn't limit failed sign-in attempts, so the Accounts module does this itself.
 - Spring Session with JDBC stores sessions in PostgreSQL, keeping the infrastructure simple — one database, no extra service.
 - Angular's component model maps naturally to the board and task views (FR-06, FR-07).
 - The project requires JDK and Node.js to be installed locally.

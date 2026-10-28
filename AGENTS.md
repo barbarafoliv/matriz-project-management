@@ -18,6 +18,7 @@ These documents are the source of truth. The `course-notes/` folder is not produ
 - Keep business logic out of the controllers and out of the user interface.
 - Don't introduce dependencies without justifying the need, and get approval first.
 - Never write passwords, keys, tokens or other secrets into code, documentation, commits or output. Use only fake personal data.
+  - The only exception is the fake password of the seeded demo accounts, which may be written in `README.md`.
 
 ## Process
 
