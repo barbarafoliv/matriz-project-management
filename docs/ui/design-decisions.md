@@ -2,7 +2,7 @@
 
 > Companion to [prototype.html](prototype.html). Open that file in a browser to explore the prototype.
 >
-> The prototype was made before assignees, comments, search, filters and the dashboard were added to the MVP, and before task detail became a page. Where they differ, this document is the reference.
+> The prototype covers the MVP screens: sign in, dashboard, projects with search, project detail with board and filters, task detail page with assignees and comments, My Tasks, and the optional sign-up. Where they differ, this document is the reference.
 
 ---
 

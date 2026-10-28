@@ -153,10 +153,37 @@
     /* card wrapper */
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
 
+    /* status counts (dashboard) */
+    .counts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+    .count { font-size: 11px; padding: 2px 7px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg); }
+    .count strong { font-size: 12px; }
+
+    /* search and filters */
+    .toolbar { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+    .toolbar .field { min-width: 160px; }
+    .search { max-width: 360px; flex: 1; }
+
+    /* task detail page */
+    .detail { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: flex-start; }
+    .panel { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .panel h2 { font-size: 14px; font-weight: 600; }
+    .panel-ft { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .assignees { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .assignees li { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .comments { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .comment { border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .comment:last-child { border-bottom: none; }
+    .comment-hd { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .comment-hd strong { color: var(--text); font-size: 13px; }
+    .comment p { font-size: 13px; white-space: pre-wrap; }
+
     @media(max-width:600px) {
       .board { flex-direction: column; }
       .col  { flex: none; width: 100%; }
       .grid2 { grid-template-columns: 1fr; }
+    }
+    @media(max-width:800px) {
+      .detail { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -177,31 +204,40 @@ const MOCK = {
     { id: 1, name: 'Alice Ferreira', email: 'alice@example.com', role: 'PROJECT_MANAGER' },
     { id: 2, name: 'Bob Silva',      email: 'bob@example.com',   role: 'MEMBER' },
     { id: 3, name: 'Carol Santos',   email: 'carol@example.com', role: 'MEMBER' },
+    { id: 4, name: 'Dan Costa',      email: 'dan@example.com',   role: 'MEMBER' },
   ],
   tasks: {
     1: [
-      { id:1, title:'Set up CI pipeline',     assignee_id:2, assignee:'Bob',   due:'2026-10-20', priority:'MEDIUM', status:'TODO',        late:true  },
-      { id:2, title:'Write unit tests',       assignee_id:null, assignee:null, due:'2026-10-15', priority:'LOW',    status:'TODO',        late:true  },
-      { id:3, title:'Fix login redirect',     assignee_id:1, assignee:'Alice', due:'2026-11-30', priority:'HIGH',   status:'TODO',        late:false },
-      { id:4, title:'Design sign-in screen',  assignee_id:3, assignee:'Carol', due:'2026-11-20', priority:'HIGH',   status:'IN_PROGRESS', late:false },
-      { id:5, title:'Implement task API',     assignee_id:2, assignee:'Bob',   due:'2026-11-18', priority:'MEDIUM', status:'IN_PROGRESS', late:false },
-      { id:6, title:'Write requirements doc', assignee_id:1, assignee:'Alice', due:'2026-10-25', priority:'LOW',    status:'DONE',        late:false },
+      { id:1, title:'Set up CI pipeline',     description:'Build and test on every push.', assignees:[2],       due:'2026-10-20', priority:'MEDIUM', status:'TODO',        late:true  },
+      { id:2, title:'Write unit tests',       description:null,                            assignees:[],        due:'2026-10-15', priority:'LOW',    status:'TODO',        late:true  },
+      { id:3, title:'Fix login redirect',     description:null,                            assignees:[1,2,3,4], due:'2026-11-30', priority:'HIGH',   status:'TODO',        late:false },
+      { id:4, title:'Design sign-in screen',  description:'Follow the UI decisions.',      assignees:[3,1],     due:'2026-11-20', priority:'HIGH',   status:'IN_PROGRESS', late:false },
+      { id:5, title:'Implement task API',     description:null,                            assignees:[2],       due:'2026-11-18', priority:'MEDIUM', status:'IN_PROGRESS', late:false },
+      { id:6, title:'Write requirements doc', description:null,                            assignees:[1],       due:'2026-10-25', priority:'LOW',    status:'DONE',        late:false },
     ],
     2: [
-      { id:7, title:'Audit current pages',       assignee_id:1, assignee:'Alice', due:'2026-11-05', priority:'MEDIUM', status:'DONE',        late:false },
-      { id:8, title:'Create new colour palette', assignee_id:1, assignee:'Alice', due:'2026-11-12', priority:'LOW',    status:'IN_PROGRESS', late:false },
-      { id:9, title:'Update homepage layout',    assignee_id:1, assignee:'Alice', due:'2026-10-22', priority:'HIGH',   status:'TODO',        late:true  },
+      { id:7, title:'Audit current pages',       description:null, assignees:[1],   due:'2026-11-05', priority:'MEDIUM', status:'DONE',        late:false },
+      { id:8, title:'Create new colour palette', description:null, assignees:[1,3], due:'2026-11-12', priority:'LOW',    status:'IN_PROGRESS', late:false },
+      { id:9, title:'Update homepage layout',    description:null, assignees:[1],   due:'2026-10-22', priority:'HIGH',   status:'TODO',        late:true  },
     ],
     3: [],
   },
+  comments: {
+    4: [
+      { id:1, author:'Carol Santos',   content:'First draft is in the shared folder.',          createdAt:'2026-10-26T09:14' },
+      { id:2, author:null,             content:'Can we keep the logo on the left?',             createdAt:'2026-10-26T11:02' },
+      { id:3, author:'Alice Ferreira', content:'Yes, and let\'s check it on narrow screens too.', createdAt:'2026-10-27T15:40' },
+    ],
+  },
 };
-MOCK.myTasks = Object.entries(MOCK.tasks).flatMap(([pid, list]) => {
+const myTasks = () => Object.entries(MOCK.tasks).flatMap(([pid, list]) => {
   const proj = MOCK.projects.find(p => p.id === +pid);
-  return list.filter(t => t.assignee_id === MOCK.user.id).map(t => ({...t, project_name: proj.name, project_id: +pid}));
+  return list.filter(t => t.assignees.includes(MOCK.user.id)).map(t => ({...t, project_name: proj.name, project_id: +pid}));
 });
 
 // ── STATE ────────────────────────────────────────────────────
-var S = { screen:'sign-in', params:{}, modal:null, signedIn:false, loading:false, empty:false, error:false, highlightId:null, taskId:null, confirmPayload:null };
+var S = { screen:'sign-in', params:{}, modal:null, signedIn:false, loading:false, empty:false, error:false, expired:false,
+          highlightId:null, confirmPayload:null, q:'', fStatus:'', fPriority:'' };
 
 // ── ROUTER ───────────────────────────────────────────────────
 function go(screen, params={}) { S.screen=screen; S.params=params; S.modal=null; if(screen!=='board') S.highlightId=null; render(); scrollTo(0,0); }
@@ -209,11 +245,55 @@ function openModal(m)           { S.modal=m; render(); }
 function closeModal()           { S.modal=null; render(); }
 
 // ── HELPERS ──────────────────────────────────────────────────
+const esc   = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const byDue = (a,b) => (a.due||'9999-12-31').localeCompare(b.due||'9999-12-31') || a.id-b.id;
 const ini   = n => n ? n.split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase() : '?';
 const fmtD  = d => d ? d.split('-').reverse().join('/') : '—';
+const fmtDT = d => fmtD(d.slice(0,10)) + ' ' + d.slice(11,16);
+const member = id => MOCK.members.find(m => m.id === id);
 const pBadge = p => `<span class="badge b-${p.toLowerCase()}">${p[0]+p.slice(1).toLowerCase()}</span>`;
 const sBadge = s => { const l={TODO:'To Do',IN_PROGRESS:'In Progress',DONE:'Done'}; const c={TODO:'b-todo',IN_PROGRESS:'b-prog',DONE:'b-done'}; return `<span class="badge ${c[s]}">${l[s]}</span>`; };
+const counts = pid => { const t = MOCK.tasks[pid] || []; const n = s => t.filter(x => x.status === s).length; return { todo:n('TODO'), inProgress:n('IN_PROGRESS'), done:n('DONE') }; };
+const findTask = (pid, tid) => (MOCK.tasks[pid] || []).find(x => x.id === tid);
+
+// Up to 3 initials, then "+N" (UI decision: assignees added one at a time).
+function avatars(ids) {
+  if (!ids.length) return `<span class="av" title="Unassigned" aria-label="Unassigned">—</span>`;
+  const names = ids.map(id => member(id).name);
+  const shown = names.slice(0,3).map(n => `<span class="av" title="${n}" aria-hidden="true">${ini(n)}</span>`).join('');
+  const more  = names.length > 3 ? `<span class="av" aria-hidden="true">+${names.length-3}</span>` : '';
+  return `<span style="display:inline-flex" aria-label="Assigned to ${names.join(', ')}">${shown}${more}</span>`;
+}
+
+function countsHtml(c) {
+  return `<div class="counts" aria-label="Tasks per status">
+    <span class="count">To Do <strong>${c.todo}</strong></span>
+    <span class="count">In Progress <strong>${c.inProgress}</strong></span>
+    <span class="count">Done <strong>${c.done}</strong></span>
+  </div>`;
+}
+
+function emptyState(icon, title, text, action='') {
+  return `<div class="empty" role="status"><div class="empty-icon">${icon}</div><h2>${title}</h2><p>${text}</p>${action}</div>`;
+}
+
+function errorBanner(what) {
+  return `<div class="alert alert-error" role="alert">⚠ Could not load ${what}. <button class="btn-link" onclick="S.error=false;render()">Try again</button></div>`;
+}
+
+function projectCard(p) {
+  return `<a class="proj-card" href="#" onclick="go('board',{pid:${p.id}});return false"
+     aria-label="${p.name}, ${p.member_role==='PROJECT_MANAGER'?'you are project manager':'member'}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <span class="proj-name">${p.name}</span>
+      ${p.member_role==='PROJECT_MANAGER'?'<span class="badge b-pm">PM</span>':''}
+    </div>
+    <p class="proj-desc">${p.description||'<em style="opacity:.5">No description</em>'}</p>
+    ${countsHtml(counts(p.id))}
+  </a>`;
+}
+
+const skelGrid = () => `<div class="proj-grid" aria-busy="true">${[1,2,3].map(()=>`<div class="skel" style="height:140px;border-radius:4px"></div>`).join('')}</div>`;
 
 // ── SCREENS ──────────────────────────────────────────────────
 
@@ -222,25 +302,28 @@ function SignIn() {
     <div class="auth-box">
       <p class="auth-logo">MATRIZ</p>
       <p class="auth-sub">Project and task management for small teams.</p>
+      ${S.expired ? `<div class="alert alert-info" role="alert" style="margin-bottom:14px">Your session has expired. Sign in again.</div>` : ''}
       ${S.error ? `<div class="alert alert-error" role="alert" style="margin-bottom:14px"><span aria-hidden="true">⚠ </span>Email or password is incorrect.</div>` : ''}
-      <form class="auth-form" onsubmit="S.signedIn=true;S.error=false;go('projects');return false">
+      <form class="auth-form" onsubmit="S.signedIn=true;S.error=false;S.expired=false;go('dashboard');return false">
         <div class="field"><label class="label" for="si-e">Email</label>
           <input class="input" id="si-e" type="email" value="alice@example.com" required autocomplete="email"/></div>
         <div class="field"><label class="label" for="si-p">Password</label>
           <input class="input" id="si-p" type="password" value="••••••••" required autocomplete="current-password"/></div>
         <button class="btn btn-primary" style="width:100%;justify-content:center">Sign in</button>
       </form>
-      <p class="auth-foot">Don't have an account? <a href="#" onclick="go('sign-up');return false">Sign up</a></p>
+      <p class="auth-foot">Use one of the demo accounts listed in the README.</p>
     </div>
   </div>`;
 }
 
+// Optional extension (FR-18). Only built if public sign-up is added.
 function SignUp() {
   return `<div class="auth-wrap">
     <div class="auth-box">
       <p class="auth-logo">MATRIZ</p>
       <p class="auth-sub">Create your account to get started.</p>
-      <form class="auth-form" onsubmit="S.signedIn=true;go('projects');return false">
+      <div class="alert alert-info" role="note" style="margin-bottom:14px">Optional extension (FR-18). Not part of the MVP.</div>
+      <form class="auth-form" onsubmit="S.signedIn=true;go('dashboard');return false">
         <div class="field"><label class="label" for="su-n">Name</label>
           <input class="input" id="su-n" type="text" placeholder="Your name" required autocomplete="name"/></div>
         <div class="field"><label class="label" for="su-e">Email</label>
@@ -255,49 +338,57 @@ function SignUp() {
   </div>`;
 }
 
-function Projects() {
+function Dashboard() {
   let body;
-  if (S.loading) {
-    body = `<div class="proj-grid" aria-busy="true">
-      ${[1,2,3].map(()=>`<div class="skel" style="height:120px;border-radius:4px"></div>`).join('')}
-    </div>`;
-  } else if (S.error) {
-    body = `<div class="alert alert-error" role="alert">⚠ Could not load projects. <button class="btn-link" onclick="S.error=false;render()">Try again</button></div>`;
-  } else if (S.empty) {
-    body = `<div class="empty" role="status">
-      <div class="empty-icon">📋</div>
-      <h2>No projects yet</h2>
-      <p>Create your first project to start organising your team's work.</p>
-      <button class="btn btn-primary" onclick="openModal('new-project')">+ New Project</button>
-    </div>`;
-  } else {
-    body = `<div class="proj-grid">${MOCK.projects.map(p => `
-      <a class="proj-card" href="#" onclick="go('board',{pid:${p.id}});return false"
-         aria-label="${p.name}, ${p.member_role==='PROJECT_MANAGER'?'you are project manager':'member'}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <span class="proj-name">${p.name}</span>
-          ${p.member_role==='PROJECT_MANAGER'?'<span class="badge b-pm">PM</span>':''}
-        </div>
-        <p class="proj-desc">${p.description||'<em style="opacity:.5">No description</em>'}</p>
-      </a>`).join('')}
-    </div>`;
-  }
+  if (S.loading)      body = skelGrid();
+  else if (S.error)   body = errorBanner('your projects');
+  else if (S.empty)   body = emptyState('📋', 'No projects yet', 'Create your first project to start organising your team\'s work.',
+                               `<button class="btn btn-primary" onclick="go('projects');openModal('new-project')">+ New Project</button>`);
+  else                body = `<div class="proj-grid">${MOCK.projects.map(projectCard).join('')}</div>`;
   return `<div class="ph">
-    <div><h1>My Projects</h1><p>Projects you are a member of.</p></div>
+    <div><h1>Hello, ${MOCK.user.name}</h1><p>Your projects and their tasks per status.</p></div>
+    <a class="btn" href="#" onclick="go('my-tasks');return false">My Tasks</a>
+  </div>${body}`;
+}
+
+function Projects() {
+  const q = S.q.trim().toLowerCase();
+  const list = MOCK.projects.filter(p => !q || p.name.toLowerCase().includes(q));
+  let body;
+  if (S.loading)      body = skelGrid();
+  else if (S.error)   body = errorBanner('projects');
+  else if (S.empty)   body = emptyState('📋', 'No projects yet', 'Create your first project to start organising your team\'s work.',
+                               `<button class="btn btn-primary" onclick="openModal('new-project')">+ New Project</button>`);
+  else if (!list.length) body = emptyState('🔍', 'No projects match your search.', 'Try another name, or clear the search.',
+                               `<button class="btn" onclick="S.q='';render()">Clear search</button>`);
+  else                body = `<div class="proj-grid">${list.map(projectCard).join('')}</div>`;
+  return `<div class="ph">
+    <div><h1>Projects</h1><p>Projects you are a member of.</p></div>
     <button class="btn btn-primary" onclick="openModal('new-project')">+ New Project</button>
+  </div>
+  <div class="toolbar" role="search">
+    <div class="field search"><label class="label" for="pr-q">Search by name</label>
+      <input class="input" id="pr-q" type="search" placeholder="e.g. launch" value="${esc(S.q)}"
+             onchange="S.q=this.value;render()" onkeydown="if(event.key==='Enter'){S.q=this.value;render()}"/></div>
   </div>${body}`;
 }
 
 function Board() {
   const pid   = S.params.pid || 1;
   const proj  = MOCK.projects.find(p=>p.id===pid) || MOCK.projects[0];
-  const tasks = MOCK.tasks[pid] || [];
+  const all   = MOCK.tasks[pid] || [];
+  const tasks = all.filter(t => (!S.fStatus || t.status===S.fStatus) && (!S.fPriority || t.priority===S.fPriority));
   const isPM  = proj.member_role === 'PROJECT_MANAGER';
   const cols  = [
     { key:'TODO',        label:'To Do' },
     { key:'IN_PROGRESS', label:'In Progress' },
     { key:'DONE',        label:'Done' },
-  ];
+  ].filter(c => !S.fStatus || c.key===S.fStatus);
+  const sel = (id, label, value, opts, set) => `<div class="field"><label class="label" for="${id}">${label}</label>
+    <select class="input" id="${id}" onchange="${set}=this.value;render()">
+      <option value="">All</option>
+      ${opts.map(([v,l])=>`<option value="${v}"${v===value?' selected':''}>${l}</option>`).join('')}
+    </select></div>`;
 
   let boardBody;
   if (S.loading) {
@@ -305,14 +396,13 @@ function Board() {
       ${[1,2,3].map(()=>`<div class="skel" style="flex:0 0 255px;height:280px;border-radius:4px"></div>`).join('')}
     </div>`;
   } else if (S.error) {
-    boardBody = `<div class="alert alert-error" role="alert">⚠ Could not load tasks. <button class="btn-link" onclick="S.error=false;render()">Try again</button></div>`;
+    boardBody = errorBanner('tasks');
+  } else if (!all.length) {
+    boardBody = emptyState('✅', 'No tasks yet', 'Create the first task to get the team started.',
+                  `<button class="btn btn-primary" onclick="openModal('new-task')">+ New Task</button>`);
   } else if (!tasks.length) {
-    boardBody = `<div class="empty" role="status">
-      <div class="empty-icon">✅</div>
-      <h2>No tasks yet</h2>
-      <p>Create the first task to get the team started.</p>
-      <button class="btn btn-primary" onclick="openModal('new-task')">+ New Task</button>
-    </div>`;
+    boardBody = emptyState('🔍', 'No tasks match these filters.', 'Change or clear the filters.',
+                  `<button class="btn" onclick="S.fStatus='';S.fPriority='';render()">Clear filters</button>`);
   } else {
     boardBody = `<div class="board" role="list" aria-label="Task board">
       ${cols.map(({key,label}) => {
@@ -324,12 +414,12 @@ function Board() {
             <article class="tc${t.late?' late':''}${S.highlightId===t.id?' highlight':''}"
                      id="task-${t.id}" tabindex="0" role="button"
                      aria-label="${t.title}${t.late?', late':''}${S.highlightId===t.id?', highlighted':''}"
-                     onclick="S.taskId=${t.id};openModal('task-detail')"
-                     onkeydown="if(event.key==='Enter'){S.taskId=${t.id};openModal('task-detail')}">
+                     onclick="go('task',{pid:${pid},tid:${t.id}})"
+                     onkeydown="if(event.key==='Enter'){go('task',{pid:${pid},tid:${t.id}})}">
               <div class="tc-title">${t.title}</div>
               <div class="tc-foot">
                 <div class="tc-meta">
-                  <span class="av" title="${t.assignee||'Unassigned'}" aria-label="${t.assignee||'Unassigned'}">${t.assignee?ini(t.assignee):'—'}</span>
+                  ${avatars(t.assignees)}
                   ${t.due?`<span aria-label="Due ${fmtD(t.due)}">📅 ${fmtD(t.due)}</span>`:''}
                 </div>
                 <div style="display:flex;gap:4px;align-items:center">
@@ -347,7 +437,7 @@ function Board() {
 
   return `
   <nav class="bc" aria-label="Breadcrumb">
-    <a href="#" onclick="go('projects');return false">My Projects</a>
+    <a href="#" onclick="go('projects');return false">Projects</a>
     <span aria-hidden="true">›</span>
     <span aria-current="page">${proj.name}</span>
   </nav>
@@ -367,34 +457,137 @@ function Board() {
     ${MOCK.members.map(m=>`<span class="av${m.role==='PROJECT_MANAGER'?' av-pm':''}" title="${m.name}${m.role==='PROJECT_MANAGER'?' (PM)':''}" aria-label="${m.name}${m.role==='PROJECT_MANAGER'?', project manager':''}">${ini(m.name)}</span>`).join('')}
     ${isPM?`<button class="btn btn-sm btn-ghost" onclick="openModal('manage-members')" style="margin-left:4px">Manage Members</button>`:''}
   </div>
+  <div class="toolbar" aria-label="Task filters">
+    ${sel('f-s', 'Status', S.fStatus, [['TODO','To Do'],['IN_PROGRESS','In Progress'],['DONE','Done']], 'S.fStatus')}
+    ${sel('f-p', 'Priority', S.fPriority, [['LOW','Low'],['MEDIUM','Medium'],['HIGH','High']], 'S.fPriority')}
+  </div>
   ${boardBody}`;
 }
 
+function TaskDetail() {
+  const pid  = S.params.pid || 1;
+  const proj = MOCK.projects.find(p=>p.id===pid);
+  const t    = findTask(pid, S.params.tid) || MOCK.tasks[1][3];
+  const isPM = proj.member_role === 'PROJECT_MANAGER';
+  const eligible = MOCK.members.filter(m => !t.assignees.includes(m.id));
+  const comments = MOCK.comments[t.id] || [];
+  const l = {TODO:'To Do',IN_PROGRESS:'In Progress',DONE:'Done'};
+
+  if (S.loading) return `<div class="card panel" aria-busy="true">${[1,2,3,4].map((_,i)=>`<div class="skel" style="height:14px;width:${40+i*15}%"></div>`).join('')}</div>`;
+  if (S.error)   return errorBanner('the task');
+
+  return `
+  <nav class="bc" aria-label="Breadcrumb">
+    <a href="#" onclick="go('projects');return false">Projects</a>
+    <span aria-hidden="true">›</span>
+    <a href="#" onclick="go('board',{pid:${pid}});return false">${proj.name}</a>
+    <span aria-hidden="true">›</span>
+    <span aria-current="page">${t.title}</span>
+  </nav>
+  <div class="ph">
+    <div><h1>${t.title}</h1><p>${sBadge(t.status)} ${pBadge(t.priority)} ${t.late?'<span class="badge b-late">Late</span>':''}</p></div>
+  </div>
+  <div class="detail">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <section class="card panel" aria-labelledby="td-h">
+        <h2 id="td-h">Details</h2>
+        ${t.late?`<div class="alert alert-error" role="alert">⚠ This task is <strong>late</strong> — due ${fmtD(t.due)}.</div>`:''}
+        <div class="field"><span class="label">Status</span>
+          <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap" role="group" aria-label="Task status">
+            ${['TODO','IN_PROGRESS','DONE'].map(s=>`<button class="btn btn-sm${t.status===s?' btn-primary':''}" aria-pressed="${t.status===s}"
+               onclick="setStatus(${pid},${t.id},'${s}')">${l[s]}</button>`).join('')}
+          </div>
+          <span class="hint">A status change is saved immediately.</span>
+        </div>
+        <hr>
+        <div class="field"><label class="label" for="td-t">Title <span aria-hidden="true">*</span></label>
+          <input class="input" id="td-t" type="text" value="${esc(t.title)}" required aria-required="true" minlength="3" maxlength="150"/>
+          <span class="hint">3 to 150 characters.</span></div>
+        <div class="field"><label class="label" for="td-d">Description</label>
+          <textarea class="input" id="td-d" rows="3" maxlength="2000" placeholder="No description.">${t.description?esc(t.description):''}</textarea></div>
+        <div class="grid2">
+          <div class="field"><label class="label" for="td-p">Priority</label>
+            <select class="input" id="td-p">
+              ${['LOW','MEDIUM','HIGH'].map(p=>`<option value="${p}"${p===t.priority?' selected':''}>${p[0]+p.slice(1).toLowerCase()}</option>`).join('')}
+            </select></div>
+          <div class="field"><label class="label" for="td-due">Due date</label>
+            <input class="input" id="td-due" type="date" value="${t.due||''}"/></div>
+        </div>
+        <div class="panel-ft">
+          ${isPM?`<button class="btn btn-danger btn-sm" onclick="openModal('confirm-delete-task')">Delete task</button>`:'<span></span>'}
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="go('board',{pid:${pid}})">Cancel</button>
+            <button class="btn btn-primary" onclick="go('board',{pid:${pid}})">Save</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card panel" aria-labelledby="tc-h">
+        <h2 id="tc-h">Comments (${comments.length})</h2>
+        ${comments.length ? `<ul class="comments">
+          ${comments.map(c=>`<li class="comment">
+            <div class="comment-hd">
+              <span class="av" aria-hidden="true">${c.author?ini(c.author):'?'}</span>
+              <strong>${c.author||'Deleted user'}</strong>
+              <time datetime="${c.createdAt}">${fmtDT(c.createdAt)}</time>
+            </div>
+            <p>${esc(c.content)}</p>
+          </li>`).join('')}
+        </ul>` : `<p class="hint" role="status">No comments yet.</p>`}
+        <form onsubmit="addComment(${t.id});return false" style="display:flex;flex-direction:column;gap:8px">
+          <div class="field"><label class="label" for="tc-c">Add a comment</label>
+            <textarea class="input" id="tc-c" rows="2" maxlength="2000" required aria-required="true"></textarea>
+            <span class="err-msg" id="tc-err" role="alert"></span></div>
+          <div><button class="btn btn-primary btn-sm">Comment</button></div>
+        </form>
+      </section>
+    </div>
+
+    <section class="card panel" aria-labelledby="ta-h">
+      <h2 id="ta-h">Assignees</h2>
+      ${t.assignees.length ? `<ul class="assignees">
+        ${t.assignees.map(id=>{ const m=member(id); return `<li>
+          <span class="av${m.role==='PROJECT_MANAGER'?' av-pm':''}" aria-hidden="true">${ini(m.name)}</span>
+          <span style="flex:1">${m.name}</span>
+          <button class="btn btn-ghost btn-sm" aria-label="Remove ${m.name}" onclick="unassign(${pid},${t.id},${id})">✕</button>
+        </li>`; }).join('')}
+      </ul>` : `<p class="hint" role="status">No one is assigned yet.</p>`}
+      ${eligible.length ? `<div class="field"><label class="label" for="ta-u">Assign a member</label>
+        <div style="display:flex;gap:8px">
+          <select class="input" id="ta-u" style="flex:1">
+            ${eligible.map(m=>`<option value="${m.id}">${m.name}${m.role==='PROJECT_MANAGER'?' (PM)':''}</option>`).join('')}
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="assign(${pid},${t.id},+document.getElementById('ta-u').value)">Assign</button>
+        </div>
+        <span class="hint">Only project members can be assigned.</span></div>`
+      : `<p class="hint">All project members are assigned.</p>`}
+    </section>
+  </div>`;
+}
+
 function MyTasks() {
-  const tasks = [...MOCK.myTasks].sort(byDue);
+  const tasks = myTasks().sort(byDue);
   let body;
   if (S.loading) {
     body = `<div class="card" style="padding:24px" aria-busy="true">
       ${[1,2,3].map((_,i)=>`<div class="skel" style="height:14px;width:${50+i*15}%;margin-bottom:12px"></div>`).join('')}
     </div>`;
   } else if (S.error) {
-    body = `<div class="alert alert-error" role="alert">⚠ Could not load tasks. <button class="btn-link" onclick="S.error=false;render()">Try again</button></div>`;
+    body = errorBanner('tasks');
   } else if (!tasks.length) {
-    body = `<div class="empty" role="status">
-      <div class="empty-icon">🎉</div><h2>All clear!</h2>
-      <p>You have no tasks assigned to you right now.</p>
-    </div>`;
+    body = emptyState('🎉', 'All clear!', 'You have no tasks assigned to you right now.');
   } else {
     body = `<div class="card" style="overflow-x:auto">
       <table class="tbl" aria-label="Tasks assigned to me">
         <thead><tr>
-          <th scope="col">Task</th><th scope="col">Project</th>
+          <th scope="col">Task</th><th scope="col">Project</th><th scope="col">Assignees</th>
           <th scope="col">Due</th><th scope="col">Priority</th><th scope="col">Status</th>
         </tr></thead>
         <tbody>
           ${tasks.map(t=>`<tr class="${t.late?'late':''}" onclick="S.highlightId=${t.id};go('board',{pid:${t.project_id}})" aria-label="${t.title}${t.late?', late':''}">
             <td><strong>${t.title}</strong>${t.late?` <span class="badge b-late" aria-label="late">Late</span>`:''}</td>
             <td style="color:var(--muted)">${t.project_name}</td>
+            <td>${avatars(t.assignees)}</td>
             <td>${fmtD(t.due)}</td><td>${pBadge(t.priority)}</td><td>${sBadge(t.status)}</td>
           </tr>`).join('')}
         </tbody>
@@ -406,15 +599,28 @@ function MyTasks() {
   </div>${body}`;
 }
 
+// ── MOCK ACTIONS ─────────────────────────────────────────────
+
+function setStatus(pid, tid, s) { const t = findTask(pid, tid); t.status = s; if (s === 'DONE') t.late = false; render(); }
+function assign(pid, tid, uid)  { const t = findTask(pid, tid); if (!t.assignees.includes(uid)) t.assignees.push(uid); render(); }
+function unassign(pid, tid, uid){ const t = findTask(pid, tid); t.assignees = t.assignees.filter(id => id !== uid); render(); }
+function addComment(tid) {
+  const el = document.getElementById('tc-c');
+  if (!el.value.trim()) { document.getElementById('tc-err').textContent = 'Comment must not be empty.'; return; }
+  (MOCK.comments[tid] = MOCK.comments[tid] || []).push({ id: Date.now(), author: MOCK.user.name, content: el.value.trim(), createdAt: '2026-10-28T10:00' });
+  render();
+}
+
 // ── MODALS ───────────────────────────────────────────────────
 
 function NewProjectModal() {
   return `<div class="modal-hd"><h2>New Project</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
   <div class="modal-bd">
     <div class="field"><label class="label" for="np-n">Name <span aria-hidden="true">*</span></label>
-      <input class="input" id="np-n" type="text" placeholder="e.g. Q4 Launch" required aria-required="true"/></div>
+      <input class="input" id="np-n" type="text" placeholder="e.g. Q4 Launch" required aria-required="true" minlength="3" maxlength="100"/>
+      <span class="hint">3 to 100 characters.</span></div>
     <div class="field"><label class="label" for="np-d">Description</label>
-      <textarea class="input" id="np-d" rows="3" placeholder="Optional…"></textarea></div>
+      <textarea class="input" id="np-d" rows="3" maxlength="1000" placeholder="Optional…"></textarea></div>
     <div class="alert alert-info" role="note">ℹ You will become the <strong>project manager</strong> of this project.</div>
   </div>
   <div class="modal-ft"><button class="btn" onclick="closeModal()">Cancel</button>
@@ -426,9 +632,9 @@ function EditProjectModal() {
   return `<div class="modal-hd"><h2>Edit Project</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
   <div class="modal-bd">
     <div class="field"><label class="label" for="ep-n">Name <span aria-hidden="true">*</span></label>
-      <input class="input" id="ep-n" type="text" value="${proj.name}" required/></div>
+      <input class="input" id="ep-n" type="text" value="${proj.name}" required minlength="3" maxlength="100"/></div>
     <div class="field"><label class="label" for="ep-d">Description</label>
-      <textarea class="input" id="ep-d" rows="3">${proj.description||''}</textarea></div>
+      <textarea class="input" id="ep-d" rows="3" maxlength="1000">${proj.description||''}</textarea></div>
   </div>
   <div class="modal-ft"><button class="btn" onclick="closeModal()">Cancel</button>
     <button class="btn btn-primary" onclick="closeModal()">Save</button></div>`;
@@ -438,71 +644,24 @@ function NewTaskModal() {
   return `<div class="modal-hd"><h2>New Task</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
   <div class="modal-bd">
     <div class="field"><label class="label" for="nt-t">Title <span aria-hidden="true">*</span></label>
-      <input class="input" id="nt-t" type="text" placeholder="e.g. Set up CI pipeline" required/></div>
+      <input class="input" id="nt-t" type="text" placeholder="e.g. Set up CI pipeline" required aria-required="true" minlength="3" maxlength="150"/>
+      <span class="hint">3 to 150 characters.</span></div>
     <div class="field"><label class="label" for="nt-d">Description</label>
-      <textarea class="input" id="nt-d" rows="2" placeholder="Optional…"></textarea></div>
+      <textarea class="input" id="nt-d" rows="2" maxlength="2000" placeholder="Optional…"></textarea></div>
     <div class="grid2">
-      <div class="field"><label class="label" for="nt-a">Assignee</label>
-        <select class="input" id="nt-a">
-          <option value="">Unassigned</option>
-          ${MOCK.members.map(m=>`<option value="${m.id}">${m.name}${m.role==='PROJECT_MANAGER'?' (PM)':''}</option>`).join('')}
-        </select></div>
       <div class="field"><label class="label" for="nt-p">Priority</label>
         <select class="input" id="nt-p">
-          <option value="LOW">Low (default)</option>
-          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM" selected>Medium (default)</option>
           <option value="HIGH">High</option>
         </select></div>
+      <div class="field"><label class="label" for="nt-due">Due date</label>
+        <input class="input" id="nt-due" type="date"/></div>
     </div>
-    <div class="field"><label class="label" for="nt-due">Due date</label>
-      <input class="input" id="nt-due" type="date"/>
-      <span class="hint">Late = due before today and status not Done (FR-08, EC-05).</span></div>
+    <span class="hint">Late = due before today and status not Done (FR-08, EC-05). Assignees are added on the task page.</span>
   </div>
   <div class="modal-ft"><button class="btn" onclick="closeModal()">Cancel</button>
     <button class="btn btn-primary" onclick="closeModal()">Create Task</button></div>`;
-}
-
-function TaskDetailModal() {
-  const pid  = S.params.pid || 1;
-  const list = MOCK.tasks[pid] || [];
-  const t    = list.find(x=>x.id===S.taskId) || list[0];
-  const isPM = MOCK.projects.find(p=>p.id===pid).member_role === 'PROJECT_MANAGER';
-  return `<div class="modal-hd"><h2>${t.title}</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
-  <div class="modal-bd">
-    ${t.late?`<div class="alert alert-error" role="alert">⚠ This task is <strong>late</strong> — due ${fmtD(t.due)}.</div>`:''}
-    <div class="field"><span class="label">Status</span>
-      <div style="display:flex;gap:6px;margin-top:4px" role="group" aria-label="Task status">
-        ${['TODO','IN_PROGRESS','DONE'].map(s=>{
-          const l={TODO:'To Do',IN_PROGRESS:'In Progress',DONE:'Done'};
-          return `<button class="btn btn-sm${t.status===s?' btn-primary':''}" aria-pressed="${t.status===s}" onclick="MOCK.tasks[${pid}].find(x=>x.id===${t.id}).status='${s}';render()">${l[s]}</button>`;
-        }).join('')}
-      </div>
-      <span class="hint">A status change is saved immediately.</span>
-    </div>
-    <hr>
-    <div class="grid2">
-      <div class="field"><label class="label" for="td-a">Assignee</label>
-        <select class="input" id="td-a">
-          <option value="">Unassigned</option>
-          ${MOCK.members.map(m=>`<option value="${m.id}"${m.id===t.assignee_id?' selected':''}>${m.name}</option>`).join('')}
-        </select></div>
-      <div class="field"><label class="label" for="td-p">Priority</label>
-        <select class="input" id="td-p">
-          ${['LOW','MEDIUM','HIGH'].map(p=>`<option value="${p}"${p===t.priority?' selected':''}>${p[0]+p.slice(1).toLowerCase()}</option>`).join('')}
-        </select></div>
-    </div>
-    <div class="field"><label class="label" for="td-due">Due date</label>
-      <input class="input" id="td-due" type="date" value="${t.due||''}"/></div>
-    <div class="field"><label class="label" for="td-d">Description</label>
-      <textarea class="input" id="td-d" rows="3" placeholder="No description.">${t.description||''}</textarea></div>
-  </div>
-  <div class="modal-ft modal-ft-split">
-    ${isPM?`<button class="btn btn-danger btn-sm" onclick="openModal('confirm-delete-task')">Delete task</button>`:'<span></span>'}
-    <div style="display:flex;gap:8px">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="closeModal()">Save</button>
-    </div>
-  </div>`;
 }
 
 function ManageMembersModal() {
@@ -531,20 +690,21 @@ function ManageMembersModal() {
 // ── CONFIRMATION MODALS ──────────────────────────────────────
 
 function ConfirmDeleteTaskModal() {
+  const pid = S.params.pid || 1;
   return `<div class="modal-hd"><h2>Delete task?</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
   <div class="modal-bd">
-    <p style="font-size:13px">This action cannot be undone.</p>
+    <p style="font-size:13px">The task, its assignments and its comments will be deleted. This action cannot be undone.</p>
   </div>
   <div class="modal-ft">
     <button class="btn" onclick="closeModal()">Cancel</button>
-    <button class="btn btn-danger" onclick="closeModal()">Delete</button>
+    <button class="btn btn-danger" onclick="go('board',{pid:${pid}})">Delete</button>
   </div>`;
 }
 
 function ConfirmDeleteProjectModal() {
   return `<div class="modal-hd"><h2>Delete project?</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
   <div class="modal-bd">
-    <p style="font-size:13px">This will permanently delete the project and all its tasks. This action cannot be undone.</p>
+    <p style="font-size:13px">This will permanently delete the project and all its tasks, assignments and comments. This action cannot be undone.</p>
   </div>
   <div class="modal-ft">
     <button class="btn" onclick="closeModal()">Cancel</button>
@@ -558,7 +718,7 @@ function ConfirmDeleteAccountModal() {
   <div class="modal-bd">
     ${managed.length
       ?`<div class="alert alert-error" role="alert"><span>⚠ You are the project manager of <strong>${managed.map(p=>p.name).join(', ')}</strong>. Delete ${managed.length>1?'those projects':'that project'} before deleting your account.</span></div>`
-      :`<p style="font-size:13px">Your name, email and memberships will be deleted, and tasks assigned to you will be unassigned. This action cannot be undone.</p>`}
+      :`<p style="font-size:13px">Your name, email, memberships and assignments will be deleted. Your comments will be kept and shown as written by "Deleted user". This action cannot be undone.</p>`}
   </div>
   <div class="modal-ft">
     <button class="btn" onclick="closeModal()">Cancel</button>
@@ -570,7 +730,7 @@ function ConfirmRemoveMemberModal() {
   const name = S.confirmPayload && S.confirmPayload.name ? S.confirmPayload.name : 'this member';
   return `<div class="modal-hd"><h2>Remove member?</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
   <div class="modal-bd">
-    <p style="font-size:13px">Tasks assigned to <strong>${name}</strong> in this project will be unassigned.</p>
+    <p style="font-size:13px"><strong>${name}</strong> will lose access to this project, and will be removed from the tasks they're assigned to in it.</p>
   </div>
   <div class="modal-ft">
     <button class="btn" onclick="closeModal()">Cancel</button>
@@ -581,20 +741,23 @@ function ConfirmRemoveMemberModal() {
 // ── RENDER ───────────────────────────────────────────────────
 
 function render() {
-  const SCREENS = { 'sign-in':SignIn, 'sign-up':SignUp, projects:Projects, board:Board, 'my-tasks':MyTasks };
-  const MODALS  = { 'new-project':NewProjectModal, 'edit-project':EditProjectModal, 'new-task':NewTaskModal, 'task-detail':TaskDetailModal, 'manage-members':ManageMembersModal, 'confirm-delete-task':ConfirmDeleteTaskModal, 'confirm-delete-project':ConfirmDeleteProjectModal, 'confirm-remove-member':ConfirmRemoveMemberModal, 'confirm-delete-account':ConfirmDeleteAccountModal };
+  const SCREENS = { 'sign-in':SignIn, 'sign-up':SignUp, dashboard:Dashboard, projects:Projects, board:Board, task:TaskDetail, 'my-tasks':MyTasks };
+  const MODALS  = { 'new-project':NewProjectModal, 'edit-project':EditProjectModal, 'new-task':NewTaskModal, 'manage-members':ManageMembersModal, 'confirm-delete-task':ConfirmDeleteTaskModal, 'confirm-delete-project':ConfirmDeleteProjectModal, 'confirm-remove-member':ConfirmRemoveMemberModal, 'confirm-delete-account':ConfirmDeleteAccountModal };
   const auth    = ['sign-in','sign-up'].includes(S.screen);
   const screenH = (SCREENS[S.screen]||SignIn)();
   const modalH  = S.modal && MODALS[S.modal]
     ? `<div class="overlay" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()">
          <div class="modal" onclick="event.stopPropagation()">${MODALS[S.modal]()}</div>
        </div>` : '';
+  const navLink = (screen, label, also=[]) => `<a href="#" class="nav-link"${[screen,...also].includes(S.screen)?' aria-current="page"':''}
+         onclick="go('${screen}');return false">${label}</a>`;
 
   const nav = !auth ? `<nav class="nav" aria-label="Main navigation">
     <div class="nav-inner">
-      <a href="#" class="nav-logo" onclick="go('projects');return false" aria-label="Matriz home">MATRIZ</a>
-      <a href="#" class="nav-link" aria-current="${S.screen==='my-tasks'?'page':''}"
-         onclick="go('my-tasks');return false">My Tasks</a>
+      <a href="#" class="nav-logo" onclick="go('dashboard');return false" aria-label="Matriz home">MATRIZ</a>
+      ${navLink('dashboard','Dashboard')}
+      ${navLink('projects','Projects',['board','task'])}
+      ${navLink('my-tasks','My Tasks')}
       <div class="nav-right">
         <span class="nav-user">${MOCK.user.name}</span>
         <button class="btn btn-sm btn-ghost" onclick="openModal('confirm-delete-account')">Delete account</button>
@@ -607,23 +770,25 @@ function render() {
     <div class="proto-bar" aria-label="Prototype controls">
       <strong>Screens:</strong>
       <button onclick="go('sign-in')">Sign in</button>
-      <button onclick="go('sign-up')">Sign up</button>
+      <button onclick="S.signedIn=true;go('dashboard')">Dashboard</button>
       <button onclick="S.signedIn=true;go('projects')">Projects</button>
-      <button onclick="S.signedIn=true;go('board',{pid:1})">Board (PM)</button>
-      <button onclick="S.signedIn=true;go('board',{pid:2})">Board (member)</button>
-      <button onclick="S.signedIn=true;go('board',{pid:3})">Board (empty)</button>
+      <button onclick="S.signedIn=true;go('board',{pid:1})">Project (PM)</button>
+      <button onclick="S.signedIn=true;go('board',{pid:2})">Project (member)</button>
+      <button onclick="S.signedIn=true;go('board',{pid:3})">Project (empty)</button>
+      <button onclick="S.signedIn=true;go('task',{pid:1,tid:4})">Task detail</button>
       <button onclick="S.signedIn=true;go('my-tasks')">My Tasks</button>
+      <button onclick="go('sign-up')">Sign up (optional)</button>
       &nbsp;|&nbsp;<strong>States:</strong>
       <button onclick="S.loading=!S.loading;render()">Toggle loading</button>
       <button onclick="S.error=!S.error;render()">Toggle error</button>
       <button onclick="S.empty=!S.empty;render()">Toggle empty</button>
       <button onclick="S.error=true;go('sign-in')">Sign-in error</button>
+      <button onclick="S.error=false;S.expired=true;S.signedIn=false;go('sign-in')">Session expired</button>
       &nbsp;|&nbsp;<strong>Modals:</strong>
-      <button onclick="S.signedIn=true;openModal('new-project')">New project</button>
+      <button onclick="S.signedIn=true;go('projects');openModal('new-project')">New project</button>
       <button onclick="S.signedIn=true;go('board',{pid:1});openModal('new-task')">New task</button>
-      <button onclick="S.signedIn=true;go('board',{pid:1});openModal('task-detail')">Task detail</button>
       <button onclick="S.signedIn=true;go('board',{pid:1});openModal('manage-members')">Members</button>
-      <button onclick="S.signedIn=true;go('projects');openModal('confirm-delete-account')">Delete account</button>
+      <button onclick="S.signedIn=true;go('dashboard');openModal('confirm-delete-account')">Delete account</button>
     </div>
     <div class="mock-notice" role="note">⚠ PROTOTYPE — All data is mock data, not connected to any API.</div>
     ${nav}

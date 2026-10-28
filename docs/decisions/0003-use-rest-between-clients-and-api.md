@@ -6,13 +6,13 @@ Accepted
 
 ## Context
 
-Matriz clients need to communicate with the application's API to manage accounts, projects and tasks. The operations are mostly simple create, read, update and delete actions on these resources (FR-01 to FR-08, FR-14). Only signed-in users can use the API, and they only see their own projects (NFR-02). Real-time chat and email notifications are out of the initial scope.
+Matriz clients need to communicate with the application's API to manage accounts, projects, tasks, assignees and comments. The operations are mostly simple create, read, update and delete actions on these resources, plus project search, task filters and task counts (FR-01 to FR-10, FR-14 to FR-17). Only signed-in users can use the API, and they only see their own projects (NFR-02). Real-time chat and email notifications are out of the initial scope.
 
 ## Decision
 
 Clients will communicate with the API using REST over HTTPS, with JSON as the data format.
 
-- Resources such as projects, members and tasks are exposed as URLs, and standard HTTP methods are used to act on them (GET, POST, PUT/PATCH, DELETE).
+- Resources such as projects, members, tasks, assignees and comments are exposed as URLs, and standard HTTP methods are used to act on them (GET, POST, PUT/PATCH, DELETE).
 - The API uses standard HTTP status codes to report results and errors.
 
 ## Alternatives considered
@@ -31,3 +31,4 @@ Clients will communicate with the API using REST over HTTPS, with JSON as the da
 
 - The application runs only locally, so HTTPS isn't used for now ([ADR 0006](0006-run-locally.md)).
 - The API contract is in [openapi.yaml](../openapi.yaml).
+- Updated after the MVP scope was extended (assignees, comments, search, filters, dashboard). The decision is unchanged: search and filters are query parameters, and task counts are returned with each project.
