@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matriz – Interface Prototype</title>
+  <style>
+    :root {
+      --bg: #f4f4f4; --surface: #fff; --border: #e0e0e0; --border-strong: #bbb;
+      --text: #1a1a1a; --muted: #666; --accent: #2c2c2c; --radius: 4px;
+      --shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.5; background: var(--bg); color: var(--text); }
+    button { cursor: pointer; font: inherit; }
+    a { color: inherit; }
+
+    /* skip link */
+    .skip { position: absolute; top: -40px; left: 0; background: var(--accent); color: #fff; padding: 8px 14px; border-radius: 0 0 4px 0; z-index: 200; }
+    .skip:focus { top: 0; }
+
+    .proto-bar { background: #222; color: #ccc; padding: 6px 12px; font-size: 11px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .proto-bar strong { color: #fff; margin-right: 4px; }
+    .proto-bar button { background: none; border: 1px solid #555; border-radius: 3px; color: #ccc; font-size: 11px; padding: 2px 8px; }
+    .proto-bar button:hover { background: #444; }
+    .mock-notice { background: #fffbea; border-bottom: 1px solid #e8d880; padding: 5px 12px; font-size: 11px; color: #554400; text-align: center; }
+
+    /* nav */
+    .nav { background: var(--surface); border-bottom: 1px solid var(--border); }
+    .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 16px; height: 52px; display: flex; align-items: center; gap: 20px; }
+    .nav-logo { font-weight: 700; font-size: 15px; letter-spacing: .07em; text-decoration: none; }
+    .nav-link { padding: 5px 9px; border-radius: var(--radius); text-decoration: none; font-size: 13px; color: var(--muted); }
+    .nav-link:hover, .nav-link[aria-current] { background: var(--bg); color: var(--text); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .nav-user { font-size: 13px; color: var(--muted); }
+
+    /* main */
+    #main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+    /* buttons */
+    .btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px; border-radius: var(--radius); border: 1.5px solid var(--border-strong); background: var(--surface); font-size: 13px; text-decoration: none; transition: background .12s; }
+    .btn:hover { background: var(--bg); }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: #444; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--bg); }
+    .btn-danger { color: #900; border-color: #e0b0b0; }
+    .btn-danger:hover { background: #fff5f5; }
+    .btn-link { border: none; background: none; padding: 0; color: #0055cc; text-decoration: underline; font-size: inherit; }
+
+    /* forms */
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .label { font-size: 13px; font-weight: 500; }
+    .input { padding: 8px 10px; border: 1.5px solid var(--border-strong); border-radius: var(--radius); font: inherit; font-size: 13px; }
+    .input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .err-msg { font-size: 12px; color: #900; }
+
+    /* badges */
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; border: 1px solid; }
+    .b-late   { background: #e8e8e8; border-color: #888; }
+    .b-high   { background: #f5f5f5; border-color: #999; }
+    .b-medium { background: #f8f8f8; border-color: #bbb; }
+    .b-low    { background: #fafafa; border-color: #ddd; color: #888; }
+    .b-todo   { background: #f0f0f0; border-color: #ccc; color: #555; }
+    .b-prog   { background: #e8e8e8; border-color: #aaa; }
+    .b-done   { background: #f8f8f8; border-color: #ccc; color: #999; }
+    .b-pm     { background: var(--accent); border-color: var(--accent); color: #fff; font-size: 10px; }
+
+    /* alerts */
+    .alert { padding: 10px 13px; border-radius: var(--radius); border: 1px solid; font-size: 13px; display: flex; gap: 8px; }
+    .alert-error { background: #fff5f5; border-color: #f0c0c0; color: #800; }
+    .alert-info  { background: #f5f8ff; border-color: #c0d0f0; color: #003; }
+
+    /* page header */
+    .ph { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+    .ph h1 { font-size: 20px; font-weight: 700; }
+    .ph p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* project grid */
+    .proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+    .proj-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; transition: box-shadow .15s; }
+    .proj-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+    .proj-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .proj-name { font-weight: 600; font-size: 15px; }
+    .proj-desc { font-size: 12px; color: var(--muted); }
+
+    /* board */
+    .bc-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .members { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-bottom: 16px; flex-wrap: wrap; }
+    .av { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #ddd; border: 2px solid var(--surface); font-size: 11px; font-weight: 700; box-shadow: 0 0 0 1px #ccc; flex-shrink: 0; }
+    .av-pm { background: var(--accent); color: #fff; }
+    .board { display: flex; gap: 12px; align-items: flex-start; overflow-x: auto; padding-bottom: 8px; }
+    .col { flex: 0 0 255px; background: #efefef; border-radius: var(--radius); border: 1px solid var(--border); }
+    .col-hd { padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+    .col-ct { background: #ddd; border-radius: 10px; padding: 1px 8px; font-size: 11px; font-weight: 400; }
+    .col-bd { padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
+
+    /* task card */
+    .tc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 11px; cursor: pointer; }
+    .tc:hover { box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+    .tc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .tc.late { border-left: 3px solid #888; background: #f9f9f9; }
+    .tc.highlight { outline: 2px solid var(--accent); background: #fafae8; }
+    .tc-title { font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+    .tc-foot { display: flex; align-items: center; justify-content: space-between; }
+    .tc-meta { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+
+    /* my tasks table */
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 2px solid var(--border); white-space: nowrap; }
+    .tbl td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tr.late td:first-child { border-left: 3px solid #888; }
+    .tbl tr:hover td { background: var(--bg); cursor: pointer; }
+
+    /* empty / skeleton */
+    .empty { text-align: center; padding: 56px 24px; color: var(--muted); }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; opacity: .5; }
+    .empty h2 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty p  { font-size: 13px; margin-bottom: 18px; }
+    .skel { background: linear-gradient(90deg,#e4e4e4 25%,#efefef 50%,#e4e4e4 75%); background-size: 200% 100%; animation: sh 1.5s infinite; border-radius: 3px; }
+    @keyframes sh { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* auth */
+    .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--bg); }
+    .auth-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; width: 100%; max-width: 370px; }
+    .auth-logo { font-size: 22px; font-weight: 700; letter-spacing: .06em; text-align: center; margin-bottom: 6px; }
+    .auth-sub  { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 24px; }
+    .auth-form { display: flex; flex-direction: column; gap: 14px; }
+    .auth-foot { margin-top: 18px; text-align: center; font-size: 13px; color: var(--muted); }
+
+    /* modal */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 16px; }
+    .modal { background: var(--surface); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,.2); width: 100%; max-width: 470px; max-height: 90vh; overflow-y: auto; }
+    .modal-hd { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid var(--border); }
+    .modal-hd h2 { font-size: 15px; font-weight: 600; }
+    .modal-bd { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .modal-ft { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+    .modal-ft-split { justify-content: space-between; }
+
+    /* breadcrumb */
+    .bc { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .bc a { color: var(--muted); text-decoration: none; }
+    .bc a:hover { text-decoration: underline; }
+
+    /* two-col grid inside modal */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    hr { border: none; border-top: 1px solid var(--border); }
+
+    /* card wrapper */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+
+    @media(max-width:600px) {
+      .board { flex-direction: column; }
+      .col  { flex: none; width: 100%; }
+      .grid2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<a href="#main" class="skip">Skip to content</a>
+<div id="app"></div>
+
+<script>
+// ── MOCK DATA ────────────────────────────────────────────────
+const MOCK = {
+  user: { id: 1, name: 'Alice Ferreira', email: 'alice@example.com' },
+  projects: [
+    { id: 1, name: 'Q4 Launch',        description: 'All tasks for the Q4 product launch.', member_role: 'PROJECT_MANAGER' },
+    { id: 2, name: 'Website Redesign', description: null,                                    member_role: 'MEMBER' },
+    { id: 3, name: 'API Integration',  description: 'Connect Matriz with external APIs.',    member_role: 'MEMBER' },
+  ],
+  members: [
+    { id: 1, name: 'Alice Ferreira', email: 'alice@example.com', role: 'PROJECT_MANAGER' },
+    { id: 2, name: 'Bob Silva',      email: 'bob@example.com',   role: 'MEMBER' },
+    { id: 3, name: 'Carol Santos',   email: 'carol@example.com', role: 'MEMBER' },
+  ],
+  tasks: {
+    1: [
+      { id:1, title:'Set up CI pipeline',     assignee_id:2, assignee:'Bob',   due:'2026-10-20', priority:'MEDIUM', status:'TODO',        late:true  },
+      { id:2, title:'Write unit tests',       assignee_id:null, assignee:null, due:'2026-10-15', priority:'LOW',    status:'TODO',        late:true  },
+      { id:3, title:'Fix login redirect',     assignee_id:1, assignee:'Alice', due:'2026-11-30', priority:'HIGH',   status:'TODO',        late:false },
+      { id:4, title:'Design sign-in screen',  assignee_id:3, assignee:'Carol', due:'2026-11-20', priority:'HIGH',   status:'IN_PROGRESS', late:false },
+      { id:5, title:'Implement task API',     assignee_id:2, assignee:'Bob',   due:'2026-11-18', priority:'MEDIUM', status:'IN_PROGRESS', late:false },
+      { id:6, title:'Write requirements doc', assignee_id:1, assignee:'Alice', due:'2026-10-25', priority:'LOW',    status:'DONE',        late:false },
+    ],
+    2: [
+      { id:7, title:'Audit current pages',       assignee_id:1, assignee:'Alice', due:'2026-11-05', priority:'MEDIUM', status:'DONE',        late:false },
+      { id:8, title:'Create new colour palette', assignee_id:1, assignee:'Alice', due:'2026-11-12', priority:'LOW',    status:'IN_PROGRESS', late:false },
+      { id:9, title:'Update homepage layout',    assignee_id:1, assignee:'Alice', due:'2026-10-22', priority:'HIGH',   status:'TODO',        late:true  },
+    ],
+    3: [],
+  },
+};
+MOCK.myTasks = Object.entries(MOCK.tasks).flatMap(([pid, list]) => {
+  const proj = MOCK.projects.find(p => p.id === +pid);
+  return list.filter(t => t.assignee_id === MOCK.user.id).map(t => ({...t, project_name: proj.name, project_id: +pid}));
+});
+
+// ── STATE ────────────────────────────────────────────────────
+var S = { screen:'sign-in', params:{}, modal:null, signedIn:false, loading:false, empty:false, error:false, highlightId:null, taskId:null, confirmPayload:null };
+
+// ── ROUTER ───────────────────────────────────────────────────
+function go(screen, params={}) { S.screen=screen; S.params=params; S.modal=null; if(screen!=='board') S.highlightId=null; render(); scrollTo(0,0); }
+function openModal(m)           { S.modal=m; render(); }
+function closeModal()           { S.modal=null; render(); }
+
+// ── HELPERS ──────────────────────────────────────────────────
+const byDue = (a,b) => (a.due||'9999-12-31').localeCompare(b.due||'9999-12-31') || a.id-b.id;
+const ini   = n => n ? n.split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase() : '?';
+const fmtD  = d => d ? d.split('-').reverse().join('/') : '—';
+const pBadge = p => `<span class="badge b-${p.toLowerCase()}">${p[0]+p.slice(1).toLowerCase()}</span>`;
+const sBadge = s => { const l={TODO:'To Do',IN_PROGRESS:'In Progress',DONE:'Done'}; const c={TODO:'b-todo',IN_PROGRESS:'b-prog',DONE:'b-done'}; return `<span class="badge ${c[s]}">${l[s]}</span>`; };
+
+// ── SCREENS ──────────────────────────────────────────────────
+
+function SignIn() {
+  return `<div class="auth-wrap">
+    <div class="auth-box">
+      <p class="auth-logo">MATRIZ</p>
+      <p class="auth-sub">Project and task management for small teams.</p>
+      ${S.error ? `<div class="alert alert-error" role="alert" style="margin-bottom:14px"><span aria-hidden="true">⚠ </span>Email or password is incorrect.</div>` : ''}
+      <form class="auth-form" onsubmit="S.signedIn=true;S.error=false;go('projects');return false">
+        <div class="field"><label class="label" for="si-e">Email</label>
+          <input class="input" id="si-e" type="email" value="alice@example.com" required autocomplete="email"/></div>
+        <div class="field"><label class="label" for="si-p">Password</label>
+          <input class="input" id="si-p" type="password" value="••••••••" required autocomplete="current-password"/></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center">Sign in</button>
+      </form>
+      <p class="auth-foot">Don't have an account? <a href="#" onclick="go('sign-up');return false">Sign up</a></p>
+    </div>
+  </div>`;
+}
+
+function SignUp() {
+  return `<div class="auth-wrap">
+    <div class="auth-box">
+      <p class="auth-logo">MATRIZ</p>
+      <p class="auth-sub">Create your account to get started.</p>
+      <form class="auth-form" onsubmit="S.signedIn=true;go('projects');return false">
+        <div class="field"><label class="label" for="su-n">Name</label>
+          <input class="input" id="su-n" type="text" placeholder="Your name" required autocomplete="name"/></div>
+        <div class="field"><label class="label" for="su-e">Email</label>
+          <input class="input" id="su-e" type="email" placeholder="you@example.com" required autocomplete="email"/></div>
+        <div class="field"><label class="label" for="su-p">Password</label>
+          <input class="input" id="su-p" type="password" required minlength="8" maxlength="64" autocomplete="new-password" aria-describedby="su-p-hint"/>
+          <span class="hint" id="su-p-hint">At least 8 characters.</span></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center">Create account</button>
+      </form>
+      <p class="auth-foot">Already have an account? <a href="#" onclick="go('sign-in');return false">Sign in</a></p>
+    </div>
+  </div>`;
+}
+
+function Projects() {
+  let body;
+  if (S.loading) {
+    body = `<div class="proj-grid" aria-busy="true">
+      ${[1,2,3].map(()=>`<div class="skel" style="height:120px;border-radius:4px"></div>`).join('')}
+    </div>`;
+  } else if (S.error) {
+    body = `<div class="alert alert-error" role="alert">⚠ Could not load projects. <button class="btn-link" onclick="S.error=false;render()">Try again</button></div>`;
+  } else if (S.empty) {
+    body = `<div class="empty" role="status">
+      <div class="empty-icon">📋</div>
+      <h2>No projects yet</h2>
+      <p>Create your first project to start organising your team's work.</p>
+      <button class="btn btn-primary" onclick="openModal('new-project')">+ New Project</button>
+    </div>`;
+  } else {
+    body = `<div class="proj-grid">${MOCK.projects.map(p => `
+      <a class="proj-card" href="#" onclick="go('board',{pid:${p.id}});return false"
+         aria-label="${p.name}, ${p.member_role==='PROJECT_MANAGER'?'you are project manager':'member'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <span class="proj-name">${p.name}</span>
+          ${p.member_role==='PROJECT_MANAGER'?'<span class="badge b-pm">PM</span>':''}
+        </div>
+        <p class="proj-desc">${p.description||'<em style="opacity:.5">No description</em>'}</p>
+      </a>`).join('')}
+    </div>`;
+  }
+  return `<div class="ph">
+    <div><h1>My Projects</h1><p>Projects you are a member of.</p></div>
+    <button class="btn btn-primary" onclick="openModal('new-project')">+ New Project</button>
+  </div>${body}`;
+}
+
+function Board() {
+  const pid   = S.params.pid || 1;
+  const proj  = MOCK.projects.find(p=>p.id===pid) || MOCK.projects[0];
+  const tasks = MOCK.tasks[pid] || [];
+  const isPM  = proj.member_role === 'PROJECT_MANAGER';
+  const cols  = [
+    { key:'TODO',        label:'To Do' },
+    { key:'IN_PROGRESS', label:'In Progress' },
+    { key:'DONE',        label:'Done' },
+  ];
+
+  let boardBody;
+  if (S.loading) {
+    boardBody = `<div style="display:flex;gap:12px" aria-busy="true">
+      ${[1,2,3].map(()=>`<div class="skel" style="flex:0 0 255px;height:280px;border-radius:4px"></div>`).join('')}
+    </div>`;
+  } else if (S.error) {
+    boardBody = `<div class="alert alert-error" role="alert">⚠ Could not load tasks. <button class="btn-link" onclick="S.error=false;render()">Try again</button></div>`;
+  } else if (!tasks.length) {
+    boardBody = `<div class="empty" role="status">
+      <div class="empty-icon">✅</div>
+      <h2>No tasks yet</h2>
+      <p>Create the first task to get the team started.</p>
+      <button class="btn btn-primary" onclick="openModal('new-task')">+ New Task</button>
+    </div>`;
+  } else {
+    boardBody = `<div class="board" role="list" aria-label="Task board">
+      ${cols.map(({key,label}) => {
+        const col = tasks.filter(t=>t.status===key).sort(byDue);
+        return `<section class="col" role="listitem" aria-label="${label}, ${col.length} task${col.length!==1?'s':''}">
+          <div class="col-hd">${label}<span class="col-ct" aria-hidden="true">${col.length}</span></div>
+          <div class="col-bd">
+            ${col.map(t=>`
+            <article class="tc${t.late?' late':''}${S.highlightId===t.id?' highlight':''}"
+                     id="task-${t.id}" tabindex="0" role="button"
+                     aria-label="${t.title}${t.late?', late':''}${S.highlightId===t.id?', highlighted':''}"
+                     onclick="S.taskId=${t.id};openModal('task-detail')"
+                     onkeydown="if(event.key==='Enter'){S.taskId=${t.id};openModal('task-detail')}">
+              <div class="tc-title">${t.title}</div>
+              <div class="tc-foot">
+                <div class="tc-meta">
+                  <span class="av" title="${t.assignee||'Unassigned'}" aria-label="${t.assignee||'Unassigned'}">${t.assignee?ini(t.assignee):'—'}</span>
+                  ${t.due?`<span aria-label="Due ${fmtD(t.due)}">📅 ${fmtD(t.due)}</span>`:''}
+                </div>
+                <div style="display:flex;gap:4px;align-items:center">
+                  ${pBadge(t.priority)}
+                  ${t.late?`<span class="badge b-late" aria-label="Late">Late</span>`:''}
+                </div>
+              </div>
+            </article>`).join('')
+            || `<p style="font-size:12px;color:#bbb;text-align:center;padding:16px 0" aria-live="polite">No tasks</p>`}
+          </div>
+        </section>`;
+      }).join('')}
+    </div>`;
+  }
+
+  return `
+  <nav class="bc" aria-label="Breadcrumb">
+    <a href="#" onclick="go('projects');return false">My Projects</a>
+    <span aria-hidden="true">›</span>
+    <span aria-current="page">${proj.name}</span>
+  </nav>
+  <div class="bc-row">
+    <div>
+      <h1 style="font-size:20px;font-weight:700">${proj.name}</h1>
+      ${proj.description?`<p style="font-size:13px;color:var(--muted);margin-top:2px">${proj.description}</p>`:''}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${isPM?`<button class="btn btn-sm" onclick="openModal('edit-project')">Edit</button>`:''}
+      ${isPM?`<button class="btn btn-sm btn-danger" onclick="openModal('confirm-delete-project')">Delete</button>`:''}
+      <button class="btn btn-sm btn-primary" onclick="openModal('new-task')">+ New Task</button>
+    </div>
+  </div>
+  <div class="members" aria-label="Project members">
+    <span style="font-size:12px">Members:</span>
+    ${MOCK.members.map(m=>`<span class="av${m.role==='PROJECT_MANAGER'?' av-pm':''}" title="${m.name}${m.role==='PROJECT_MANAGER'?' (PM)':''}" aria-label="${m.name}${m.role==='PROJECT_MANAGER'?', project manager':''}">${ini(m.name)}</span>`).join('')}
+    ${isPM?`<button class="btn btn-sm btn-ghost" onclick="openModal('manage-members')" style="margin-left:4px">Manage Members</button>`:''}
+  </div>
+  ${boardBody}`;
+}
+
+function MyTasks() {
+  const tasks = [...MOCK.myTasks].sort(byDue);
+  let body;
+  if (S.loading) {
+    body = `<div class="card" style="padding:24px" aria-busy="true">
+      ${[1,2,3].map((_,i)=>`<div class="skel" style="height:14px;width:${50+i*15}%;margin-bottom:12px"></div>`).join('')}
+    </div>`;
+  } else if (S.error) {
+    body = `<div class="alert alert-error" role="alert">⚠ Could not load tasks. <button class="btn-link" onclick="S.error=false;render()">Try again</button></div>`;
+  } else if (!tasks.length) {
+    body = `<div class="empty" role="status">
+      <div class="empty-icon">🎉</div><h2>All clear!</h2>
+      <p>You have no tasks assigned to you right now.</p>
+    </div>`;
+  } else {
+    body = `<div class="card" style="overflow-x:auto">
+      <table class="tbl" aria-label="Tasks assigned to me">
+        <thead><tr>
+          <th scope="col">Task</th><th scope="col">Project</th>
+          <th scope="col">Due</th><th scope="col">Priority</th><th scope="col">Status</th>
+        </tr></thead>
+        <tbody>
+          ${tasks.map(t=>`<tr class="${t.late?'late':''}" onclick="S.highlightId=${t.id};go('board',{pid:${t.project_id}})" aria-label="${t.title}${t.late?', late':''}">
+            <td><strong>${t.title}</strong>${t.late?` <span class="badge b-late" aria-label="late">Late</span>`:''}</td>
+            <td style="color:var(--muted)">${t.project_name}</td>
+            <td>${fmtD(t.due)}</td><td>${pBadge(t.priority)}</td><td>${sBadge(t.status)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+  return `<div class="ph">
+    <div><h1>My Tasks</h1><p>All tasks assigned to you across your projects.</p></div>
+  </div>${body}`;
+}
+
+// ── MODALS ───────────────────────────────────────────────────
+
+function NewProjectModal() {
+  return `<div class="modal-hd"><h2>New Project</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    <div class="field"><label class="label" for="np-n">Name <span aria-hidden="true">*</span></label>
+      <input class="input" id="np-n" type="text" placeholder="e.g. Q4 Launch" required aria-required="true"/></div>
+    <div class="field"><label class="label" for="np-d">Description</label>
+      <textarea class="input" id="np-d" rows="3" placeholder="Optional…"></textarea></div>
+    <div class="alert alert-info" role="note">ℹ You will become the <strong>project manager</strong> of this project.</div>
+  </div>
+  <div class="modal-ft"><button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="closeModal()">Create Project</button></div>`;
+}
+
+function EditProjectModal() {
+  const proj = MOCK.projects[0];
+  return `<div class="modal-hd"><h2>Edit Project</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    <div class="field"><label class="label" for="ep-n">Name <span aria-hidden="true">*</span></label>
+      <input class="input" id="ep-n" type="text" value="${proj.name}" required/></div>
+    <div class="field"><label class="label" for="ep-d">Description</label>
+      <textarea class="input" id="ep-d" rows="3">${proj.description||''}</textarea></div>
+  </div>
+  <div class="modal-ft"><button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="closeModal()">Save</button></div>`;
+}
+
+function NewTaskModal() {
+  return `<div class="modal-hd"><h2>New Task</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    <div class="field"><label class="label" for="nt-t">Title <span aria-hidden="true">*</span></label>
+      <input class="input" id="nt-t" type="text" placeholder="e.g. Set up CI pipeline" required/></div>
+    <div class="field"><label class="label" for="nt-d">Description</label>
+      <textarea class="input" id="nt-d" rows="2" placeholder="Optional…"></textarea></div>
+    <div class="grid2">
+      <div class="field"><label class="label" for="nt-a">Assignee</label>
+        <select class="input" id="nt-a">
+          <option value="">Unassigned</option>
+          ${MOCK.members.map(m=>`<option value="${m.id}">${m.name}${m.role==='PROJECT_MANAGER'?' (PM)':''}</option>`).join('')}
+        </select></div>
+      <div class="field"><label class="label" for="nt-p">Priority</label>
+        <select class="input" id="nt-p">
+          <option value="LOW">Low (default)</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+        </select></div>
+    </div>
+    <div class="field"><label class="label" for="nt-due">Due date</label>
+      <input class="input" id="nt-due" type="date"/>
+      <span class="hint">Late = due before today and status not Done (FR-08, EC-05).</span></div>
+  </div>
+  <div class="modal-ft"><button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="closeModal()">Create Task</button></div>`;
+}
+
+function TaskDetailModal() {
+  const pid  = S.params.pid || 1;
+  const list = MOCK.tasks[pid] || [];
+  const t    = list.find(x=>x.id===S.taskId) || list[0];
+  const isPM = MOCK.projects.find(p=>p.id===pid).member_role === 'PROJECT_MANAGER';
+  return `<div class="modal-hd"><h2>${t.title}</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    ${t.late?`<div class="alert alert-error" role="alert">⚠ This task is <strong>late</strong> — due ${fmtD(t.due)}.</div>`:''}
+    <div class="field"><span class="label">Status</span>
+      <div style="display:flex;gap:6px;margin-top:4px" role="group" aria-label="Task status">
+        ${['TODO','IN_PROGRESS','DONE'].map(s=>{
+          const l={TODO:'To Do',IN_PROGRESS:'In Progress',DONE:'Done'};
+          return `<button class="btn btn-sm${t.status===s?' btn-primary':''}" aria-pressed="${t.status===s}" onclick="MOCK.tasks[${pid}].find(x=>x.id===${t.id}).status='${s}';render()">${l[s]}</button>`;
+        }).join('')}
+      </div>
+      <span class="hint">A status change is saved immediately.</span>
+    </div>
+    <hr>
+    <div class="grid2">
+      <div class="field"><label class="label" for="td-a">Assignee</label>
+        <select class="input" id="td-a">
+          <option value="">Unassigned</option>
+          ${MOCK.members.map(m=>`<option value="${m.id}"${m.id===t.assignee_id?' selected':''}>${m.name}</option>`).join('')}
+        </select></div>
+      <div class="field"><label class="label" for="td-p">Priority</label>
+        <select class="input" id="td-p">
+          ${['LOW','MEDIUM','HIGH'].map(p=>`<option value="${p}"${p===t.priority?' selected':''}>${p[0]+p.slice(1).toLowerCase()}</option>`).join('')}
+        </select></div>
+    </div>
+    <div class="field"><label class="label" for="td-due">Due date</label>
+      <input class="input" id="td-due" type="date" value="${t.due||''}"/></div>
+    <div class="field"><label class="label" for="td-d">Description</label>
+      <textarea class="input" id="td-d" rows="3" placeholder="No description.">${t.description||''}</textarea></div>
+  </div>
+  <div class="modal-ft modal-ft-split">
+    ${isPM?`<button class="btn btn-danger btn-sm" onclick="openModal('confirm-delete-task')">Delete task</button>`:'<span></span>'}
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal()">Save</button>
+    </div>
+  </div>`;
+}
+
+function ManageMembersModal() {
+  return `<div class="modal-hd"><h2>Manage Members</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    <div class="field"><label class="label" for="mm-e">Add member by email</label>
+      <div style="display:flex;gap:8px">
+        <input class="input" id="mm-e" type="email" placeholder="colleague@example.com" style="flex:1"/>
+        <button class="btn btn-primary btn-sm">Add</button>
+      </div>
+      <span class="hint">The person must already have a Matriz account.</span></div>
+    <hr>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:10px" aria-label="Current members">
+      ${MOCK.members.map(m=>`<li style="display:flex;align-items:center;gap:10px">
+        <span class="av${m.role==='PROJECT_MANAGER'?' av-pm':''}" aria-hidden="true">${ini(m.name)}</span>
+        <span style="flex:1;font-size:13px">${m.name} <span style="color:var(--muted);font-size:12px">${m.email}</span></span>
+        ${m.role==='PROJECT_MANAGER'
+          ?`<span class="badge b-pm">PM</span>`
+          :`<button class="btn btn-danger btn-sm" aria-label="Remove ${m.name}" onclick="S.confirmPayload={name:'${m.name}'};openModal('confirm-remove-member')">Remove</button>`}
+      </li>`).join('')}
+    </ul>
+  </div>
+  <div class="modal-ft"><button class="btn" onclick="closeModal()">Close</button></div>`;
+}
+
+// ── CONFIRMATION MODALS ──────────────────────────────────────
+
+function ConfirmDeleteTaskModal() {
+  return `<div class="modal-hd"><h2>Delete task?</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    <p style="font-size:13px">This action cannot be undone.</p>
+  </div>
+  <div class="modal-ft">
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-danger" onclick="closeModal()">Delete</button>
+  </div>`;
+}
+
+function ConfirmDeleteProjectModal() {
+  return `<div class="modal-hd"><h2>Delete project?</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    <p style="font-size:13px">This will permanently delete the project and all its tasks. This action cannot be undone.</p>
+  </div>
+  <div class="modal-ft">
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-danger" onclick="S.signedIn=true;go('projects')">Delete</button>
+  </div>`;
+}
+
+function ConfirmDeleteAccountModal() {
+  const managed = MOCK.projects.filter(p=>p.member_role==='PROJECT_MANAGER');
+  return `<div class="modal-hd"><h2>Delete account?</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    ${managed.length
+      ?`<div class="alert alert-error" role="alert"><span>⚠ You are the project manager of <strong>${managed.map(p=>p.name).join(', ')}</strong>. Delete ${managed.length>1?'those projects':'that project'} before deleting your account.</span></div>`
+      :`<p style="font-size:13px">Your name, email and memberships will be deleted, and tasks assigned to you will be unassigned. This action cannot be undone.</p>`}
+  </div>
+  <div class="modal-ft">
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    ${managed.length?'':`<button class="btn btn-danger" onclick="S.signedIn=false;go('sign-in')">Delete account</button>`}
+  </div>`;
+}
+
+function ConfirmRemoveMemberModal() {
+  const name = S.confirmPayload && S.confirmPayload.name ? S.confirmPayload.name : 'this member';
+  return `<div class="modal-hd"><h2>Remove member?</h2><button class="btn btn-ghost btn-sm" onclick="closeModal()" aria-label="Close">✕</button></div>
+  <div class="modal-bd">
+    <p style="font-size:13px">Tasks assigned to <strong>${name}</strong> in this project will be unassigned.</p>
+  </div>
+  <div class="modal-ft">
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-danger" onclick="closeModal()">Remove</button>
+  </div>`;
+}
+
+// ── RENDER ───────────────────────────────────────────────────
+
+function render() {
+  const SCREENS = { 'sign-in':SignIn, 'sign-up':SignUp, projects:Projects, board:Board, 'my-tasks':MyTasks };
+  const MODALS  = { 'new-project':NewProjectModal, 'edit-project':EditProjectModal, 'new-task':NewTaskModal, 'task-detail':TaskDetailModal, 'manage-members':ManageMembersModal, 'confirm-delete-task':ConfirmDeleteTaskModal, 'confirm-delete-project':ConfirmDeleteProjectModal, 'confirm-remove-member':ConfirmRemoveMemberModal, 'confirm-delete-account':ConfirmDeleteAccountModal };
+  const auth    = ['sign-in','sign-up'].includes(S.screen);
+  const screenH = (SCREENS[S.screen]||SignIn)();
+  const modalH  = S.modal && MODALS[S.modal]
+    ? `<div class="overlay" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()">
+         <div class="modal" onclick="event.stopPropagation()">${MODALS[S.modal]()}</div>
+       </div>` : '';
+
+  const nav = !auth ? `<nav class="nav" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" onclick="go('projects');return false" aria-label="Matriz home">MATRIZ</a>
+      <a href="#" class="nav-link" aria-current="${S.screen==='my-tasks'?'page':''}"
+         onclick="go('my-tasks');return false">My Tasks</a>
+      <div class="nav-right">
+        <span class="nav-user">${MOCK.user.name}</span>
+        <button class="btn btn-sm btn-ghost" onclick="openModal('confirm-delete-account')">Delete account</button>
+        <button class="btn btn-sm" onclick="S.signedIn=false;go('sign-in')">Sign out</button>
+      </div>
+    </div>
+  </nav>` : '';
+
+  document.getElementById('app').innerHTML = `
+    <div class="proto-bar" aria-label="Prototype controls">
+      <strong>Screens:</strong>
+      <button onclick="go('sign-in')">Sign in</button>
+      <button onclick="go('sign-up')">Sign up</button>
+      <button onclick="S.signedIn=true;go('projects')">Projects</button>
+      <button onclick="S.signedIn=true;go('board',{pid:1})">Board (PM)</button>
+      <button onclick="S.signedIn=true;go('board',{pid:2})">Board (member)</button>
+      <button onclick="S.signedIn=true;go('board',{pid:3})">Board (empty)</button>
+      <button onclick="S.signedIn=true;go('my-tasks')">My Tasks</button>
+      &nbsp;|&nbsp;<strong>States:</strong>
+      <button onclick="S.loading=!S.loading;render()">Toggle loading</button>
+      <button onclick="S.error=!S.error;render()">Toggle error</button>
+      <button onclick="S.empty=!S.empty;render()">Toggle empty</button>
+      <button onclick="S.error=true;go('sign-in')">Sign-in error</button>
+      &nbsp;|&nbsp;<strong>Modals:</strong>
+      <button onclick="S.signedIn=true;openModal('new-project')">New project</button>
+      <button onclick="S.signedIn=true;go('board',{pid:1});openModal('new-task')">New task</button>
+      <button onclick="S.signedIn=true;go('board',{pid:1});openModal('task-detail')">Task detail</button>
+      <button onclick="S.signedIn=true;go('board',{pid:1});openModal('manage-members')">Members</button>
+      <button onclick="S.signedIn=true;go('projects');openModal('confirm-delete-account')">Delete account</button>
+    </div>
+    <div class="mock-notice" role="note">⚠ PROTOTYPE — All data is mock data, not connected to any API.</div>
+    ${nav}
+    ${auth ? screenH : `<main id="main" tabindex="-1">${screenH}</main>`}
+    ${modalH}`;
+
+  if (S.highlightId) {
+    const el = document.getElementById('task-' + S.highlightId);
+    if (el) setTimeout(() => el.scrollIntoView({ behavior:'smooth', block:'center' }), 50);
+  }
+}
+
+render();
+</script>
+</body>
+</html>

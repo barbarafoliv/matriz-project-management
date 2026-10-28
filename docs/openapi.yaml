@@ -1,0 +1,1013 @@
+openapi: 3.1.0
+
+info:
+  title: Matriz API
+  version: 0.2.0
+  description: |
+    REST API of the Matriz MVP (FR-01 to FR-08, FR-14), using JSON over HTTP (ADR 0003).
+
+    - **Authentication:** server-side session identified by the `SESSION` cookie
+      (ADR 0004, ADR 0005). Every operation requires it, except sign-up and sign-in.
+    - **CSRF:** every POST, PUT and DELETE, including sign-up and sign-in, must send the
+      value of the `XSRF-TOKEN` cookie in the `X-XSRF-TOKEN` header (Angular does this
+      automatically). Otherwise the response is 403 `CSRF_TOKEN_INVALID`.
+    - **Access:** a project the caller isn't a member of is reported as not found (404),
+      so its existence isn't revealed (EC-04). A member who isn't the project manager
+      gets 403 `NOT_PROJECT_MANAGER`.
+    - **Errors:** every error is `application/problem+json` (RFC 9457) with a `code`.
+      Unexpected errors return 500 `INTERNAL_ERROR`, without internal details.
+    - **Late tasks:** `late` is computed by the server using its local date. The
+      application runs on the user's machine (ADR 0006), so this is the user's local
+      date (FR-08, EC-05).
+    - **Nulls:** optional fields are always present in responses, as `null` when empty.
+    - **Lists:** returned as plain arrays, in a fixed order. There is no pagination,
+      filtering or sorting in the MVP.
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local (ADR 0006)
+
+security:
+  - sessionCookie: []
+
+tags:
+  - name: Accounts
+    description: Sign-up, sign-in, sign-out and account deletion (FR-01, FR-14).
+  - name: Projects
+    description: Projects and project members (FR-02, FR-03).
+  - name: Tasks
+    description: Tasks, project board and "My tasks" (FR-04 to FR-08).
+
+paths:
+
+  # ── Accounts ──────────────────────────────
+
+  /users:
+    post:
+      tags: [Accounts]
+      operationId: signUp
+      summary: Sign up
+      description: >
+        Creates an account and signs the user in (US-01).
+        The email must not be used by another account, ignoring case (EC-01).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+      responses:
+        '201':
+          description: Account created and signed in.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetSessionCookie'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: The email is already in use (`EMAIL_IN_USE`, EC-01).
+
+  /users/me:
+    get:
+      tags: [Accounts]
+      operationId: getCurrentUser
+      summary: Get the signed-in user
+      description: Lets the client check whether it is signed in, and as whom (US-01).
+      responses:
+        '200':
+          description: The signed-in user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+    delete:
+      tags: [Accounts]
+      operationId: deleteAccount
+      summary: Delete my account
+      description: >
+        Deletes the user and their memberships, unassigns their tasks and ends their
+        session (US-09, FR-14). The email can then be used to sign up again.
+        Fails while the user is the project manager of any project (EC-06).
+      responses:
+        '204':
+          description: Account deleted and signed out.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/ClearSessionCookie'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: The user manages one or more projects (`ACCOUNT_MANAGES_PROJECTS`, EC-06).
+
+  /users/me/tasks:
+    get:
+      tags: [Tasks]
+      operationId: listMyTasks
+      summary: My tasks
+      description: >
+        Tasks assigned to the signed-in user in all their projects, each with its
+        project (US-06) and late flag (US-08). Sorted by due date, tasks without one last.
+      responses:
+        '200':
+          description: Tasks assigned to the signed-in user.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MyTask'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+
+  /sessions:
+    post:
+      tags: [Accounts]
+      operationId: signIn
+      summary: Sign in
+      description: >
+        Signs in with email and password (US-01). A new session ID is issued.
+        After 5 failed attempts, sign-in is blocked for 15 minutes (NFR-02).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+      responses:
+        '200':
+          description: Signed in.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/SetSessionCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+          description: >
+            `INVALID_CREDENTIALS`: "Email or password is incorrect." The same response
+            is returned whether the email or the password is wrong (EC-02).
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /sessions/current:
+    delete:
+      tags: [Accounts]
+      operationId: signOut
+      summary: Sign out
+      description: Ends the current session (US-01). Succeeds even if there is no session.
+      security: []
+      responses:
+        '204':
+          description: Signed out.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/ClearSessionCookie'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ── Projects ──────────────────────────────
+
+  /projects:
+    get:
+      tags: [Projects]
+      operationId: listProjects
+      summary: List my projects
+      description: Projects the caller is a member of, sorted by name (US-01, US-02, US-03).
+      responses:
+        '200':
+          description: The caller's projects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+    post:
+      tags: [Projects]
+      operationId: createProject
+      summary: Create a project
+      description: Creates a project. The caller becomes its project manager (US-02).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        '201':
+          description: Project created.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+    get:
+      tags: [Projects]
+      operationId: getProject
+      summary: Get a project
+      description: Caller must be a member (EC-04).
+      responses:
+        '200':
+          description: The project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Projects]
+      operationId: updateProject
+      summary: Edit a project
+      description: Replaces the name and description (US-02). Project manager only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        '200':
+          description: Project updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Projects]
+      operationId: deleteProject
+      summary: Delete a project
+      description: >
+        Deletes the project with its tasks and memberships (US-02). Project manager only.
+      responses:
+        '204':
+          description: Project deleted.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/members:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+    get:
+      tags: [Projects]
+      operationId: listMembers
+      summary: List project members
+      description: >
+        All members, including the project manager, sorted by name (US-03).
+        Also used to choose a task's assignee (US-04).
+      responses:
+        '200':
+          description: The project's members.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Member'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Projects]
+      operationId: addMember
+      summary: Add a member
+      description: >
+        Adds a registered user by email, with role MEMBER (US-03). Project manager only.
+        An unknown email is a field error `USER_NOT_FOUND` on `email`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMemberRequest'
+      responses:
+        '201':
+          description: Member added.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: The user is already a member (`ALREADY_MEMBER`).
+
+  /projects/{projectId}/members/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+      - $ref: '#/components/parameters/userId'
+    delete:
+      tags: [Projects]
+      operationId: removeMember
+      summary: Remove a member
+      description: >
+        Removes the member and unassigns their tasks in this project (US-03).
+        Project manager only. The project manager can't be removed (EC-07).
+      responses:
+        '204':
+          description: Member removed and their tasks unassigned.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: The target is the project manager (`PROJECT_MANAGER_NOT_REMOVABLE`, EC-07).
+
+  # ── Tasks ─────────────────────────────────
+
+  /projects/{projectId}/tasks:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+    get:
+      tags: [Tasks]
+      operationId: listTasks
+      summary: List project tasks (board)
+      description: >
+        All tasks of the project, with the data for a board card and the late flag
+        (US-07, US-08). Sorted by due date, tasks without one last.
+        The client groups them into status columns.
+      responses:
+        '200':
+          description: The project's tasks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Tasks]
+      operationId: createTask
+      summary: Create a task
+      description: >
+        Creates a task with status TODO and, unless given, priority LOW (US-04).
+        The assignee must be a project member.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+      - $ref: '#/components/parameters/taskId'
+    get:
+      tags: [Tasks]
+      operationId: getTask
+      summary: Get a task
+      responses:
+        '200':
+          description: The task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Tasks]
+      operationId: updateTask
+      summary: Edit a task
+      description: >
+        Replaces the task's details (US-04). Any member can edit. Status is changed
+        with `PUT .../status`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Tasks]
+      operationId: deleteTask
+      summary: Delete a task
+      description: Project manager only (US-04).
+      responses:
+        '204':
+          description: Task deleted.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/tasks/{taskId}/status:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+      - $ref: '#/components/parameters/taskId'
+    put:
+      tags: [Tasks]
+      operationId: updateTaskStatus
+      summary: Change a task's status
+      description: >
+        Any member can move a task to any status, in any direction (US-05, US-07).
+        A task set to DONE is no longer late (US-08).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskStatusRequest'
+      responses:
+        '200':
+          description: Status changed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: SESSION
+      description: >
+        Server-side session (Spring Session JDBC, ADR 0004, ADR 0005). HttpOnly,
+        SameSite=Lax. Expires after 30 minutes of inactivity (NFR-02).
+
+  parameters:
+    projectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    taskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+  headers:
+    SetSessionCookie:
+      description: Sets the session cookie (`SESSION=...; Path=/; HttpOnly; SameSite=Lax`).
+      schema:
+        type: string
+    ClearSessionCookie:
+      description: Expires the session cookie.
+      schema:
+        type: string
+    Location:
+      description: URI of the created resource.
+      schema:
+        type: string
+        format: uri-reference
+    RetryAfter:
+      description: Seconds until sign-in can be tried again.
+      schema:
+        type: integer
+
+  responses:
+    BadRequest:
+      description: >
+        `MALFORMED_REQUEST` (invalid JSON, wrong type or invalid ID) or
+        `VALIDATION_FAILED` (see `errors`, EC-03).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: about:blank
+            title: Validation failed
+            status: 400
+            detail: One or more fields are invalid.
+            instance: /api/projects/7/tasks
+            code: VALIDATION_FAILED
+            errors:
+              - field: title
+                code: BLANK
+                message: Title must not be empty.
+    Unauthenticated:
+      description: Not signed in or session expired (`UNAUTHENTICATED`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            title: Unauthenticated
+            status: 401
+            code: UNAUTHENTICATED
+            detail: Sign in to continue.
+    Forbidden:
+      description: >
+        `NOT_PROJECT_MANAGER` (member without the required role) or
+        `CSRF_TOKEN_INVALID`.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            title: Forbidden
+            status: 403
+            code: NOT_PROJECT_MANAGER
+            detail: Only the project manager can do this.
+    NotFound:
+      description: >
+        `PROJECT_NOT_FOUND` (doesn't exist or caller isn't a member, EC-04),
+        `TASK_NOT_FOUND` or `MEMBER_NOT_FOUND`.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            title: Not found
+            status: 404
+            code: PROJECT_NOT_FOUND
+            detail: Project not found.
+    Conflict:
+      description: The request conflicts with the current state.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            title: Conflict
+            status: 409
+            code: ACCOUNT_MANAGES_PROJECTS
+            detail: Delete the projects you manage before deleting your account.
+    TooManyRequests:
+      description: Too many failed sign-in attempts (`TOO_MANY_SIGN_IN_ATTEMPTS`, NFR-02).
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            title: Too many requests
+            status: 429
+            code: TOO_MANY_SIGN_IN_ATTEMPTS
+            detail: Too many failed sign-in attempts. Try again in 15 minutes.
+
+  schemas:
+
+    # ── Accounts ────────────────────────────
+
+    SignUpRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          examples: [Alice Example]
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Unique, ignoring case (EC-01).
+          examples: [alice@example.com]
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          minLength: 8
+          maxLength: 64
+
+    SignInRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          minLength: 1
+          maxLength: 64
+
+    User:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [1]
+        name:
+          type: string
+          examples: [Alice Example]
+        email:
+          type: string
+          format: email
+          examples: [alice@example.com]
+
+    UserSummary:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [2]
+        name:
+          type: string
+          examples: [Bob Example]
+
+    # ── Projects ────────────────────────────
+
+    ProjectRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Trimmed; must not be empty (EC-03).
+          examples: [Website redesign]
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+          description: Omitted or null clears it.
+
+    Project:
+      type: object
+      required: [id, name, description, myRole, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [7]
+        name:
+          type: string
+          examples: [Website redesign]
+        description:
+          type: [string, 'null']
+        myRole:
+          $ref: '#/components/schemas/Role'
+          description: The caller's role, so the client can hide actions it can't do.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProjectSummary:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [7]
+        name:
+          type: string
+          examples: [Website redesign]
+
+    AddMemberRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          examples: [bob@example.com]
+
+    Member:
+      type: object
+      required: [userId, name, email, role]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          examples: [2]
+        name:
+          type: string
+          examples: [Bob Example]
+        email:
+          type: string
+          format: email
+          examples: [bob@example.com]
+        role:
+          $ref: '#/components/schemas/Role'
+
+    Role:
+      type: string
+      enum: [PROJECT_MANAGER, MEMBER]
+
+    # ── Tasks ───────────────────────────────
+
+    CreateTaskRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Trimmed; must not be empty (EC-03).
+          examples: [Write the landing page copy]
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+        assigneeId:
+          type: [integer, 'null']
+          format: int64
+          description: Must be a project member (US-04), otherwise field error `NOT_A_MEMBER`.
+        dueDate:
+          type: [string, 'null']
+          format: date
+          examples: ['2026-11-15']
+        priority:
+          $ref: '#/components/schemas/Priority'
+          default: LOW
+
+    UpdateTaskRequest:
+      type: object
+      description: Full replacement. `null` clears an optional field.
+      required: [title, description, assigneeId, dueDate, priority]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+        assigneeId:
+          type: [integer, 'null']
+          format: int64
+          description: Must be a project member (US-04), otherwise field error `NOT_A_MEMBER`.
+        dueDate:
+          type: [string, 'null']
+          format: date
+        priority:
+          $ref: '#/components/schemas/Priority'
+
+    UpdateTaskStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+
+    Task:
+      type: object
+      required: [id, projectId, title, description, assignee, dueDate, priority, status, late, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [42]
+        projectId:
+          type: integer
+          format: int64
+          examples: [7]
+        title:
+          type: string
+          examples: [Write the landing page copy]
+        description:
+          type: [string, 'null']
+        assignee:
+          oneOf:
+            - $ref: '#/components/schemas/UserSummary'
+            - type: 'null'
+        dueDate:
+          type: [string, 'null']
+          format: date
+          examples: ['2026-11-15']
+        priority:
+          $ref: '#/components/schemas/Priority'
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        late:
+          type: boolean
+          description: >
+            Computed, not stored. True when dueDate is before the server's local date
+            and status isn't DONE (FR-08). False when due today or no due date (EC-05).
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MyTask:
+      allOf:
+        - $ref: '#/components/schemas/Task'
+        - type: object
+          required: [project]
+          properties:
+            project:
+              $ref: '#/components/schemas/ProjectSummary'
+
+    Priority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+
+    TaskStatus:
+      type: string
+      enum: [TODO, IN_PROGRESS, DONE]
+
+    # ── Errors ──────────────────────────────
+
+    Problem:
+      type: object
+      description: RFC 9457 problem details, with a `code`.
+      required: [title, status, code]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          default: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+          description: Message that can be shown to the user.
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        errors:
+          type: array
+          description: Only with `VALIDATION_FAILED`. One entry per invalid field (EC-03).
+          items:
+            $ref: '#/components/schemas/FieldError'
+
+    FieldError:
+      type: object
+      required: [field, code, message]
+      properties:
+        field:
+          type: string
+          examples: [title]
+        code:
+          type: string
+          enum: [REQUIRED, BLANK, TOO_SHORT, TOO_LONG, INVALID_FORMAT, INVALID_VALUE, NOT_A_MEMBER, USER_NOT_FOUND]
+        message:
+          type: string
+          examples: [Title must not be empty.]
+
+    ErrorCode:
+      type: string
+      enum:
+        - MALFORMED_REQUEST
+        - VALIDATION_FAILED
+        - UNAUTHENTICATED
+        - INVALID_CREDENTIALS
+        - CSRF_TOKEN_INVALID
+        - NOT_PROJECT_MANAGER
+        - PROJECT_NOT_FOUND
+        - TASK_NOT_FOUND
+        - MEMBER_NOT_FOUND
+        - EMAIL_IN_USE
+        - ALREADY_MEMBER
+        - PROJECT_MANAGER_NOT_REMOVABLE
+        - ACCOUNT_MANAGES_PROJECTS
+        - TOO_MANY_SIGN_IN_ATTEMPTS
+        - INTERNAL_ERROR

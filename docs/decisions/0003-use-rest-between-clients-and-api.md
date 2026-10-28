@@ -26,3 +26,8 @@ Clients will communicate with the API using REST over HTTPS, with JSON as the da
 - The API is easy to test and document.
 - Some screens may need several requests, or dedicated endpoints, to load all their data.
 - Real-time updates, if needed later, will require a separate mechanism.
+
+## Notes
+
+- The application runs only locally, so HTTPS isn't used for now ([ADR 0006](0006-run-locally.md)).
+- The API contract is in [openapi.yaml](../openapi.yaml).

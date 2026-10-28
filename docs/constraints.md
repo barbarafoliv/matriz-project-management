@@ -13,6 +13,7 @@
 
 - Small teams that track work in spreadsheets and chat lose track of who is doing what, and of what's late.
 - Matriz is used by small teams, in one shared workspace.
+- The MVP runs on one machine ([ADR 0006](decisions/0006-run-locally.md)). Team features are tried with several accounts on that machine.
 - There are two user types: project manager and team member. These are roles in each project, not types of account: a user can be the project manager of one project and a team member of another.
 - The user who creates a project is its project manager. Each project has one project manager, who can't be removed or replaced.
 - Each task has at most one assignee.
@@ -23,10 +24,10 @@
 
 - Only signed-in users can use the application.
 - Users only see the projects they are members of.
-- Passwords are never stored in readable form.
+- Passwords are never stored in readable form, and must be 8 to 64 characters long.
 - Only the name and email of each user are collected.
 - Users can delete their account and personal data.
-- Repeated failed sign-in attempts are limited, and inactive sessions expire.
+- After 5 failed sign-in attempts, sign-in is blocked for 15 minutes. Sessions expire after 30 minutes of inactivity.
 
 ## 4. Pending technical decisions
 
@@ -36,10 +37,11 @@ Decided so far:
 - Database: PostgreSQL ([ADR 0002](decisions/0002-use-postgresql.md)).
 - Sign-in: email and password, with server-side sessions ([ADR 0004](decisions/0004-use-email-password-with-server-side-sessions.md)).
 
-Still pending:
+- Application stack: Spring Boot (backend) and Angular (frontend) ([ADR 0005](decisions/0005-use-spring-boot-and-angular.md)).
+- Hosting: local only ([ADR 0006](decisions/0006-run-locally.md)).
+- API contract: [openapi.yaml](openapi.yaml).
 
-- The technologies to use for the client and the application.
-- Where the application is hosted.
+All technical decisions for the MVP have been made.
 
 ## 5. Scope limitations
 

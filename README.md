@@ -42,17 +42,19 @@ Features planned for later versions (comments, filters, progress summary, notifi
 | [docs/architecture.md](docs/architecture.md) | Architecture alternatives, the chosen modular monolith, and its main components and responsibilities. |
 | [docs/database.md](docs/database.md) | Conceptual data model: entities, relationships, integrity rules and traceability to the requirements. |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records (ADRs). |
+| [docs/ui/](docs/ui/design-decisions.md) | UI prototype ([prototype.html](docs/ui/prototype.html)) and UI/UX design decisions. |
+| [docs/openapi.yaml](docs/openapi.yaml) | REST API contract (OpenAPI 3.1): endpoints, DTOs, validation rules and errors. |
 | [AGENTS.md](AGENTS.md) | Instructions for coding agents working on the project. |
 
 The documents are traceable: each user story (US-xx) is linked to a functional requirement (FR-xx) in the requirements.
 
 ## Current status
 
-**Phase: technical design.** No code has been written yet.
+**Phase: technical design complete.** No code has been written yet.
 
 - [x] Problem analysis and clarification
 - [x] Requirements and MVP scope
 - [x] MVP user stories and acceptance criteria
-- [ ] Technical design and technology choice (in progress: architecture drafted, data model approved, sign-in method chosen; technologies and hosting pending)
+- [x] Technical design and technology choice (architecture, data model, API contract and ADRs 0001 to 0006)
 - [ ] MVP implementation
 - [ ] Testing against the acceptance criteria

@@ -119,7 +119,7 @@ The diagram can't show every rule. The assignee must be a member of the task's p
 | created_at | Date and time | Required, set when the task is created |
 | updated_at | Date and time | Required, set when the task is created or changed |
 
-**"Late" is not stored.** A task is late when its due date is before today (in the user's local date) and its status isn't DONE (FR-08). It is worked out when needed, so it's never out of date.
+**"Late" is not stored.** A task is late when its due date is before today (in the user's local date) and its status isn't DONE (FR-08). It is worked out when needed, so it's never out of date. The server's local date is used: the application runs on the user's machine ([ADR 0006](decisions/0006-run-locally.md)), so it is the user's local date.
 
 ## 4. Rules
 
@@ -138,7 +138,9 @@ The diagram can't show every rule. The assignee must be a member of the task's p
 
 ## 5. Open points
 
-- **Pending:** sign-in uses server-side sessions ([ADR 0004](decisions/0004-use-email-password-with-server-side-sessions.md)), so sessions and failed sign-in attempts must be stored. Whether they are stored in PostgreSQL or elsewhere will be decided with the application technology. If it's PostgreSQL, this model will be extended.
+- **Resolved:** sessions and failed sign-in attempts are stored in PostgreSQL using Spring Session with JDBC ([ADR 0005](decisions/0005-use-spring-boot-and-angular.md)). The schema is managed by Spring Session and is separate from the application tables above.
+
+There are no remaining open points for the MVP data model.
 
 ## 6. Notes
 

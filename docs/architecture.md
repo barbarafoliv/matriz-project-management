@@ -36,7 +36,7 @@ Matriz is built as a **modular monolith** ([ADR 0001](decisions/0001-use-modular
 ```
         Client
           |
-          | REST / JSON over HTTPS
+          | REST / JSON over HTTP
           v
 +-------------------------------------+
 |  Matriz application                 |
@@ -52,8 +52,8 @@ Matriz is built as a **modular monolith** ([ADR 0001](decisions/0001-use-modular
 
 | Component | Responsibilities | Requirements |
 |---|---|---|
-| **Client** | Shows the screens (sign in, projects, board, "My tasks") and sends requests to the API. Contains no business logic. | NFR-01 |
-| **REST API** | Receives requests, checks that the user is signed in (session cookie, [ADR 0004](decisions/0004-use-email-password-with-server-side-sessions.md)), validates the input, calls the right module and returns HTTP responses and errors. Contains no business logic. | NFR-02, [ADR 0003](decisions/0003-use-rest-between-clients-and-api.md) |
+| **Client** | Shows the screens (sign in, projects, board, "My tasks", delete account) and sends requests to the API. Contains no business logic. | NFR-01 |
+| **REST API** | Receives requests, checks that the user is signed in (session cookie, [ADR 0004](decisions/0004-use-email-password-with-server-side-sessions.md)), validates the input, calls the right module and returns HTTP responses and errors. Contains no business logic. The contract is in [openapi.yaml](openapi.yaml). | NFR-02, [ADR 0003](decisions/0003-use-rest-between-clients-and-api.md) |
 | **Accounts module** | Sign up, sign in and sign out. Stores passwords securely, limits repeated failed sign-ins and expires inactive sessions. Deletes accounts and personal data. | FR-01, FR-14, NFR-02 |
 | **Projects module** | Creates, edits and deletes projects. Manages members and the project manager role. Decides whether a user can see or change a project. | FR-02, FR-03, NFR-02 |
 | **Tasks module** | Creates, edits and deletes tasks, and changes their status. Provides the project board and "My tasks". Decides when a task is late. | FR-04 to FR-08 |
@@ -66,9 +66,7 @@ Matriz is built as a **modular monolith** ([ADR 0001](decisions/0001-use-modular
 - **Accounts → Projects:** an account can't be deleted while the user is the project manager of a project (EC-06).
 - **Accounts → Projects and Tasks:** when an account is deleted, the user's name and email are no longer shown, and their tasks are unassigned (US-09).
 
-## 5. Still pending
+## 5. Technologies and hosting
 
-These decisions are still open in [constraints.md](constraints.md):
-
-- Technologies for the client and the application.
-- Where the application is hosted.
+- Spring Boot (backend) and Angular (client) ([ADR 0005](decisions/0005-use-spring-boot-and-angular.md)).
+- Runs locally, without HTTPS ([ADR 0006](decisions/0006-run-locally.md)).
