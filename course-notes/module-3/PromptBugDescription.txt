@@ -1,19 +1,19 @@
-Problema:
-Uma tarefa criada só aparece na listagem depois de recarregar a página.
+Problem:
+A created task only appears in the listing after reloading the page.
 
-Passos para reproduzir:
-1. Abrir um projeto com permissão para criar tarefas.
-2. Preencher o formulário com um título válido.
-3. Submeter o formulário.
-4. Observar a listagem.
-5. Recarregar a página.
+Steps to reproduce:
+1. Open a project with permission to create tasks.
+2. Fill in the form with a valid title.
+3. Submit the form.
+4. Observe the listing.
+5. Reload the page.
 
-Resultado esperado:
-A tarefa aparece na listagem após a confirmação da criação.
+Expected result:
+The task appears in the listing after the creation confirmation.
 
-Resultado observado:
-A interface confirma a criação, mas a listagem mantém-se igual.
-Depois de recarregar, a tarefa aparece.
+Observed result:
+The interface confirms the creation, but the listing remains unchanged.
+After reloading, the task appears.
 
-Frequência:
-O problema ocorre em todas as tentativas realizadas.
+Frequency:
+The problem occurs on every attempt made.

@@ -1,12 +1,12 @@
-Com base na análise anterior, propõe um plano para implementar
-o Backend da criação de tarefas.
+Based on the previous analysis, propose a plan to implement
+the Backend for task creation.
 
-Para cada passo, indica:
-- Ficheiros a criar ou alterar.
-- Responsabilidade da alteração.
-- Dependências e dúvidas por resolver.
-- Forma de verificar o comportamento.
+For each step, indicate:
+- Files to create or change.
+- Responsibility for the change.
+- Dependencies and unresolved questions.
+- How to verify the behaviour.
 
-Respeita o contrato OpenAPI e os padrões existentes.
-Mantém o âmbito limitado a esta funcionalidade.
-Aguarda a validação do plano antes de implementar.
+Respect the OpenAPI contract and the existing patterns.
+Keep the scope limited to this feature.
+Wait for plan validation before implementing.

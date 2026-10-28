@@ -1,10 +1,10 @@
-Verifica a implementação da criação de tarefas.
+Verify the implementation of task creation.
 
-Compara o comportamento com os critérios de aceitação
-e com o contrato OpenAPI.
+Compare the behaviour with the acceptance criteria
+and the OpenAPI contract.
 
-Executa os testes relevantes e verifica os cenários de sucesso,
-validação e autorização.
+Run the relevant tests and verify the success,
+validation and authorisation scenarios.
 
-Apresenta os resultados observados, os comandos executados
-e os cenários que não conseguiste verificar.
+Present the observed results, the commands executed
+and the scenarios you were unable to verify.

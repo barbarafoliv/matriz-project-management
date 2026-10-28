@@ -1,10 +1,10 @@
-Revê os estados da interface de criação de tarefas.
+Review the states of the task creation interface.
 
-Verifica validação, submissão em curso, sucesso e erro.
-Confirma também o comportamento quando a listagem está vazia.
+Verify validation, in-progress submission, success and error.
+Also confirm the behaviour when the listing is empty.
 
-Identifica situações em que o utilizador fica sem feedback,
-perde dados introduzidos ou consegue repetir a submissão
-enquanto o pedido anterior está em curso.
+Identify situations where the user receives no feedback,
+loses entered data, or can repeat the submission
+while the previous request is still in progress.
 
-Propõe correções limitadas aos problemas encontrados.
+Propose corrections limited to the problems found.

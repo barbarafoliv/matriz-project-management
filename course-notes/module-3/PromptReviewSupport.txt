@@ -1,10 +1,10 @@
-Revê o diff face à issue e aos critérios de aceitação.
+Review the diff against the issue and the acceptance criteria.
 
-Identifica problemas concretos de correção, regressões,
-alterações fora do âmbito e lacunas de verificação.
+Identify concrete correctness problems, regressions,
+out-of-scope changes and verification gaps.
 
-Para cada problema, indica a localização, a evidência,
-o impacto e uma possível correção.
+For each problem, indicate the location, the evidence,
+the impact and a possible fix.
 
-Distingue problemas confirmados de dúvidas.
-Não alteres ficheiros nesta revisão.
+Distinguish confirmed problems from doubts.
+Do not change any files in this review.

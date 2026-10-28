@@ -1,10 +1,10 @@
-Aplica a correção para a causa confirmada.
+Apply the fix for the confirmed cause.
 
-Acrescenta um teste de regressão no nível adequado ao problema,
-seguindo as ferramentas e convenções existentes.
+Add a regression test at the appropriate level for the problem,
+following the existing tools and conventions.
 
-Verifica que a tarefa aparece após a criação, sem recarregar
-a página e sem duplicação.
+Verify that the task appears after creation, without reloading
+the page and without duplication.
 
-Executa o teste de regressão e os testes relacionados.
-Apresenta o diff, os resultados e as verificações pendentes.
+Run the regression test and the related tests.
+Present the diff, the results and the pending verifications.

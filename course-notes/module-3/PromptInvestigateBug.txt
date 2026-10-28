@@ -1,19 +1,19 @@
-Investiga o seguinte problema na Matriz:
-uma tarefa criada só aparece na listagem depois de recarregar a página.
+Investigate the following problem in Matriz:
+a created task only appears in the listing after reloading the page.
 
-Usa os passos de reprodução e a evidência fornecida.
+Use the reproduction steps and the evidence provided.
 
-Analisa o percurso entre:
-- Submissão do formulário.
-- Pedido e resposta da API.
-- Tratamento da resposta.
-- Atualização do estado ou da cache.
-- Apresentação da listagem e aplicação de filtros.
+Analyse the path between:
+- Form submission.
+- API request and response.
+- Response handling.
+- State or cache update.
+- Listing display and filter application.
 
-Identifica os ficheiros envolvidos e apresenta hipóteses
-com a evidência que as suporta ou contraria.
+Identify the files involved and present hypotheses
+with evidence that supports or contradicts them.
 
-Se faltar informação, indica como a recolher.
-Distingue conclusões confirmadas de hipóteses por verificar.
+If information is missing, indicate how to collect it.
+Distinguish confirmed conclusions from unverified hypotheses.
 
-Não alteres ficheiros nesta fase.
+Do not change any files at this stage.

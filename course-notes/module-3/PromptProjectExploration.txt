@@ -1,17 +1,17 @@
-Vamos implementar a criação de uma tarefa num projeto da Matriz.
+We are implementing task creation in a Matriz project.
 
-Analisa as instruções do repositório, a arquitetura, o modelo de dados
-e o contrato OpenAPI.
+Analyse the repository instructions, the architecture, the data model
+and the OpenAPI contract.
 
-Localiza:
-- A estrutura do Backend e do Frontend.
-- O código relacionado com projetos e tarefas.
-- Os mecanismos de autenticação, autorização e validação.
-- O tratamento de erros e os testes existentes.
-- Os comandos usados para executar e verificar o projeto.
+Locate:
+- The Backend and Frontend structure.
+- The code related to projects and tasks.
+- The authentication, authorisation and validation mechanisms.
+- The error handling and existing tests.
+- The commands used to run and verify the project.
 
-Apresenta os ficheiros relevantes e as funcionalidades reutilizáveis.
-Distingue o que já existe do que falta implementar.
-Identifica dúvidas ou inconsistências, indicando os ficheiros envolvidos.
+Present the relevant files and reusable features.
+Distinguish what already exists from what still needs to be implemented.
+Identify doubts or inconsistencies, indicating the files involved.
 
-Não alteres ficheiros nesta fase.
+Do not change any files at this stage.

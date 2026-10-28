@@ -1,27 +1,27 @@
-Título:
-Atualizar a listagem após a criação de uma tarefa
+Title:
+Update the listing after task creation
 
-Problema:
-A tarefa só aparece depois de recarregar a página.
+Problem:
+The task only appears after reloading the page.
 
-Reprodução:
-1. Abrir um projeto.
-2. Criar uma tarefa válida.
-3. Observar a listagem antes e depois de recarregar a página.
+Reproduction:
+1. Open a project.
+2. Create a valid task.
+3. Observe the listing before and after reloading the page.
 
-Comportamento esperado:
-A tarefa aparece após a confirmação da criação pela API.
+Expected behaviour:
+The task appears after the creation is confirmed by the API.
 
-Critérios de aceitação:
-- A tarefa aparece sem recarregar a página.
-- A tarefa aparece uma única vez.
-- Os filtros e a ordenação mantêm o comportamento definido.
-- Uma criação falhada mantém o tratamento de erro existente.
+Acceptance criteria:
+- The task appears without reloading the page.
+- The task appears only once.
+- Filters and sorting maintain the defined behaviour.
+- A failed creation keeps the existing error handling.
 
-Restrições:
-- Respeitar as instruções e convenções do repositório.
-- Preservar o contrato da API.
-- Limitar as alterações ao problema identificado.
+Constraints:
+- Respect the repository instructions and conventions.
+- Preserve the API contract.
+- Limit changes to the identified problem.
 
-Verificação:
-Acrescentar um teste de regressão e executar os testes relacionados.
+Verification:
+Add a regression test and run the related tests.

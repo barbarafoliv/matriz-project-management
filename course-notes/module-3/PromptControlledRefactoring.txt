@@ -1,17 +1,17 @@
-Analisa o código relacionado com a criação e atualização de tarefas.
+Analyse the code related to task creation and update.
 
-Identifica duplicação, complexidade e responsabilidades misturadas.
-Para cada oportunidade, indica os ficheiros envolvidos,
-o benefício esperado e os riscos.
+Identify duplication, complexity and mixed responsibilities.
+For each opportunity, indicate the files involved,
+the expected benefit and the risks.
 
-Propõe uma refatoração pequena, respeitando a arquitetura existente.
-Preserva o contrato da API, as regras de negócio e as permissões.
+Propose a small refactoring, respecting the existing architecture.
+Preserve the API contract, the business rules and the permissions.
 
-Antes de alterar, executa os testes relevantes e regista o resultado.
-Se faltar cobertura para o comportamento afetado, propõe como verificá-lo.
+Before making changes, run the relevant tests and record the result.
+If coverage is missing for the affected behaviour, propose how to verify it.
 
-Após a validação da proposta, implementa a refatoração
-e volta a executar as verificações.
+After the proposal is validated, implement the refactoring
+and run the verifications again.
 
-Apresenta o diff e explica como confirmaste
-que o comportamento foi preservado.
+Present the diff and explain how you confirmed
+that the behaviour was preserved.

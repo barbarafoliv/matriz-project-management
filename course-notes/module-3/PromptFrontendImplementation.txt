@@ -1,13 +1,12 @@
-Implementa a interface de criação de tarefas da Matriz,
-seguindo o protótipo e as convenções do Frontend.
+Implement the task creation interface for Matriz,
+following the prototype and Frontend conventions.
 
-Reutiliza os componentes, estilos e mecanismos de acesso à API
-já existentes.
+Reuse the existing components, styles and API access mechanisms.
 
-Inclui os campos definidos no contrato, validação do formulário
-e feedback durante a submissão.
+Include the fields defined in the contract, form validation
+and feedback during submission.
 
-Após a criação, atualiza a listagem de tarefas.
-Preserva os dados introduzidos quando ocorrer um erro recuperável.
+After creation, update the task listing.
+Preserve the entered data when a recoverable error occurs.
 
-Mantém a alteração limitada a esta funcionalidade.
+Keep the change limited to this feature.

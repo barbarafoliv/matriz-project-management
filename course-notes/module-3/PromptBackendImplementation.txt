@@ -1,10 +1,10 @@
-Implementa o Backend de acordo com o plano validado.
+Implement the Backend according to the validated plan.
 
-Reutiliza os mecanismos existentes de autenticação, autorização,
-validação e tratamento de erros.
+Reuse the existing mechanisms for authentication, authorisation,
+validation and error handling.
 
-Respeita o contrato OpenAPI e as convenções do projeto.
-Acrescenta ou adapta os testes necessários para verificar a alteração.
+Respect the OpenAPI contract and the project conventions.
+Add or adapt the necessary tests to verify the change.
 
-No final, apresenta os ficheiros alterados, as verificações executadas
-e as limitações ou problemas que ficaram por resolver.
+At the end, present the changed files, the verifications performed
+and any limitations or problems that remain unresolved.
