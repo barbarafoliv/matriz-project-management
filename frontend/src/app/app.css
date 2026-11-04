@@ -1,0 +1,20 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+}
+
+.app-logo {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.07em;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}

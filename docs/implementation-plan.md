@@ -11,7 +11,7 @@ title: Implementation Plan
 | # | Increment | Stories | Status |
 |---|---|---|---|
 | 0 | Reconcile the documentation | — | Done |
-| 1 | Project skeleton and persistence | — | To do |
+| 1 | Project skeleton and persistence | — | Done |
 | 2 | Authentication | US-01 | To do |
 | 3 | Projects, search and members | US-02, US-12, US-03 | To do |
 | 4 | Tasks, status, board, filters and late tasks | US-04, US-05, US-07, US-13, US-08 | To do |
@@ -32,14 +32,16 @@ title: Implementation Plan
 ### 1. Project skeleton and persistence
 
 - **Components:**
-  - `backend/`: Spring Boot application (Maven wrapper, Java 21), packages `accounts`, `projects`, `tasks`; `application.yml` reading `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`.
-  - Liquibase changelogs: tables `app_user`, `project`, `project_member`, `task`, `task_assignee`, `comment`, `sign_in_attempt`, and the Spring Session tables.
+  - `docker-compose.yml`: PostgreSQL 18 with a named volume.
+  - `backend/`: Spring Boot 4.1 application (Maven wrapper, Java 21), packages `accounts`, `projects`, `tasks`; `application.yml` reading `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` from `.env`; Actuator health endpoint.
+  - Liquibase changelogs (formatted SQL): tables `app_user`, `project`, `project_member`, `task`, `task_assignee`, `comment`, `sign_in_attempt`, and the Spring Session tables.
   - Demo seed (Liquibase, `demo` context): Alice, Bob and Carol (fake data). "Website redesign" (PM Alice, member Bob), "Mobile launch" (PM Bob, member Alice), "Research notes" (PM Carol, no other members), with tasks in every status and priority, one late task, assignments and comments.
   - `frontend/`: Angular application with the `/api` dev proxy and the API address set in one place.
   - `.env.example` with fake values; README run commands.
-- **Depends on:** Increment 0. JDK 21, Node.js and PostgreSQL installed; Docker for Testcontainers.
+- **Depends on:** Increment 0. JDK 21, Node.js and Docker installed.
 - **Acceptance criteria:** backend and frontend start; the schema and seed are created on first start; restarting doesn't delete or duplicate data.
 - **Checks:** `./mvnw verify` with a `@SpringBootTest` that checks the schema and seed on PostgreSQL; `ng build`; starting the backend twice and comparing row counts.
+- **Result:** `./mvnw verify` 9 tests passed (schema, seed counts, second Liquibase run, duplicate assignment, email case, second PM, blank title, health). `ng build` passed, `ng test` 2 tests passed. Manual: first start ran 9 changesets; restart ran 0, and row counts were unchanged (3 users, 3 projects, 5 members, 8 tasks, 9 assignments, 4 comments). `/api/actuator/health` returned `db: UP`, directly and through the `ng serve` proxy.
 
 ### 2. Authentication (US-01, NFR-02)
 

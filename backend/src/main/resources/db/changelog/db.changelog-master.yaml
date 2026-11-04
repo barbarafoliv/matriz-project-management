@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/001-schema.sql
+  - include:
+      file: db/changelog/002-spring-session.sql
+  - include:
+      file: db/changelog/100-demo-data.sql

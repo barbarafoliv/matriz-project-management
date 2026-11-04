@@ -33,6 +33,9 @@ These documents are the source of truth. The `course-notes/` folder is not produ
 ## Validation
 
 - Use the build and test commands in the README. If they aren't defined yet, say so.
+  - Database: `docker compose up -d` (from the repository root, needs `.env`).
+  - Backend: `cd backend && ./mvnw verify` (needs Docker running), run with `./mvnw spring-boot:run`.
+  - Frontend: `cd frontend && npx ng build` and `npx ng test --watch=false`, run with `npm start`.
 - Add or update tests for any behaviour you change, based on the acceptance criteria where they exist.
 - Report the commands you ran and their results, the files you changed, and any assumptions you made.
 - If you can't validate a change, explain what prevented it.

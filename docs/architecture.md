@@ -77,11 +77,12 @@ Matriz is built as a **modular monolith** ([ADR 0001](decisions/0001-use-modular
 | Area | Choice |
 |---|---|
 | Repository layout | `backend/` (Spring Boot) and `frontend/` (Angular) in this repository. |
-| Backend | Java 21, Spring Boot 3, Maven (with the Maven wrapper). Packages `accounts`, `projects` and `tasks`, one per module. |
+| Backend | Java 21, Spring Boot 4.1, Maven (with the Maven wrapper). Packages `accounts`, `projects` and `tasks`, one per module. |
 | Data access | Spring Data JPA. |
-| Schema | Liquibase changelogs, including the Spring Session JDBC tables. |
+| Schema | Liquibase changelogs in formatted SQL (`backend/src/main/resources/db/changelog/`), including the Spring Session JDBC tables. |
 | Demo data | A Liquibase changeset with the `demo` context. It runs once, so restarting doesn't delete or duplicate data. Demo passwords are stored as hashes; the fake demo password is in the README. |
 | Failed sign-ins | Counted in a `sign_in_attempt` table by the Accounts module. Spring Security doesn't provide this. |
-| Database | PostgreSQL installed locally. Connection set with the `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` environment variables; `.env.example` has fake values. |
-| Frontend | Angular (current LTS). The API address is set in one place, and the dev server proxies `/api` to the backend so the session cookie stays on the same origin. |
-| Tests | JUnit 5, Spring Boot Test and MockMvc, with Testcontainers for PostgreSQL. Angular's default unit test runner. |
+| Database | PostgreSQL 18 in a local Docker container (`docker-compose.yml`), with a named volume so data is kept. Connection set with the `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` variables, read from `.env`; `.env.example` has fake values. |
+| Health check | Spring Boot Actuator, only the `health` endpoint (`/api/actuator/health`), to check that the backend reaches the database. |
+| Frontend | Angular 21 (current LTS). The API address is set in one place, and the dev server proxies `/api` to the backend so the session cookie stays on the same origin. |
+| Tests | JUnit 5, Spring Boot Test and MockMvc, with Testcontainers for PostgreSQL (needs Docker). Angular's default unit test runner (Vitest). |

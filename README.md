@@ -37,6 +37,59 @@ The MVP is the smallest version where a team can **create a project, assign task
 
 Features planned for later versions (progress summary, notifications, priority matrix view, filter by assignee, public sign-up, password recovery) and features out of scope are listed in the [requirements](docs/requirements.md).
 
+## Getting started
+
+### Requirements
+
+- JDK 21
+- Node.js 24 and npm
+- Docker with Docker Compose (for example Rancher Desktop or Docker Desktop), running
+
+### Set up
+
+From the repository root:
+
+```sh
+cp .env.example .env      # then change the two passwords in .env (local values, never committed)
+docker compose up -d      # starts PostgreSQL 18 in Docker, data kept in the "matriz-db" volume
+```
+
+### Run
+
+```sh
+cd backend && ./mvnw spring-boot:run     # API on http://localhost:8080/api
+cd frontend && npm install && npm start  # app on http://localhost:4200, /api forwarded to the backend
+```
+
+On first start, the backend creates the schema and loads the demo data with Liquibase. Later starts skip what has already run, so data isn't deleted or duplicated.
+
+To check that the backend reaches the database: `curl http://localhost:8080/api/actuator/health` should show `"db":{"status":"UP"}`.
+
+### Demo accounts
+
+Created by the seed. All use the fake password **`matriz-demo-2026`**. Sign-in is added in Increment 2.
+
+| Name | Email | Projects |
+|---|---|---|
+| Alice Example | alice@example.com | Website redesign (project manager), Mobile launch |
+| Bob Example | bob@example.com | Mobile launch (project manager), Website redesign |
+| Carol Example | carol@example.com | Research notes (project manager) |
+
+### Test
+
+```sh
+cd backend && ./mvnw verify                  # needs Docker: tests use a temporary PostgreSQL (Testcontainers)
+cd frontend && npm test -- --watch=false
+```
+
+### Stop
+
+```sh
+docker compose stop       # stops PostgreSQL, keeps the data
+```
+
+`docker compose down -v` also **deletes the database volume** and all data; the next backend start recreates the schema and demo data.
+
 ## Documentation
 
 | Document | Contents |
@@ -56,7 +109,7 @@ The documents are traceable: each user story (US-xx) is linked to a functional r
 
 ## Current status
 
-**Phase: implementation planned.** No code has been written yet. Progress is tracked in the [implementation plan](docs/implementation-plan.md).
+**Phase: MVP implementation.** Project skeleton, database schema and demo data are in place (Increment 1). Progress is tracked in the [implementation plan](docs/implementation-plan.md).
 
 - [x] Problem analysis and clarification
 - [x] Requirements and MVP scope

@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: matriz-backend
+  config:
+    # Local settings from the repository's .env file (see .env.example), whether the
+    # backend is started from backend/ or from the repository root.
+    import:
+      - optional:file:../.env[.properties]
+      - optional:file:.env[.properties]
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/matriz}
+    username: ${DB_USERNAME:matriz}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # The schema is owned by Liquibase; Hibernate only checks it.
+      ddl-auto: validate
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    # "demo" loads the demo accounts and projects (runs once).
+    contexts: ${LIQUIBASE_CONTEXTS:demo}
+
+server:
+  servlet:
+    context-path: /api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-components: always

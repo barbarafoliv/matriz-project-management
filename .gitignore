@@ -25,3 +25,9 @@ replay_pid*
 
 # IntelliJ IDEA project files
 .idea/
+
+# Local environment (real values never committed; see .env.example)
+.env
+
+# Build output
+backend/target/
