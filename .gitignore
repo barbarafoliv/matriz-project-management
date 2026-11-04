@@ -31,3 +31,6 @@ replay_pid*
 
 # Build output
 backend/target/
+
+# Browser automation output (screenshots, logs)
+.playwright-mcp/
