@@ -281,6 +281,22 @@ class TaskTests {
 	}
 
 	@Test
+	void reportsATaskThatDoesNotExistAsNotFound() throws Exception {
+		long missing = this.jdbc.queryForObject("SELECT COALESCE(MAX(id), 0) + 1000 FROM task", Long.class);
+		String url = tasks() + "/" + missing;
+
+		this.mvc.perform(get(url).with(this.ana.signedIn()))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value("TASK_NOT_FOUND"));
+		this.mvc.perform(asUser(this.ana, put(url)).content(body("Ghost", null, null, "LOW")))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value("TASK_NOT_FOUND"));
+		assertThat(this.jdbc.queryForObject("SELECT COUNT(*) FROM task WHERE project_id = ?", Integer.class,
+				this.project))
+			.isZero();
+	}
+
+	@Test
 	void showsTheAssigneesSortedByName() throws Exception {
 		long task = this.data.task(this.project, "Shared", "TODO", this.ben, this.ana);
 
