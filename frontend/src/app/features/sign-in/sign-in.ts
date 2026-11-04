@@ -24,6 +24,7 @@ export class SignIn {
   protected readonly pending = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly sessionExpired = this.auth.sessionExpired;
+  protected readonly accountDeleted = this.auth.accountDeleted;
 
   protected submit(): void {
     if (this.pending()) {

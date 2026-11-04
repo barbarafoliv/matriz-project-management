@@ -83,6 +83,14 @@ describe('SignIn', () => {
     expect(page.textContent).toContain('Your session has expired. Sign in again.');
   });
 
+  it('confirms that the account was deleted', async () => {
+    TestBed.inject(AuthService).accountDeleted.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(page.textContent).toContain('Your account and personal data were deleted.');
+  });
+
   it('goes to the home screen after signing in', async () => {
     type('email', 'alice@example.com');
     type('password', 'right');

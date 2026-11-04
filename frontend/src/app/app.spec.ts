@@ -34,5 +34,6 @@ describe('App', () => {
 
     expect(header.textContent).toContain('Alice Example');
     expect(header.textContent).toContain('Sign out');
+    expect(header.textContent).toContain('Delete account');
   });
 });

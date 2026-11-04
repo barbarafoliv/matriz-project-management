@@ -18,7 +18,7 @@ title: Implementation Plan
 | 5 | Assignees and "My tasks" | US-10, US-06 | Done |
 | 6 | Comments | US-11 | Done |
 | 7 | Dashboard | US-14 | To do |
-| 8 | Account deletion | US-09 | To do |
+| 8 | Account deletion | US-09 | Done (built before 7) |
 | 9 | Verification and delivery | All | To do |
 
 ## 2. Increments
@@ -111,6 +111,7 @@ title: Implementation Plan
 - **Depends on:** Increments 5 and 6.
 - **Acceptance criteria:** US-09, EC-06.
 - **Checks:** service test covering all three modules; manual check that comments show "Deleted user".
+- **Result:** `./mvnw verify` 82 tests passed (7 account deletion tests added). `ng test` 72 tests passed. Manual, in the browser: Alice (a project manager) gets the EC-06 message listing her project and no Delete button; a throwaway non-manager account (fake data, inserted for the check) was added to a project, assigned to a task and commented, then deleted its account: it was signed out with "Your account and personal data were deleted." and couldn't sign in again; Alice then saw its comment as "Deleted user", and it was no longer an assignee or member. The check task was deleted afterwards and the demo data is unchanged. All demo accounts manage a project, so none of them can be deleted (EC-06).
 
 ### 9. Verification and delivery
 

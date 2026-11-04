@@ -170,6 +170,15 @@ public class ProjectService {
 			.collect(Collectors.toMap(Project::getId, Project::getName));
 	}
 
+	/**
+	 * Whether the user is the project manager of any project. Their account can't be deleted
+	 * until those projects are deleted (EC-06).
+	 */
+	@Transactional(readOnly = true)
+	public boolean managesAnyProject(long userId) {
+		return this.members.findByUserId(userId).stream().anyMatch(ProjectMember::isProjectManager);
+	}
+
 	private ProjectMember requireMember(long callerId, long projectId) {
 		return this.members.findByProjectIdAndUserId(projectId, callerId).orElseThrow(ProjectErrors::projectNotFound);
 	}

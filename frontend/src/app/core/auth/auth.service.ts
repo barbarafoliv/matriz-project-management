@@ -21,6 +21,9 @@ export class AuthService {
   /** True after a request failed because the session had expired. */
   readonly sessionExpired = signal(false);
 
+  /** True after the signed-in user deleted their account (US-09). */
+  readonly accountDeleted = signal(false);
+
   /**
    * Asks the API who is signed in, once. Also gives the browser the CSRF cookie needed
    * for the first sign-in.
@@ -45,6 +48,7 @@ export class AuthService {
     return this.http.post<User>(`${API_BASE_URL}/sessions`, { email, password }).pipe(
       tap((user) => {
         this.sessionExpired.set(false);
+        this.accountDeleted.set(false);
         this.setUser(user);
       }),
     );
@@ -57,6 +61,21 @@ export class AuthService {
         this.user.set(null);
         // Signing out also removes the CSRF token. Asking the API again on the next page
         // gets a new one, which the next sign-in needs.
+        this.checked = false;
+      }),
+    );
+  }
+
+  /**
+   * Deletes the signed-in user's account; the API also signs them out (US-09). Fails with
+   * `ACCOUNT_MANAGES_PROJECTS` while they manage a project (EC-06).
+   */
+  deleteAccount(): Observable<void> {
+    return this.http.delete<void>(`${API_BASE_URL}/users/me`).pipe(
+      tap(() => {
+        this.user.set(null);
+        this.accountDeleted.set(true);
+        // Ask the API again on the next page, for a new CSRF token.
         this.checked = false;
       }),
     );

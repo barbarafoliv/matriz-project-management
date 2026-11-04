@@ -3,6 +3,9 @@
     <h1 class="auth-logo">MATRIZ</h1>
     <p class="auth-sub">Project and task management for small teams.</p>
 
+    @if (accountDeleted()) {
+      <div class="alert alert-info" role="status">Your account and personal data were deleted.</div>
+    }
     @if (sessionExpired()) {
       <div class="alert alert-info" role="alert">Your session has expired. Sign in again.</div>
     }

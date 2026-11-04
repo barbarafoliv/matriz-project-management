@@ -113,7 +113,7 @@ The documents are traceable: each user story (US-xx) is linked to a functional r
 
 ## Current status
 
-**Phase: MVP implementation.** Sign-in, projects, search, members, tasks (board, filters, late tasks), assignees, "My tasks" and comments work (Increments 1 to 6). Progress is tracked in the [implementation plan](docs/implementation-plan.md).
+**Phase: MVP implementation.** Sign-in, projects, search, members, tasks (board, filters, late tasks), assignees, "My tasks", comments and account deletion work (Increments 1 to 6 and 8). The dashboard (Increment 7) is next. Progress is tracked in the [implementation plan](docs/implementation-plan.md).
 
 - [x] Problem analysis and clarification
 - [x] Requirements and MVP scope

@@ -70,6 +70,21 @@ describe('AuthService', () => {
     http.expectOne('/api/users/me').flush({}, { status: 401, statusText: 'Unauthorized' });
   });
 
+  it('signs the user out after deleting their account, and asks the API again on the next page', () => {
+    auth.signIn('alice@example.com', 'secret').subscribe();
+    http.expectOne('/api/sessions').flush(alice);
+
+    auth.deleteAccount().subscribe();
+    const request = http.expectOne('/api/users/me');
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(auth.currentUser()).toBeNull();
+    expect(auth.accountDeleted()).toBe(true);
+    auth.loadCurrentUser().subscribe();
+    http.expectOne('/api/users/me').flush({}, { status: 401, statusText: 'Unauthorized' });
+  });
+
   it('reports an expired session only if someone was signed in', () => {
     auth.handleExpiredSession();
     expect(auth.sessionExpired()).toBe(false);
