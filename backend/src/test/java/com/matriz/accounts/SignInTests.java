@@ -121,6 +121,26 @@ class SignInTests {
 	}
 
 	@Test
+	void countsTheLengthOfTheEmailAndPasswordInCharacters() throws Exception {
+		String emoji = "😀"; // one character, two UTF-16 units
+
+		// 64 characters is allowed (docs/constraints.md): the password is checked, and it's wrong,
+		// even though it's 256 bytes and BCrypt only uses the first 72.
+		expectInvalidCredentials(signIn("test-nobody@example.com", emoji.repeat(64)));
+		expectInvalidCredentials(signIn(createUser("Eve Test").email(), emoji.repeat(64)));
+
+		signIn("test-nobody@example.com", emoji.repeat(65))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[?(@.field == 'password')].code").value("TOO_LONG"));
+		signIn("test-nobody@example.com", "x".repeat(65))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[?(@.field == 'password')].code").value("TOO_LONG"));
+		signIn("x".repeat(243) + "@example.com", "x")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[?(@.field == 'email')].code").value("TOO_LONG"));
+	}
+
+	@Test
 	void rejectsMalformedJson() throws Exception {
 		this.mvc.perform(post("/sessions").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{"))
 			.andExpect(status().isBadRequest())

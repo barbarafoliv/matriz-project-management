@@ -158,6 +158,11 @@ class TaskTests {
 			.andExpect(jsonPath("$.title").value(title));
 		assertThat(this.jdbc.queryForObject("SELECT title FROM task WHERE id = ?", String.class, newestTaskId()))
 			.isEqualTo(title);
+
+		expectFieldError(this.mvc.perform(asUser(this.ana, post(tasks())).content(body("😀".repeat(151), null, null, null))),
+				"title", "TOO_LONG");
+		expectFieldError(this.mvc.perform(asUser(this.ana, post(tasks())).content(body("😀".repeat(2), null, null, null))),
+				"title", "TOO_SHORT");
 	}
 
 	@Test

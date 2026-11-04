@@ -171,6 +171,14 @@ class MemberTests {
 			.andExpect(jsonPath("$.errors[0].code").value("INVALID_FORMAT"));
 	}
 
+	@Test
+	void rejectsAnEmailLongerThan254Characters() throws Exception {
+		addMember(this.ana, "x".repeat(243) + "@example.com")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[0].field").value("email"))
+			.andExpect(jsonPath("$.errors[0].code").value("TOO_LONG"));
+	}
+
 	private String members() {
 		return "/projects/" + this.project + "/members";
 	}

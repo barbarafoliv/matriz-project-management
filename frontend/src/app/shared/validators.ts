@@ -27,3 +27,12 @@ export function trimmedMaxLength(max: number): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null =>
     trimmedLength(String(control.value ?? '')) > max ? { maxlength: true } : null;
 }
+
+/**
+ * Rejects text longer than `max` characters, spaces included (as `maxlength`): for values
+ * sent as they are, such as passwords.
+ */
+export function maxCharacters(max: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null =>
+    [...String(control.value ?? '')].length > max ? { maxlength: true } : null;
+}

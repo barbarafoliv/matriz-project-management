@@ -43,6 +43,27 @@ describe('SignIn', () => {
     http.expectNone('/api/sessions');
   });
 
+  it('counts the password length in characters, so 64 emoji are sent and 65 are not', async () => {
+    type('email', 'alice@example.com');
+    type('password', '😀'.repeat(65));
+    await submit();
+    expect(page.querySelector('#password-error')?.textContent).toContain('Password must be at most 64 characters.');
+    http.expectNone('/api/sessions');
+
+    type('password', '😀'.repeat(64));
+    await submit();
+    http.expectOne('/api/sessions').flush({ id: 1, name: 'Alice Example', email: 'alice@example.com' });
+  });
+
+  it('points out an email longer than 254 characters', async () => {
+    type('email', 'x'.repeat(243) + '@example.com');
+    type('password', 'x');
+    await submit();
+
+    expect(page.querySelector('#email-error')?.textContent).toContain('Email must be at most 254 characters.');
+    http.expectNone('/api/sessions');
+  });
+
   it('shows the API message for wrong credentials and keeps what was typed', async () => {
     type('email', 'alice@example.com');
     type('password', 'wrong');

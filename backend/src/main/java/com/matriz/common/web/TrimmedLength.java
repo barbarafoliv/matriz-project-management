@@ -38,6 +38,15 @@ public @interface TrimmedLength {
 
 		private int max;
 
+		/**
+		 * The length this constraint checks: in characters (code points), like the database
+		 * and the contract, so an emoji counts once; without leading and trailing spaces.
+		 */
+		public static int lengthOf(CharSequence value) {
+			String trimmed = value.toString().strip();
+			return trimmed.codePointCount(0, trimmed.length());
+		}
+
 		@Override
 		public void initialize(TrimmedLength annotation) {
 			this.min = annotation.min();
@@ -49,9 +58,7 @@ public @interface TrimmedLength {
 			if (value == null) {
 				return true;
 			}
-			// Characters (code points), like the database and the contract: an emoji counts once.
-			String trimmed = value.toString().strip();
-			int length = trimmed.codePointCount(0, trimmed.length());
+			int length = lengthOf(value);
 			return length >= this.min && length <= this.max;
 		}
 

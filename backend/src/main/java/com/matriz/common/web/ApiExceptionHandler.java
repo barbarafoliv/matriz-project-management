@@ -121,7 +121,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 		return switch (String.valueOf(error.getCode())) {
 			case "NotNull", "NotEmpty" -> "REQUIRED";
 			case "NotBlank" -> (value == null || value.toString().isEmpty()) ? "REQUIRED" : "BLANK";
-			case "Size", "TrimmedLength" -> isTooLong(error) ? "TOO_LONG" : "TOO_SHORT";
+			case "Size", "TrimmedLength", "CodePointLength" -> isTooLong(error) ? "TOO_LONG" : "TOO_SHORT";
 			case "Email", "Pattern" -> "INVALID_FORMAT";
 			default -> "INVALID_VALUE";
 		};
@@ -130,7 +130,12 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	private static boolean isTooLong(FieldError error) {
 		if (error.contains(ConstraintViolation.class) && error.getRejectedValue() instanceof CharSequence value) {
 			Object max = error.unwrap(ConstraintViolation.class).getConstraintDescriptor().getAttributes().get("max");
-			int length = "TrimmedLength".equals(error.getCode()) ? value.toString().strip().length() : value.length();
+			// Counted the same way as the constraint that failed.
+			int length = switch (String.valueOf(error.getCode())) {
+				case "TrimmedLength" -> TrimmedLength.Validator.lengthOf(value);
+				case "CodePointLength" -> value.toString().codePointCount(0, value.length());
+				default -> value.length();
+			};
 			return max instanceof Integer limit && length > limit;
 		}
 		return false;

@@ -75,12 +75,12 @@ The developer reviewed the findings and asked for all of them to be fixed. Each 
 | F3 | Fixed | `TrimmedLength` counts code points | `CreateTaskRequestTests.countsCharactersNotUtf16UnitsSoEmojiCountOnce`, `TaskTests.savesATitleOf150EmojiBecauseLengthsCountCharacters` (saved in PostgreSQL) |
 | F4 | Fixed | npm `overrides` in `frontend/package.json` force the patched `glob` 14.0.3 and `minimatch` 11.0.4, without changing the Angular or ESLint versions. Remove them once those tools ship the fixes | `npm audit`: 0. Build, unit tests, lint (60 files linted, a planted error is still caught), `ng generate` and E2E all pass |
 | F5 | Fixed | `List.copyOf` in `TaskView` and `MyTask`; `spotbugs:check` passes | `TaskViewTests.theAssigneesCannotBeChangedAfterTheViewIsBuilt` |
+| Email and password lengths | Fixed | Sign-in email and password, and member email: `@CodePointLength` (Hibernate Validator) instead of `@Size`; the sign-in form counts characters too (the password isn't trimmed). The API error codes (`TOO_LONG`, `TOO_SHORT`) now count the same way as the constraint that failed. A 64-character password of 256 bytes is checked normally, although BCrypt only uses the first 72 bytes (no error) | `SignInTests.countsTheLengthOfTheEmailAndPasswordInCharacters`, `MemberTests.rejectsAnEmailLongerThan254Characters`, `TaskTests.savesATitleOf150EmojiBecauseLengthsCountCharacters` (error codes), `sign-in.spec`, `validators.spec` |
 | Frontend lengths | Fixed | The forms count characters like the API (`shared/validators.ts`): the native `maxlength` was replaced by a validator with a message, so typing isn't cut at 75 emoji, and a 2-emoji title isn't sent | `validators.spec`, and the length specs of the task, project and comment forms |
 | ESLint | Fixed; `npm run lint` passes | Members dialog: message moved into the component (same text). Rules set for the intentional patterns: attribute selectors with the `app` prefix, and `app-project-card` counted as link content. Modal overlay: rule turned off on that line, with the reason | `members-dialog.spec` checks the full message |
 
-After the fixes, the access check in section 3 was run again, with the same results.
+After the fixes, the access check in section 3 was run again on the restarted backend, with the same results. Note for manual checks on Windows: emoji passed to `curl` as a command-line argument arrive altered; send the body from a file (`--data-binary @body.json`).
 
 ## 5. Not checked
 
-- The sign-in and member email fields still count UTF-16 units (`@Size`); emails are ASCII in practice.
 - Simultaneous requests (open findings in [verification.md](verification.md), section 5).

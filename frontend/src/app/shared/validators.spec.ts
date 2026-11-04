@@ -1,6 +1,6 @@
 import { FormControl } from '@angular/forms';
 
-import { trimmedLength, trimmedMaxLength, trimmedMinLength } from './validators';
+import { maxCharacters, trimmedLength, trimmedMaxLength, trimmedMinLength } from './validators';
 
 describe('text length validators (EC-03)', () => {
   const emoji = '😀'; // one character, two UTF-16 units
@@ -37,5 +37,12 @@ describe('text length validators (EC-03)', () => {
     const max = trimmedMaxLength(150);
     expect(max(new FormControl('x'.repeat(151)))).toEqual({ maxlength: true });
     expect(max(new FormControl(emoji.repeat(151)))).toEqual({ maxlength: true });
+  });
+
+  it('counts every character of a password, spaces included, and an emoji once', () => {
+    const max = maxCharacters(64);
+    expect(max(new FormControl(emoji.repeat(64)))).toBeNull();
+    expect(max(new FormControl(emoji.repeat(65)))).toEqual({ maxlength: true });
+    expect(max(new FormControl(' '.repeat(65)))).toEqual({ maxlength: true });
   });
 });

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { toApiProblem } from '../../core/api-problem';
 import { AuthService } from '../../core/auth/auth.service';
+import { maxCharacters, trimmedMaxLength } from '../../shared/validators';
 
 /** Sign-in screen (US-01, EC-02). */
 @Component({
@@ -17,8 +18,9 @@ export class SignIn {
   private readonly router = inject(Router);
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
-    password: ['', [Validators.required, Validators.maxLength(64)]],
+    // Lengths in characters, like the API; the email is sent trimmed, the password as it is.
+    email: ['', [Validators.required, Validators.email, trimmedMaxLength(254)]],
+    password: ['', [Validators.required, maxCharacters(64)]],
   });
 
   protected readonly pending = signal(false);
@@ -53,9 +55,11 @@ export class SignIn {
   }
 
   protected emailError(): string {
-    return this.form.controls.email.hasError('required')
-      ? 'Email must not be empty.'
-      : 'Enter a valid email address.';
+    const email = this.form.controls.email;
+    if (email.hasError('required')) {
+      return 'Email must not be empty.';
+    }
+    return email.hasError('maxlength') ? 'Email must be at most 254 characters.' : 'Enter a valid email address.';
   }
 
   protected passwordError(): string {
