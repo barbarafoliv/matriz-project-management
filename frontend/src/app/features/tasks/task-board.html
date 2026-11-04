@@ -61,8 +61,9 @@
                   <a
                     class="tc"
                     [class.late]="task.late"
+                    [class.highlight]="task.id === highlight()"
                     [routerLink]="['/projects', projectId(), 'tasks', task.id]"
-                    [attr.aria-label]="task.title + (task.late ? ', late' : '')"
+                    [attr.aria-label]="task.title + (task.late ? ', late' : '') + (task.id === highlight() ? ', highlighted' : '')"
                   >
                     <div class="tc-title">{{ task.title }}</div>
                     <div class="tc-foot">

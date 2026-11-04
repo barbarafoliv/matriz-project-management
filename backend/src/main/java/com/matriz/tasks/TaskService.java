@@ -120,6 +120,28 @@ public class TaskService {
 		this.tasks.delete(requireTask(projectId, taskId));
 	}
 
+	/**
+	 * Tasks assigned to the user in all their projects, each with its project (US-06).
+	 */
+	@Transactional(readOnly = true)
+	public List<MyTask> listMyTasks(long callerId) {
+		Map<Long, String> projectNames = this.projects.projectNamesOf(callerId);
+		if (projectNames.isEmpty()) {
+			return List.of();
+		}
+		return views(this.tasks.findAssignedTo(callerId, projectNames.keySet())).stream()
+			.map(task -> MyTask.of(task, projectNames.get(task.projectId())))
+			.toList();
+	}
+
+	/**
+	 * The task, if the caller is a member of its project. For the other services of this module.
+	 */
+	Task requireTaskForMember(long callerId, long projectId, long taskId) {
+		requireMember(callerId, projectId);
+		return requireTask(projectId, taskId);
+	}
+
 	private Role requireMember(long callerId, long projectId) {
 		return this.projects.findRole(callerId, projectId).orElseThrow(TaskErrors::projectNotFound);
 	}
@@ -132,7 +154,7 @@ public class TaskService {
 		return this.tasks.findByIdAndProjectId(taskId, projectId).orElseThrow(TaskErrors::taskNotFound);
 	}
 
-	private TaskView view(Task task) {
+	TaskView view(Task task) {
 		return views(List.of(task)).get(0);
 	}
 

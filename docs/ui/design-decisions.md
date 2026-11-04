@@ -88,7 +88,7 @@
 **Why:** the task now has assignees and comments as well as its details. A page has room for all of them, and can be reopened or linked directly.
 
 ### Assignees added one at a time (US-10, EC-08, EC-09)
-**Decision:** the task detail page lists the assignees, each with a remove button, and an `AssigneePicker` that only offers project members who aren't assigned yet. Task cards show up to 3 assignee initials, then "+N".  
+**Decision:** the task detail page lists the assignees, each with a remove button, and an `AssigneePicker` that only offers project members who aren't assigned yet. It starts on "Choose a member…", and Assign is disabled until someone is chosen. Task cards show up to 3 assignee initials, then "+N".  
 **Why:** the API adds and removes one assignment at a time. Offering only eligible members avoids most errors; the API still rejects duplicates and non-members.
 
 ### Comments listed oldest first, below the task details (US-11)

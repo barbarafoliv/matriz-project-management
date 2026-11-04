@@ -3,23 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { Task } from '../../core/tasks/task';
+import { aTask } from '../../testing/task-fixtures';
 import { TaskBoard } from './task-board';
 
-export const aTask = (overrides: Partial<Task>): Task => ({
-  id: 1,
-  projectId: 7,
-  title: 'A task',
-  description: null,
-  assignees: [],
-  dueDate: null,
-  priority: 'MEDIUM',
-  status: 'TODO',
-  late: false,
-  createdAt: '',
-  updatedAt: '',
-  ...overrides,
-});
 
 describe('TaskBoard', () => {
   let fixture: ComponentFixture<TaskBoard>;
@@ -119,6 +105,16 @@ describe('TaskBoard', () => {
     http.expectOne('/api/projects/7/tasks').flush([aTask({})]);
     fixture.detectChanges();
     expect(page.querySelectorAll('.tc').length).toBe(1);
+  });
+
+  it('highlights the task coming from My tasks', () => {
+    fixture.componentRef.setInput('highlight', 2);
+    http.expectOne('/api/projects/7/tasks').flush([aTask({ id: 1 }), aTask({ id: 2, title: 'Mine' })]);
+    fixture.detectChanges();
+
+    const highlighted = page.querySelectorAll('.tc.highlight');
+    expect(highlighted.length).toBe(1);
+    expect(highlighted[0].textContent).toContain('Mine');
   });
 
   it('explains when the project has no tasks yet', () => {

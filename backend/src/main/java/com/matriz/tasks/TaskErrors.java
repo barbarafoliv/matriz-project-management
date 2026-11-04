@@ -24,6 +24,16 @@ final class TaskErrors {
 		return new ApiException(HttpStatus.NOT_FOUND, ErrorCode.TASK_NOT_FOUND, "Task not found.");
 	}
 
+	static ApiException assignmentNotFound() {
+		return new ApiException(HttpStatus.NOT_FOUND, ErrorCode.ASSIGNMENT_NOT_FOUND,
+				"This person isn't assigned to the task.");
+	}
+
+	static ApiException alreadyAssigned() {
+		return new ApiException(HttpStatus.CONFLICT, ErrorCode.ALREADY_ASSIGNED,
+				"This person is already assigned to the task.");
+	}
+
 	static ApiException notProjectManager() {
 		return new ApiException(HttpStatus.FORBIDDEN, ErrorCode.NOT_PROJECT_MANAGER,
 				"Only the project manager can do this.");

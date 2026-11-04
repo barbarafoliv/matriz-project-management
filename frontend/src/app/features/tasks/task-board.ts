@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Component, ElementRef, Injector, OnInit, afterNextRender, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { PRIORITIES, Priority, STATUSES, Task, TaskStatus, formatDate, priorityLabel } from '../../core/tasks/task';
@@ -21,6 +21,11 @@ export class TaskBoard implements OnInit {
   private readonly tasksService = inject(TasksService);
 
   readonly projectId = input.required<number>();
+  /** A task to highlight and scroll to, when coming from "My tasks" (docs/ui/design-decisions.md, Q1). */
+  readonly highlight = input<number | null>(null);
+
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   protected readonly statuses = STATUSES;
   protected readonly priorities = PRIORITIES;
@@ -55,6 +60,7 @@ export class TaskBoard implements OnInit {
         next: (tasks) => {
           this.tasks.set(tasks);
           this.state.set('ready');
+          this.scrollToHighlight();
         },
         error: () => this.state.set('error'),
       });
@@ -79,6 +85,16 @@ export class TaskBoard implements OnInit {
   protected onCreated(): void {
     this.creating.set(false);
     this.load();
+  }
+
+  private scrollToHighlight(): void {
+    if (this.highlight() == null) {
+      return;
+    }
+    afterNextRender(
+      () => this.element.nativeElement.querySelector<HTMLElement>('.tc.highlight')?.scrollIntoView?.({ block: 'center' }),
+      { injector: this.injector },
+    );
   }
 
   /** Up to 3 initials on a card, then "+N" (docs/ui/design-decisions.md). */

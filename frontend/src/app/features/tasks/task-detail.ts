@@ -4,23 +4,21 @@ import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { fieldMessages, toApiProblem } from '../../core/api-problem';
-import { Project } from '../../core/projects/project';
+import { Member, Project } from '../../core/projects/project';
 import { ProjectsService } from '../../core/projects/projects.service';
 import { PRIORITIES, Priority, STATUSES, Task, TaskStatus, formatDate, priorityLabel, statusLabel } from '../../core/tasks/task';
 import { TasksService } from '../../core/tasks/tasks.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { initials } from '../../shared/initials';
 import { trimmedMinLength } from '../../shared/validators';
+import { AssigneesPanel } from './assignees-panel';
 
 type PageState = 'loading' | 'ready' | 'not-found' | 'error';
 
-/**
- * Task detail page: details, status, edit and delete (US-04, US-05, US-08). Assignees are
- * shown here; assigning them comes with US-10.
- */
+/** Task detail page: details, status, assignees, edit and delete (US-04, US-05, US-08, US-10). */
 @Component({
   selector: 'app-task-detail',
-  imports: [RouterLink, ReactiveFormsModule, ConfirmDialog],
+  imports: [RouterLink, ReactiveFormsModule, ConfirmDialog, AssigneesPanel],
   templateUrl: './task-detail.html',
 })
 export class TaskDetail implements OnInit {
@@ -42,6 +40,7 @@ export class TaskDetail implements OnInit {
   protected readonly state = signal<PageState>('loading');
   protected readonly project = signal<Project | null>(null);
   protected readonly task = signal<Task | null>(null);
+  protected readonly members = signal<Member[]>([]);
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     title: ['', [trimmedMinLength(3), Validators.maxLength(150)]],
@@ -71,9 +70,14 @@ export class TaskDetail implements OnInit {
       return;
     }
     this.state.set('loading');
-    forkJoin({ project: this.projects.get(projectId), task: this.tasks.get(projectId, taskId) }).subscribe({
-      next: ({ project, task }) => {
+    forkJoin({
+      project: this.projects.get(projectId),
+      task: this.tasks.get(projectId, taskId),
+      members: this.projects.members(projectId),
+    }).subscribe({
+      next: ({ project, task, members }) => {
         this.project.set(project);
+        this.members.set(members);
         this.showTask(task);
         this.state.set('ready');
       },
@@ -162,6 +166,11 @@ export class TaskDetail implements OnInit {
     if (task) {
       this.showTask(task);
     }
+  }
+
+  /** Assignees changed: only they are updated, so unsaved edits in the form are kept. */
+  protected onAssigneesChanged(task: Task): void {
+    this.task.set(task);
   }
 
   protected deleteTask(): void {

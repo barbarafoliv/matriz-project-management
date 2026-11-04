@@ -144,3 +144,18 @@ hr { border: none; border-top: 1px solid var(--border); }
   .col { flex: none; width: 100%; }
   .grid2 { grid-template-columns: 1fr; }
 }
+
+/* Highlighted card, when coming from "My tasks": outline and tint (docs/ui/design-decisions.md, Q1). */
+.tc.highlight { outline: 2px solid var(--accent); outline-offset: 1px; background: #fafae8; }
+
+/* My tasks table */
+.table-wrap { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 2px solid var(--border); white-space: nowrap; }
+.tbl td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl td a { text-decoration: none; margin-right: 6px; }
+.tbl td a:hover { text-decoration: underline; }
+/* Late row: a thick border and a "Late" label, never colour alone (NFR-05). */
+.tbl tr.late td:first-child { border-left: 3px solid #888; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

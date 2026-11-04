@@ -3,9 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 
-import { Project } from '../../core/projects/project';
+import { Member, Project } from '../../core/projects/project';
 import { Task } from '../../core/tasks/task';
-import { aTask } from './task-board.spec';
+import { aTask } from '../../testing/task-fixtures';
 import { TaskDetail } from './task-detail';
 
 const project = (myRole: Project['myRole']): Project => ({
@@ -17,6 +17,11 @@ const project = (myRole: Project['myRole']): Project => ({
   createdAt: '',
   updatedAt: '',
 });
+
+const members: Member[] = [
+  { userId: 1, name: 'Alice Example', email: 'alice@example.com', role: 'PROJECT_MANAGER' },
+  { userId: 2, name: 'Bob Example', email: 'bob@example.com', role: 'MEMBER' },
+];
 
 describe('TaskDetail', () => {
   let fixture: ComponentFixture<TaskDetail>;
@@ -41,6 +46,7 @@ describe('TaskDetail', () => {
   async function load(role: Project['myRole'], task: Partial<Task> = {}): Promise<void> {
     http.expectOne('/api/projects/7').flush(project(role));
     http.expectOne('/api/projects/7/tasks/3').flush(aTask({ id: 3, title: 'Write the copy', ...task }));
+    http.expectOne('/api/projects/7/members').flush(members);
     fixture.detectChanges();
     await fixture.whenStable();
   }
@@ -108,6 +114,30 @@ describe('TaskDetail', () => {
     expect(page.querySelector<HTMLInputElement>('#task-title')!.value).toBe('Better copy');
   });
 
+  it('assigns a member and keeps unsaved edits in the form', async () => {
+    await load('MEMBER', { assignees: [{ id: 2, name: 'Bob Example' }] });
+    const title = page.querySelector<HTMLInputElement>('#task-title')!;
+    title.value = 'Unsaved title';
+    title.dispatchEvent(new Event('input'));
+
+    const options = Array.from(page.querySelectorAll('#assignee-picker option')).map((o) => o.textContent!.trim());
+    expect(options).toEqual(['Choose a member…', 'Alice Example (PM)']);
+    const picker = page.querySelector<HTMLSelectElement>('#assignee-picker')!;
+    picker.selectedIndex = 1;
+    picker.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    page.querySelector<HTMLFormElement>('app-assignees-panel form')!.dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+    const request = http.expectOne('/api/projects/7/tasks/3/assignees');
+    expect(request.request.body).toEqual({ userId: 1 });
+    request.flush(aTask({ id: 3, title: 'Write the copy', assignees: [{ id: 1, name: 'Alice Example' }, { id: 2, name: 'Bob Example' }] }));
+    fixture.detectChanges();
+
+    expect(page.querySelector('.assignees')!.textContent).toContain('Alice Example');
+    expect(page.textContent).toContain('All project members are assigned.');
+    expect(page.querySelector<HTMLInputElement>('#task-title')!.value).toBe('Unsaved title');
+  });
+
   it('lets the project manager delete the task after confirming', async () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     await load('PROJECT_MANAGER');
@@ -126,6 +156,7 @@ describe('TaskDetail', () => {
   it('says the task was not found when the API answers 404', () => {
     http.expectOne('/api/projects/7').flush(project('MEMBER'));
     http.expectOne('/api/projects/7/tasks/3').flush({ code: 'TASK_NOT_FOUND' }, { status: 404, statusText: 'Not Found' });
+    http.expectOne('/api/projects/7/members');
     fixture.detectChanges();
 
     expect(page.textContent).toContain('Task not found.');

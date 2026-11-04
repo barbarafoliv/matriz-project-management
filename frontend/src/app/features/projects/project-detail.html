@@ -55,7 +55,7 @@
         }
       </div>
 
-      <app-task-board [projectId]="project.id" />
+      <app-task-board [projectId]="project.id" [highlight]="highlight() ? +highlight()! : null" />
 
       @switch (dialog()) {
         @case ('edit') {

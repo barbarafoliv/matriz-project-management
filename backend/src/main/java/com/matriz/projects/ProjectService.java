@@ -159,6 +159,17 @@ public class ProjectService {
 		return this.members.findByProjectIdAndUserId(projectId, userId).map(ProjectMember::getRole);
 	}
 
+	/**
+	 * The names of the projects the user is a member of, by project ID. For other modules,
+	 * such as "My tasks" (US-06).
+	 */
+	@Transactional(readOnly = true)
+	public Map<Long, String> projectNamesOf(long userId) {
+		return this.projects.findForMember(userId)
+			.stream()
+			.collect(Collectors.toMap(Project::getId, Project::getName));
+	}
+
 	private ProjectMember requireMember(long callerId, long projectId) {
 		return this.members.findByProjectIdAndUserId(projectId, callerId).orElseThrow(ProjectErrors::projectNotFound);
 	}

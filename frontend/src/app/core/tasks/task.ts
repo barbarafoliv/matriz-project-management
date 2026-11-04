@@ -34,6 +34,11 @@ export interface Task {
   updatedAt: string;
 }
 
+/** A task in "My tasks", with its project (docs/openapi.yaml, MyTask). */
+export interface MyTask extends Task {
+  project: { id: number; name: string };
+}
+
 export interface TaskRequest {
   title: string;
   description: string | null;

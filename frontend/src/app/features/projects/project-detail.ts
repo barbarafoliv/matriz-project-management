@@ -25,6 +25,8 @@ export class ProjectDetail implements OnInit {
 
   /** From the route, `/projects/:projectId`. */
   readonly projectId = input.required<string>();
+  /** From "My tasks", `?highlight=taskId`: the task to highlight on the board. */
+  readonly highlight = input<string | undefined>();
 
   protected readonly initials = initials;
   protected readonly state = signal<PageState>('loading');

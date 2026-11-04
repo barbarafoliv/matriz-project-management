@@ -123,18 +123,7 @@
           </form>
         </section>
 
-        <section class="card panel" aria-labelledby="assignees-title">
-          <h2 id="assignees-title">Assignees</h2>
-          @if (task.assignees.length) {
-            <ul class="assignees">
-              @for (user of task.assignees; track user.id) {
-                <li><span class="av" aria-hidden="true">{{ initials(user.name) }}</span> {{ user.name }}</li>
-              }
-            </ul>
-          } @else {
-            <p class="hint" role="status">No one is assigned yet.</p>
-          }
-        </section>
+        <app-assignees-panel [task]="task" [members]="members()" (changed)="onAssigneesChanged($event)" />
       </div>
 
       @if (confirmingDelete()) {
