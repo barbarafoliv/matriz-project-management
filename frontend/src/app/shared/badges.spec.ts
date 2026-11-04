@@ -10,7 +10,7 @@ describe('badges', () => {
     const badge: HTMLElement = fixture.nativeElement.querySelector('span');
 
     expect(badge.textContent).toBe('High');
-    expect(badge.className).toBe('badge b-high');
+    expect(Array.from(badge.classList).sort()).toEqual(['b-high', 'badge']);
   });
 
   it('shows the status with its label and style', () => {
@@ -20,6 +20,6 @@ describe('badges', () => {
     const badge: HTMLElement = fixture.nativeElement.querySelector('span');
 
     expect(badge.textContent).toBe('In Progress');
-    expect(badge.className).toBe('badge b-prog');
+    expect(Array.from(badge.classList).sort()).toEqual(['b-prog', 'badge']);
   });
 });
