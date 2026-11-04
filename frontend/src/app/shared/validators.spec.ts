@@ -33,6 +33,13 @@ describe('text length validators (EC-03)', () => {
     expect(min(new FormControl(null))).toEqual({ required: true });
   });
 
+  it('treats any Unicode space as a space, like the API (no-break, ideographic, U+FEFF)', () => {
+    const min = trimmedMinLength(3);
+    expect(min(new FormControl('\u00A0\u00A0\u00A0'))).toEqual({ required: true });
+    expect(min(new FormControl('\u3000ab\uFEFF'))).toEqual({ minlength: true });
+    expect(trimmedLength('\u00A0 abc \u3000')).toBe(3);
+  });
+
   it('rejects text longer than the maximum once trimmed, emoji included', () => {
     const max = trimmedMaxLength(150);
     expect(max(new FormControl('x'.repeat(151)))).toEqual({ maxlength: true });

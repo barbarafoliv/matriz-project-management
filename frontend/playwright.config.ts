@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { parseEnv } from 'node:util';
+
 import { defineConfig, devices } from '@playwright/test';
 import { defineBddConfig } from 'playwright-bdd';
 
@@ -16,6 +19,9 @@ const testDir = defineBddConfig({
 });
 const backendPort = 8081;
 const frontendPort = 4201;
+// The database name, as Docker Compose reads it from the repository's .env (see .env.example).
+const envFile = '../.env';
+const databaseName = (existsSync(envFile) && parseEnv(readFileSync(envFile, 'utf8'))['POSTGRES_DB']) || 'matriz';
 
 export default defineConfig({
   testDir,
@@ -36,7 +42,7 @@ export default defineConfig({
       cwd: '../backend',
       env: {
         ...process.env,
-        DB_URL: 'jdbc:postgresql://localhost:5433/matriz',
+        DB_URL: `jdbc:postgresql://localhost:5433/${databaseName}`,
         SERVER_PORT: String(backendPort),
       },
       url: `http://localhost:${backendPort}/api/actuator/health`,

@@ -38,7 +38,8 @@ info:
       custom sorting in the MVP. Projects can be searched by name (FR-16) and tasks
       filtered by status and priority (FR-10).
     - **Text fields:** names, titles and comments are trimmed. A value made only of
-      spaces is rejected with field error `BLANK` (EC-03, EC-10).
+      spaces is rejected with field error `BLANK` (EC-03, EC-10). A space is any Unicode
+      space (such as a no-break space), a tab or a line break.
     - **Lengths:** `minLength` and `maxLength` count characters, so an emoji counts once.
       Names, titles, descriptions and comments are counted after trimming.
 

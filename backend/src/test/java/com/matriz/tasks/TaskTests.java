@@ -143,6 +143,20 @@ class TaskTests {
 	}
 
 	@Test
+	void treatsNoBreakSpacesAsSpacesAndSavesTheTitleTrimmed() throws Exception {
+		expectFieldError(this.mvc.perform(asUser(this.ana, post(tasks())).content(body("\u00A0\u00A0\u00A0", null, null, null))),
+				"title", "BLANK");
+		assertThat(this.jdbc.queryForObject("SELECT COUNT(*) FROM task WHERE project_id = ?", Integer.class,
+				this.project))
+			.isZero();
+
+		this.mvc.perform(asUser(this.ana, post(tasks())).content(body("\u00A0 Plan \u00A0", "\u00A0 Details \u2003", null, null)))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.title").value("Plan"))
+			.andExpect(jsonPath("$.description").value("Details"));
+	}
+
+	@Test
 	void rejectsOtherInvalidFields() throws Exception {
 		expectFieldError(this.mvc.perform(asUser(this.ana, post(tasks())).content("{}")), "title", "REQUIRED");
 		expectFieldError(this.mvc.perform(asUser(this.ana, post(tasks())).content(body(" ab ", null, null, null))),

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.matriz.accounts.AccountService;
 import com.matriz.accounts.User;
+import com.matriz.common.web.Text;
 import com.matriz.common.web.FieldValidationException;
 import com.matriz.tasks.ProjectTasks;
 import com.matriz.tasks.TaskCounts;
@@ -54,7 +55,7 @@ public class ProjectService {
 	 */
 	@Transactional(readOnly = true)
 	public List<ProjectView> listProjects(long callerId, String search) {
-		String text = (search == null) ? "" : search.strip();
+		String text = (search == null) ? "" : Text.trim(search);
 		List<Project> found = text.isEmpty() ? this.projects.findForMember(callerId)
 				: this.projects.searchForMember(callerId, "%" + escapeLike(text.toLowerCase(Locale.ROOT)) + "%");
 		Map<Long, Role> roles = this.members.findByUserId(callerId)
@@ -77,7 +78,7 @@ public class ProjectService {
 	 */
 	@Transactional
 	public ProjectView createProject(long callerId, String name, String description) {
-		Project project = this.projects.save(new Project(name.strip(), clean(description), this.clock.instant()));
+		Project project = this.projects.save(new Project(Text.trim(name), clean(description), this.clock.instant()));
 		this.members.save(new ProjectMember(project.getId(), callerId, Role.PROJECT_MANAGER));
 		return view(project, Role.PROJECT_MANAGER, TaskCounts.NONE);
 	}
@@ -86,7 +87,7 @@ public class ProjectService {
 	public ProjectView updateProject(long callerId, long projectId, String name, String description) {
 		requireManager(callerId, projectId);
 		Project project = requireProject(projectId);
-		project.change(name.strip(), clean(description), this.clock.instant());
+		project.change(Text.trim(name), clean(description), this.clock.instant());
 		this.projects.flush();
 		return view(project, Role.PROJECT_MANAGER);
 	}
@@ -214,10 +215,10 @@ public class ProjectService {
 	 * Trims the description; an empty one is stored as no description.
 	 */
 	private static String clean(String description) {
-		if (description == null || description.isBlank()) {
+		if (Text.isBlank(description)) {
 			return null;
 		}
-		return description.strip();
+		return Text.trim(description);
 	}
 
 	private static String escapeLike(String text) {

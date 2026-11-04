@@ -116,6 +116,12 @@ docker run --rm -v "$(pwd)/target/bom.json:/src/bom.cdx.json:ro" ghcr.io/google/
 
 Behind a proxy that inspects HTTPS, also mount its CA certificate and add `-e SSL_CERT_FILE=/certs/ca.pem -v <ca-file>:/certs/ca.pem:ro`, or OSV-Scanner can't reach its database and reports no issues.
 
+Secrets in the code and its history are checked with [gitleaks](https://github.com/gitleaks/gitleaks), also run with Docker, from the repository root:
+
+```sh
+docker run --rm -v "$(pwd):/repo:ro" zricethezav/gitleaks:latest git /repo --redact
+```
+
 ### Stop
 
 ```sh

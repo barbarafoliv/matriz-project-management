@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.matriz.accounts.AccountService;
 import com.matriz.accounts.User;
+import com.matriz.common.web.Text;
 
 /**
  * Comments on tasks (US-11, EC-10). Any project member can add and read them. The author is
@@ -52,7 +53,7 @@ public class CommentService {
 	@Transactional
 	public CommentView addComment(long callerId, long projectId, long taskId, String content) {
 		this.taskService.requireTaskForMember(callerId, projectId, taskId);
-		Comment comment = this.comments.save(new Comment(taskId, callerId, content.strip(), this.clock.instant()));
+		Comment comment = this.comments.save(new Comment(taskId, callerId, Text.trim(content), this.clock.instant()));
 		return view(comment, this.accounts.findUser(callerId).orElse(null));
 	}
 

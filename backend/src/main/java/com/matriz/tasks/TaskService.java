@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.matriz.accounts.AccountService;
 import com.matriz.accounts.User;
+import com.matriz.common.web.Text;
 import com.matriz.projects.ProjectService;
 import com.matriz.projects.Role;
 
@@ -79,7 +80,7 @@ public class TaskService {
 	public TaskView createTask(long callerId, long projectId, TaskDetails details) {
 		requireMember(callerId, projectId);
 		Priority priority = (details.priority() != null) ? details.priority() : Priority.MEDIUM;
-		Task task = this.tasks.save(new Task(projectId, details.title().strip(), clean(details.description()),
+		Task task = this.tasks.save(new Task(projectId, Text.trim(details.title()), clean(details.description()),
 				details.dueDate(), priority, this.clock.instant()));
 		return view(task);
 	}
@@ -91,7 +92,7 @@ public class TaskService {
 	public TaskView updateTask(long callerId, long projectId, long taskId, TaskDetails details) {
 		requireMember(callerId, projectId);
 		Task task = requireTask(projectId, taskId);
-		task.change(details.title().strip(), clean(details.description()), details.dueDate(), details.priority(),
+		task.change(Text.trim(details.title()), clean(details.description()), details.dueDate(), details.priority(),
 				this.clock.instant());
 		this.tasks.flush();
 		return view(task);
@@ -193,10 +194,10 @@ public class TaskService {
 	 * Trims the description; an empty one is stored as no description.
 	 */
 	private static String clean(String description) {
-		if (description == null || description.isBlank()) {
+		if (Text.isBlank(description)) {
 			return null;
 		}
-		return description.strip();
+		return Text.trim(description);
 	}
 
 }

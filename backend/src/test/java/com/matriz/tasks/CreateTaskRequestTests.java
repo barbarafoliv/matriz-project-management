@@ -81,6 +81,16 @@ class CreateTaskRequestTests {
 		assertThat(titleErrors(title)).contains("Title must not be empty.");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "\u00A0\u00A0\u00A0", "\uFEFF\u3000\u2003", "\t\n\r " })
+	void treatsAnyUnicodeSpaceAsASpace(String spaces) {
+		// No-break, zero-width no-break, ideographic and em spaces, tab and line breaks, like
+		// the form (JavaScript trim()).
+		assertThat(titleErrors(spaces)).contains("Title must not be empty.");
+		assertThat(titleErrors(spaces + "ab" + spaces)).containsExactly("Title must be between 3 and 150 characters.");
+		assertThat(titleErrors(spaces + "abc" + spaces)).isEmpty();
+	}
+
 	@Test
 	void rejectsAMissingTitle() {
 		assertThat(titleErrors(null)).containsExactly("Title must not be empty.");

@@ -81,6 +81,27 @@ The developer reviewed the findings and asked for all of them to be fixed. Each 
 
 After the fixes, the access check in section 3 was run again on the restarted backend, with the same results. Note for manual checks on Windows: emoji passed to `curl` as a command-line argument arrive altered; send the body from a file (`--data-binary @body.json`).
 
-## 5. Not checked
+## 5. Second review: the Worksheet 04 changes
+
+The first review (sections 1 to 4) covered the code up to commit `c171cef`. The Worksheet 04 changes made after it were reviewed again: `git diff 19825ce..HEAD -- backend frontend docker-compose.yml` (clock, length counting, form validators, end-to-end setup, scan tooling and their tests). As before, an AI review was checked by hand, and the access check and the scans were run again on the current code.
+
+| # | Where | Finding | Evidence | Severity | Status | Decision and regression test |
+|---|---|---|---|---|---|---|
+| F6 | `backend/.../common/time/ClockConfig.java` | "Late" used the UTC date instead of the server's local date | The shared clock (added for the timestamps, verification.md section 3) was in UTC, so `TaskService` no longer used its local-zone default. The docs say the server's local date (openapi.yaml `Task.late`, database.md, US-08). The tests compute "today" in the same zone, so they didn't notice | Medium | Confirmed. Introduced in this worksheet | Fixed: the clock uses the server's zone (times are still in microseconds). `ClockConfigTests.usesTheServersLocalZoneForToday` failed before (`Z` instead of `Europe/Lisbon`) |
+| F7 | `TrimmedLength`, request records, services | A name, title or comment made only of no-break spaces (U+00A0) was saved, though the form rejects it | Java's `strip()` and `@NotBlank` don't treat U+00A0, U+FEFF or other Unicode spaces as spaces; JavaScript's `trim()` does. Checked with `jshell` and Node.js | Low | Confirmed. Older than this worksheet | Fixed: `common/web/Text` trims exactly what JavaScript's `trim()` removes (compared for all 65,536 UTF-16 code units: the same 25 characters), and `@NotBlankText` replaces `@NotBlank` for names, titles and comments. `TextTests`, `CreateTaskRequestTests.treatsAnyUnicodeSpaceAsASpace`, `TaskTests.treatsNoBreakSpacesAsSpacesAndSavesTheTitleTrimmed` (failed before), `validators.spec` |
+| F8 | `frontend/playwright.config.ts` | The end-to-end database name was written in the code, while Docker Compose reads it from `.env` | `DB_URL` ended in `/matriz`; `docker-compose.yml` uses `${POSTGRES_DB}` | Low | Confirmed (no failure with `.env.example`) | Fixed: read from `.env`, `matriz` if missing. End-to-end test passed |
+
+Checked again on the current code:
+
+| Check | Result |
+|---|---|
+| Access between accounts (`curl`, restarted backend) | Carol, not a member, used Alice's IDs in 16 requests, now also removing an assignee and a member: 404 `PROJECT_NOT_FOUND` for all. Bob, a member who isn't the PM, tried 5 PM-only actions, now also removing a member: 403 `NOT_PROJECT_MANAGER` for all. No project, task, comment, assignment or membership changed |
+| ESLint, `npm audit` | No findings |
+| SpotBugs | No findings at Medium; at Low the same 3 as in section 2 |
+| OSV-Scanner | No known vulnerabilities: backend 165 packages, frontend 672 |
+| Secrets: [gitleaks](https://github.com/gitleaks/gitleaks), run once with Docker on the whole Git history | No leaks found in 45 commits |
+
+## 6. Not checked
 
 - Simultaneous requests (open findings in [verification.md](verification.md), section 5).
+- SonarQube and Semgrep weren't used; ESLint, SpotBugs, OSV-Scanner and gitleaks were.

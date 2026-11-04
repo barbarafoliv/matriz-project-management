@@ -1,7 +1,7 @@
 package com.matriz.tasks;
 
-import jakarta.validation.constraints.NotBlank;
 
+import com.matriz.common.web.NotBlankText;
 import com.matriz.common.web.TrimmedLength;
 
 /**
@@ -9,7 +9,7 @@ import com.matriz.common.web.TrimmedLength;
  * The author and date are not part of it: the server sets them.
  */
 record CommentRequest(
-		@NotBlank(message = "Comment must not be empty.")
+		@NotBlankText(message = "Comment must not be empty.")
 		@TrimmedLength(min = 1, max = 2000, message = "Comment must be at most 2000 characters.") String content) {
 
 }

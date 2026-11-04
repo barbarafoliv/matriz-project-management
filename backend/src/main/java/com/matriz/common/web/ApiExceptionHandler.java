@@ -120,7 +120,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 		Object value = error.getRejectedValue();
 		return switch (String.valueOf(error.getCode())) {
 			case "NotNull", "NotEmpty" -> "REQUIRED";
-			case "NotBlank" -> (value == null || value.toString().isEmpty()) ? "REQUIRED" : "BLANK";
+			case "NotBlank", "NotBlankText" -> (value == null || value.toString().isEmpty()) ? "REQUIRED" : "BLANK";
 			case "Size", "TrimmedLength", "CodePointLength" -> isTooLong(error) ? "TOO_LONG" : "TOO_SHORT";
 			case "Email", "Pattern" -> "INVALID_FORMAT";
 			default -> "INVALID_VALUE";

@@ -10,13 +10,14 @@ title: Verification
 
 | Command | Where | Result |
 |---|---|---|
-| `./mvnw verify` | `backend/` | 103 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
+| `./mvnw verify` | `backend/` | 141 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
 | `./mvnw test -Dtest=CreateTaskRequestTests` | `backend/` | Unit tests of the task title rule (Worksheet 04, Exercise 2): 11 tests, 0 failures, under 1 second, no Spring or database. Each case is checked for creating and editing a task. Seven deliberate changes to the rule (limits 2, 4 and 151, no not-blank check, no trimming, UTF-16 counting, and a looser edit rule) each made tests fail |
-| `npx ng test --watch=false` | `frontend/` | 95 tests, 0 failures |
+| `npx ng test --watch=false` | `frontend/` | 96 tests, 0 failures |
 | `npx ng build` | `frontend/` | Build complete, no warnings |
 | `npm run lint` | `frontend/` | All files pass linting |
 | `./mvnw compile spotbugs:check` | `backend/` | No findings (SpotBugs with FindSecBugs) |
-| `npm audit`; OSV-Scanner | `frontend/`, `backend/` | 0 known vulnerabilities (frontend 649 packages, backend 165) |
+| `npm audit`; OSV-Scanner | `frontend/`, `backend/` | 0 known vulnerabilities (frontend 672 packages, backend 165) |
+| gitleaks (Docker) | whole Git history | No secrets found in 45 commits |
 | `E2E_PASSWORD=… npm run e2e` | `frontend/` | 1 Gherkin scenario (playwright-bdd) passed 3 runs in a row, each on a new `db-e2e` database, with its own servers (ports 8081, 4201); the development database was unchanged. Checked that it fails when the task isn't in the expected column, and when the page is reloaded after creating the task; the screenshot and trace were saved |
 | Access between demo accounts (`curl`) | running app | 14 × 404 for a non-member, 4 × 403 for a member who isn't the PM, data unchanged ([quality-security-review.md](quality-security-review.md), section 3) |
 | README steps from a clean clone | temporary folder | Passed: schema and demo data created, health `db: UP`, Alice signs in with the README password, app and `/api` proxy work; 82 backend and 79 frontend tests passed at commit `ff93f3d` (before the review fixes, which added 6 tests) |
@@ -57,6 +58,8 @@ Each was reproduced, its cause found, fixed in a limited way and covered by a re
 | Review | A description at the limit plus a trailing space was rejected | Length checked before trimming | `ProjectTests` and `TaskTests.checksTheDescriptionLengthAfterTrimming` |
 | Worksheet 04 review | A deletion that wasn't committed still signed the user out everywhere | Spring Session commits session changes on its own | `AccountDeletionTests.keepsTheSessionsWhenTheDeletionIsNotCommitted` |
 | Worksheet 04 review | Text with emoji was rejected before the documented length | Length counted in UTF-16 units, not characters | `CreateTaskRequestTests.countsCharactersNotUtf16UnitsSoEmojiCountOnce`, `TaskTests.savesATitleOf150EmojiBecauseLengthsCountCharacters` |
+| Worksheet 04, Exercise 5 | Late tasks used the UTC date, not the server's local date | The shared clock added in Exercise 3 was in UTC | `ClockConfigTests.usesTheServersLocalZoneForToday` |
+| Worksheet 04, Exercise 5 | A title, name or comment of only no-break spaces was saved | Java and JavaScript disagree on what a space is | `TextTests`, `TaskTests.treatsNoBreakSpacesAsSpacesAndSavesTheTitleTrimmed`, `validators.spec` |
 | Worksheet 04, Exercise 3 | A new task's `createdAt` and `updatedAt` in the create response (`.273471400Z`) differed from the saved ones (`.273471Z`) | The system clock is finer than the microseconds PostgreSQL stores | `TaskTests.createsATaskAsToDoWithMediumPriorityByDefault` (the `GET` must equal the `POST` response). Fixed with one clock ticking in microseconds (`common/time/ClockConfig`) |
 | Worksheet 04 review | A password of more than 32 emoji was rejected, although 64 characters are allowed | `@Size` counts UTF-16 units | `SignInTests.countsTheLengthOfTheEmailAndPasswordInCharacters`, `sign-in.spec` |
 | Worksheet 04 review | The forms stopped typing at 75 emoji, and sent a 2-emoji title the API rejects | Same, in the browser `maxlength` and the form validators | `validators.spec`, length specs of the task, project and comment forms |

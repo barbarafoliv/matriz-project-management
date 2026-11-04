@@ -14,7 +14,7 @@ import jakarta.validation.Payload;
 /**
  * The text's length in characters, without leading and trailing spaces, is between
  * {@link #min()} and {@link #max()}. Names and titles are stored trimmed (docs/openapi.yaml).
- * Null is valid; use {@code @NotBlank} to require a value.
+ * Null is valid; use {@link NotBlankText} to require a value. Spaces are as in {@link Text}.
  */
 @Documented
 @Constraint(validatedBy = TrimmedLength.Validator.class)
@@ -43,7 +43,7 @@ public @interface TrimmedLength {
 		 * and the contract, so an emoji counts once; without leading and trailing spaces.
 		 */
 		public static int lengthOf(CharSequence value) {
-			String trimmed = value.toString().strip();
+			String trimmed = Text.trim(value.toString());
 			return trimmed.codePointCount(0, trimmed.length());
 		}
 
