@@ -5,6 +5,7 @@ import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, start
 
 import { Project } from '../../core/projects/project';
 import { ProjectsService } from '../../core/projects/projects.service';
+import { ProjectCard } from './project-card';
 import { ProjectFormDialog } from './project-form-dialog';
 
 type ListState = { status: 'loading' } | { status: 'error' } | { status: 'ready'; projects: Project[] };
@@ -12,7 +13,7 @@ type ListState = { status: 'loading' } | { status: 'error' } | { status: 'ready'
 /** Projects screen: list, search, create (US-02, US-12, EC-11). */
 @Component({
   selector: 'app-projects-page',
-  imports: [RouterLink, ProjectFormDialog],
+  imports: [RouterLink, ProjectCard, ProjectFormDialog],
   templateUrl: './projects-page.html',
 })
 export class ProjectsPage implements OnInit {

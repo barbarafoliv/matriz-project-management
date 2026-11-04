@@ -50,30 +50,7 @@
     } @else {
       <div class="proj-grid">
         @for (project of projects; track project.id) {
-          <a
-            class="proj-card"
-            [routerLink]="['/projects', project.id]"
-            [attr.aria-label]="project.name + (project.myRole === 'PROJECT_MANAGER' ? ', you are project manager' : ', member')"
-          >
-            <div class="proj-card-hd">
-              <span class="proj-name">{{ project.name }}</span>
-              @if (project.myRole === 'PROJECT_MANAGER') {
-                <span class="badge b-pm">PM</span>
-              }
-            </div>
-            <p class="proj-desc">
-              @if (project.description) {
-                {{ project.description }}
-              } @else {
-                <em class="faint">No description</em>
-              }
-            </p>
-            <div class="counts" aria-label="Tasks per status">
-              <span class="count">To Do <strong>{{ project.taskCounts.todo }}</strong></span>
-              <span class="count">In Progress <strong>{{ project.taskCounts.inProgress }}</strong></span>
-              <span class="count">Done <strong>{{ project.taskCounts.done }}</strong></span>
-            </div>
-          </a>
+          <a app-project-card class="proj-card" [routerLink]="['/projects', project.id]" [project]="project"></a>
         }
       </div>
     }

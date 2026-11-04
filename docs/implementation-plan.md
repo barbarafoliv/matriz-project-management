@@ -17,7 +17,7 @@ title: Implementation Plan
 | 4 | Tasks, status, board, filters and late tasks | US-04, US-05, US-07, US-13, US-08 | Done |
 | 5 | Assignees and "My tasks" | US-10, US-06 | Done |
 | 6 | Comments | US-11 | Done |
-| 7 | Dashboard | US-14 | To do |
+| 7 | Dashboard | US-14 | Done |
 | 8 | Account deletion | US-09 | Done (built before 7) |
 | 9 | Verification and delivery | All | To do |
 
@@ -102,6 +102,7 @@ title: Implementation Plan
 - **Depends on:** Increments 3 and 4.
 - **Acceptance criteria:** US-14. The counts match all of each project's tasks, not just the filtered or visible ones, and are updated after creating, editing or deleting a task.
 - **Checks:** repository test for the counts against the seed; manual check after changing a task's status.
+- **Result:** no backend change was needed: the counts were added in Increment 3, in one query (`ProjectTasks.countByStatus`), and are tested in `ProjectTests.countsTasksPerStatusOverAllOfTheProjectsTasks` and `TaskTests.projectCountsFollowStatusChanges`; `./mvnw verify` 82 tests passed. `ng test` 77 tests passed (5 dashboard tests added). The project card is now shared by the dashboard and the Projects screen. Manual, in the browser: after sign-in the dashboard shows "Hello, Alice Example" and her two projects with the demo counts; after moving a task to In Progress, the dashboard showed the new counts; the task was moved back afterwards. Fixed during the check: link-styled buttons were underlined.
 
 ### 8. Account deletion (US-09, FR-14)
 

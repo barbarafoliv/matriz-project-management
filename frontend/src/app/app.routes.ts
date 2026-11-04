@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { signedInGuard, signedOutGuard } from './core/auth/auth.guards';
-import { Home } from './features/home/home';
+import { Dashboard } from './features/dashboard/dashboard';
 import { ProjectDetail } from './features/projects/project-detail';
 import { ProjectsPage } from './features/projects/projects-page';
 import { SignIn } from './features/sign-in/sign-in';
@@ -14,7 +14,7 @@ export const routes: Routes = [
     path: '',
     canActivate: [signedInGuard],
     children: [
-      { path: '', component: Home, title: 'Matriz' },
+      { path: '', component: Dashboard, title: 'Dashboard · Matriz' },
       { path: 'projects', component: ProjectsPage, title: 'Projects · Matriz' },
       { path: 'my-tasks', component: MyTasksPage, title: 'My Tasks · Matriz' },
       { path: 'projects/:projectId', component: ProjectDetail, title: 'Project · Matriz' },

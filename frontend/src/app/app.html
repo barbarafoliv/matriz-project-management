@@ -3,6 +3,7 @@
   <header class="app-header">
     <nav class="app-nav" aria-label="Main navigation">
       <a class="app-logo" routerLink="/" aria-label="Matriz home">MATRIZ</a>
+      <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">Dashboard</a>
       <a class="nav-link" routerLink="/projects" routerLinkActive="active" ariaCurrentWhenActive="page">Projects</a>
       <a class="nav-link" routerLink="/my-tasks" routerLinkActive="active" ariaCurrentWhenActive="page">My Tasks</a>
       <div class="app-nav-right">
