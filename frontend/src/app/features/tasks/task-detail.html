@@ -1,0 +1,152 @@
+<nav class="bc" aria-label="Breadcrumb">
+  <a routerLink="/projects">Projects</a>
+  <span aria-hidden="true">›</span>
+  <a [routerLink]="['/projects', projectId()]">{{ project()?.name ?? 'Project' }}</a>
+  <span aria-hidden="true">›</span>
+  <span aria-current="page">{{ task()?.title ?? 'Task' }}</span>
+</nav>
+
+@switch (state()) {
+  @case ('loading') {
+    <div class="card panel" aria-busy="true" aria-label="Loading task">
+      @for (width of [40, 60, 75]; track width) {
+        <div class="skel" style="height: 14px" [style.width.%]="width"></div>
+      }
+    </div>
+  }
+  @case ('not-found') {
+    <div class="empty" role="status">
+      <h2>Task not found.</h2>
+      <p>It doesn't exist, or you aren't a member of its project.</p>
+      <a class="btn" routerLink="/projects">Back to Projects</a>
+    </div>
+  }
+  @case ('error') {
+    <div class="alert alert-error" role="alert">
+      Could not load the task. <button class="btn-link" type="button" (click)="load()">Try again</button>
+    </div>
+  }
+  @case ('ready') {
+    @if (task(); as task) {
+      <div class="ph">
+        <div>
+          <h1 class="page-title">{{ task.title }}</h1>
+          <p class="badges">
+            <span class="badge" [class.b-todo]="task.status === 'TODO'" [class.b-prog]="task.status === 'IN_PROGRESS'" [class.b-done]="task.status === 'DONE'">
+              {{ statusLabel(task.status) }}
+            </span>
+            <span [class]="'badge b-' + task.priority.toLowerCase()">{{ priorityLabel(task.priority) }}</span>
+            @if (task.late) {
+              <span class="badge b-late">Late</span>
+            }
+          </p>
+        </div>
+      </div>
+
+      <div class="detail">
+        <section class="card panel" aria-labelledby="details-title">
+          <h2 id="details-title">Details</h2>
+          @if (task.late) {
+            <div class="alert alert-error" role="alert">This task is <strong>late</strong>: it was due {{ formatDate(task.dueDate) }}.</div>
+          }
+
+          <div class="field">
+            <span class="label" id="status-label">Status</span>
+            <div class="status-buttons" role="group" aria-labelledby="status-label">
+              @for (item of statuses; track item.value) {
+                <button
+                  class="btn btn-sm"
+                  type="button"
+                  [class.btn-primary]="task.status === item.value"
+                  [attr.aria-pressed]="task.status === item.value"
+                  [disabled]="statusPending()"
+                  (click)="changeStatus(item.value)"
+                >{{ item.label }}</button>
+              }
+            </div>
+            @if (statusError(); as message) {
+              <span class="err-msg" role="alert">{{ message }}</span>
+            } @else {
+              <span class="hint">A status change is saved immediately.</span>
+            }
+          </div>
+          <hr />
+
+          <form class="form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+            @if (saveError(); as message) {
+              <div class="alert alert-error" role="alert">{{ message }}</div>
+            }
+            <div class="field">
+              <label class="label" for="task-title">Title <span aria-hidden="true">*</span></label>
+              <input class="input" id="task-title" type="text" formControlName="title" maxlength="150" aria-required="true" [attr.aria-invalid]="!!titleError()" />
+              @if (titleError(); as message) {
+                <span class="err-msg" role="alert">{{ message }}</span>
+              } @else {
+                <span class="hint">3 to 150 characters.</span>
+              }
+            </div>
+            <div class="field">
+              <label class="label" for="task-description">Description</label>
+              <textarea class="input" id="task-description" rows="3" maxlength="2000" formControlName="description" placeholder="No description."></textarea>
+              @if (serverErrors()['description']; as message) {
+                <span class="err-msg" role="alert">{{ message }}</span>
+              }
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <label class="label" for="task-priority">Priority</label>
+                <select class="input" id="task-priority" formControlName="priority">
+                  @for (item of priorities; track item.value) {
+                    <option [value]="item.value">{{ item.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="field">
+                <label class="label" for="task-due">Due date</label>
+                <input class="input" id="task-due" type="date" formControlName="dueDate" />
+              </div>
+            </div>
+            <div class="panel-ft">
+              @if (isManager()) {
+                <button class="btn btn-danger btn-sm" type="button" (click)="confirmingDelete.set(true)">Delete task</button>
+              } @else {
+                <span></span>
+              }
+              <div class="actions">
+                @if (saved() && form.pristine) {
+                  <span class="hint" role="status">Saved.</span>
+                }
+                <button class="btn" type="button" (click)="cancelEdits()" [disabled]="form.pristine">Cancel</button>
+                <button class="btn btn-primary" type="submit" [disabled]="saving()">Save</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="card panel" aria-labelledby="assignees-title">
+          <h2 id="assignees-title">Assignees</h2>
+          @if (task.assignees.length) {
+            <ul class="assignees">
+              @for (user of task.assignees; track user.id) {
+                <li><span class="av" aria-hidden="true">{{ initials(user.name) }}</span> {{ user.name }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="hint" role="status">No one is assigned yet.</p>
+          }
+        </section>
+      </div>
+
+      @if (confirmingDelete()) {
+        <app-confirm-dialog
+          title="Delete task?"
+          message="The task, its assignments and its comments will be deleted. This action cannot be undone."
+          [pending]="deletePending()"
+          [error]="deleteError()"
+          (confirmed)="deleteTask()"
+          (closed)="closeDelete()"
+        />
+      }
+    }
+  }
+}

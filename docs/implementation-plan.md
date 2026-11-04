@@ -14,7 +14,7 @@ title: Implementation Plan
 | 1 | Project skeleton and persistence | — | Done |
 | 2 | Authentication | US-01 | Done |
 | 3 | Projects, search and members | US-02, US-12, US-03 | Done |
-| 4 | Tasks, status, board, filters and late tasks | US-04, US-05, US-07, US-13, US-08 | To do |
+| 4 | Tasks, status, board, filters and late tasks | US-04, US-05, US-07, US-13, US-08 | Done |
 | 5 | Assignees and "My tasks" | US-10, US-06 | To do |
 | 6 | Comments | US-11 | To do |
 | 7 | Dashboard | US-14 | To do |
@@ -72,6 +72,7 @@ title: Implementation Plan
 - **Depends on:** Increment 3.
 - **Acceptance criteria:** US-04, US-05, US-07, US-13, US-08, EC-03 (title), EC-05, EC-11. The board and filters update without reloading the page.
 - **Checks:** **validation test**: a title made only of spaces gets 400 `BLANK`, and nothing is saved. Unit test for the late rule (yesterday, today, no date, done). MockMvc tests for the filters. Manual board check.
+- **Result:** `./mvnw verify` 61 tests passed (14 task tests added; the sheet's validation test is `TaskTests.rejectsATitleMadeOnlyOfSpacesAndSavesNothing`). `ng test` 57 tests passed. Manual, in the browser: the board shows the demo tasks in their columns and the late one with a border and a "Late" label; the priority and status filters ask the API and show "No tasks match these filters." with Clear filters; a blank title is rejected, the default priority is Medium, and a new task appears without a reload; status buttons save straight away and the project counts follow; editing saves; marking the late task Done removes "Late"; the task is still there after a backend restart; Bob edits but can't delete, Carol gets "Task not found.", Alice deletes after confirming; at 390 px wide the columns stack and nothing overflows. The task page shows assignees read-only; assigning comes in Increment 5. There is no drag-and-drop: status changes on the task page (docs/ui/design-decisions.md).
 
 ### 5. Assignees and "My tasks" (US-10, US-06)
 

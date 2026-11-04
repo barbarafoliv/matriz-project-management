@@ -5,17 +5,7 @@ import { fieldMessages, toApiProblem } from '../../core/api-problem';
 import { Project } from '../../core/projects/project';
 import { ProjectsService } from '../../core/projects/projects.service';
 import { Modal } from '../../shared/modal';
-
-/** Rejects text made only of spaces, or shorter than `min` once trimmed (EC-03). */
-function trimmedMinLength(min: number) {
-  return (control: { value: string }) => {
-    const length = (control.value ?? '').trim().length;
-    if (length === 0) {
-      return { required: true };
-    }
-    return length < min ? { minlength: true } : null;
-  };
-}
+import { trimmedMinLength } from '../../shared/validators';
 
 /** New Project and Edit Project (US-02, EC-03). */
 @Component({

@@ -6,7 +6,7 @@ import { Member } from '../../core/projects/project';
 import { ProjectsService } from '../../core/projects/projects.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { Modal } from '../../shared/modal';
-import { initials } from './initials';
+import { initials } from '../../shared/initials';
 
 /** Manage Members, for the project manager only (US-03, EC-07). */
 @Component({

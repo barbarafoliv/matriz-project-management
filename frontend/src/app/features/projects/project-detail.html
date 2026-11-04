@@ -55,10 +55,7 @@
         }
       </div>
 
-      <div class="empty" role="status">
-        <h2>Tasks</h2>
-        <p>The project's tasks will appear here.</p>
-      </div>
+      <app-task-board [projectId]="project.id" />
 
       @switch (dialog()) {
         @case ('edit') {

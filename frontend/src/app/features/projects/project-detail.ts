@@ -6,16 +6,17 @@ import { toApiProblem } from '../../core/api-problem';
 import { Member, Project } from '../../core/projects/project';
 import { ProjectsService } from '../../core/projects/projects.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
-import { initials } from './initials';
+import { initials } from '../../shared/initials';
 import { MembersDialog } from './members-dialog';
 import { ProjectFormDialog } from './project-form-dialog';
+import { TaskBoard } from '../tasks/task-board';
 
 type PageState = 'loading' | 'ready' | 'not-found' | 'error';
 
-/** Project detail: data, members, edit and delete (US-02, US-03, EC-04). Tasks come in Increment 4. */
+/** Project detail: data, members, edit and delete, and the task board (US-02, US-03, US-07, EC-04). */
 @Component({
   selector: 'app-project-detail',
-  imports: [RouterLink, ConfirmDialog, MembersDialog, ProjectFormDialog],
+  imports: [RouterLink, ConfirmDialog, MembersDialog, ProjectFormDialog, TaskBoard],
   templateUrl: './project-detail.html',
 })
 export class ProjectDetail implements OnInit {

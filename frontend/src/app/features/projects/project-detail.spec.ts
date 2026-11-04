@@ -44,6 +44,9 @@ describe('ProjectDetail', () => {
     http.expectOne('/api/projects/7').flush(project(role));
     http.expectOne('/api/projects/7/members').flush(members);
     fixture.detectChanges();
+    // The task board loads the project's tasks.
+    http.expectOne('/api/projects/7/tasks').flush([]);
+    fixture.detectChanges();
   }
 
   function buttons(): string[] {
@@ -64,6 +67,7 @@ describe('ProjectDetail', () => {
     expect(buttons()).not.toContain('Manage Members');
 
     fixture.componentInstance['load']();
+    fixture.detectChanges();
     load('PROJECT_MANAGER');
     expect(buttons()).toEqual(expect.arrayContaining(['Edit', 'Delete', 'Manage Members']));
   });

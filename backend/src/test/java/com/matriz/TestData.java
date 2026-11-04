@@ -58,6 +58,13 @@ public final class TestData {
 		return id;
 	}
 
+	public long task(long projectId, String title, String status, String priority, java.time.LocalDate dueDate) {
+		return this.jdbc.queryForObject("""
+				INSERT INTO task (project_id, title, status, priority, due_date, created_at, updated_at)
+				VALUES (?, ?, ?, ?, ?, NOW(), NOW()) RETURNING id""", Long.class, projectId, title, status, priority,
+				dueDate);
+	}
+
 	public void deleteAll() {
 		this.jdbc.update("DELETE FROM project WHERE id IN (SELECT m.project_id FROM project_member m "
 				+ "JOIN app_user u ON u.id = m.user_id WHERE u.email LIKE 'test-%')");

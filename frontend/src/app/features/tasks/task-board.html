@@ -1,0 +1,106 @@
+<section aria-labelledby="board-title">
+  <div class="bc-row">
+    <h2 class="section-title" id="board-title">Tasks</h2>
+    <button class="btn btn-sm btn-primary" type="button" (click)="creating.set(true)">+ New Task</button>
+  </div>
+
+  <div class="toolbar" aria-label="Task filters">
+    <div class="field">
+      <label class="label" for="filter-status">Status</label>
+      <select class="input" id="filter-status" [value]="status()" (change)="setStatus($any($event.target).value)">
+        <option value="">All</option>
+        @for (item of statuses; track item.value) {
+          <option [value]="item.value">{{ item.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label class="label" for="filter-priority">Priority</label>
+      <select class="input" id="filter-priority" [value]="priority()" (change)="setPriority($any($event.target).value)">
+        <option value="">All</option>
+        @for (item of priorities; track item.value) {
+          <option [value]="item.value">{{ item.label }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="board" aria-busy="true" aria-label="Loading tasks">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skel col" style="height: 220px"></div>
+        }
+      </div>
+    }
+    @case ('error') {
+      <div class="alert alert-error" role="alert">
+        Could not load tasks. <button class="btn-link" type="button" (click)="load()">Try again</button>
+      </div>
+    }
+    @case ('ready') {
+      @if (tasks().length === 0 && filtered()) {
+        <div class="empty" role="status">
+          <h2>No tasks match these filters.</h2>
+          <p>Change or clear the filters.</p>
+          <button class="btn" type="button" (click)="clearFilters()">Clear filters</button>
+        </div>
+      } @else if (tasks().length === 0) {
+        <div class="empty" role="status">
+          <h2>No tasks yet</h2>
+          <p>Create the first task to get the team started.</p>
+          <button class="btn btn-primary" type="button" (click)="creating.set(true)">+ New Task</button>
+        </div>
+      } @else {
+        <div class="board" role="list" aria-label="Task board">
+          @for (column of columns(); track column.value) {
+            <section class="col" role="listitem" [attr.aria-label]="column.label + ', ' + column.tasks.length + (column.tasks.length === 1 ? ' task' : ' tasks')">
+              <div class="col-hd">{{ column.label }}<span class="col-ct" aria-hidden="true">{{ column.tasks.length }}</span></div>
+              <div class="col-bd">
+                @for (task of column.tasks; track task.id) {
+                  <a
+                    class="tc"
+                    [class.late]="task.late"
+                    [routerLink]="['/projects', projectId(), 'tasks', task.id]"
+                    [attr.aria-label]="task.title + (task.late ? ', late' : '')"
+                  >
+                    <div class="tc-title">{{ task.title }}</div>
+                    <div class="tc-foot">
+                      <div class="tc-meta">
+                        <span class="avatars" [attr.aria-label]="assigneesLabel(task)">
+                          @for (user of shownAssignees(task); track user.id) {
+                            <span class="av" [title]="user.name" aria-hidden="true">{{ initials(user.name) }}</span>
+                          } @empty {
+                            <span class="av" title="Unassigned" aria-hidden="true">—</span>
+                          }
+                          @if (task.assignees.length > 3) {
+                            <span class="av" aria-hidden="true">+{{ task.assignees.length - 3 }}</span>
+                          }
+                        </span>
+                        @if (task.dueDate) {
+                          <span>📅 {{ formatDate(task.dueDate) }}</span>
+                        }
+                      </div>
+                      <div class="tc-badges">
+                        <span [class]="'badge b-' + task.priority.toLowerCase()">{{ priorityLabel(task.priority) }}</span>
+                        @if (task.late) {
+                          <span class="badge b-late">Late</span>
+                        }
+                      </div>
+                    </div>
+                  </a>
+                } @empty {
+                  <p class="col-empty">No tasks</p>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      }
+    }
+  }
+</section>
+
+@if (creating()) {
+  <app-new-task-dialog [projectId]="projectId()" (created)="onCreated()" (closed)="creating.set(false)" />
+}

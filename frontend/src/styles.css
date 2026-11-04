@@ -94,3 +94,53 @@ hr { border: none; border-top: 1px solid var(--border); }
 .modal-bd { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .modal-ft { padding: 14px 18px; border-top: 1px solid var(--border); }
 .modal-ft > div { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Board and task cards */
+.section-title { font-size: 16px; font-weight: 600; }
+.bc-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.board { display: flex; gap: 12px; align-items: flex-start; overflow-x: auto; padding-bottom: 8px; }
+.col { flex: 1 0 255px; background: #efefef; border: 1px solid var(--border); border-radius: var(--radius); }
+.col-hd { padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.col-ct { background: #ddd; border-radius: 10px; padding: 1px 8px; font-size: 11px; font-weight: 400; }
+.col-bd { padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
+.col-empty { font-size: 12px; color: #999; text-align: center; padding: 16px 0; }
+.tc { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 11px; text-decoration: none; }
+.tc:hover { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+.tc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Late: a thick border and a "Late" label, never colour alone (NFR-05). */
+.tc.late { border-left: 3px solid #888; background: #f9f9f9; }
+.tc-title { font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+.tc-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.tc-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.tc-badges { display: flex; gap: 4px; align-items: center; }
+.avatars { display: inline-flex; }
+.avatars .av { width: 24px; height: 24px; font-size: 10px; }
+.avatars .av + .av { margin-left: -6px; }
+.b-high { background: #f5f5f5; border-color: #999; }
+.b-medium { background: #f8f8f8; border-color: #bbb; }
+.b-low { background: #fafafa; border-color: #ddd; color: #888; }
+.b-late { background: #e8e8e8; border-color: #888; }
+.b-todo { background: #f0f0f0; border-color: #ccc; color: #555; }
+.b-prog { background: #e8e8e8; border-color: #aaa; }
+.b-done { background: #f8f8f8; border-color: #ccc; color: #999; }
+.badges { display: flex; gap: 6px; margin-top: 6px; }
+
+/* Task detail */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.panel { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.panel h2 { font-size: 14px; font-weight: 600; }
+.panel-ft { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.detail { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: flex-start; }
+.status-buttons { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.assignees { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.assignees li { display: flex; align-items: center; gap: 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+@media (max-width: 800px) {
+  .detail { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .board { flex-direction: column; }
+  .col { flex: none; width: 100%; }
+  .grid2 { grid-template-columns: 1fr; }
+}

@@ -1033,6 +1033,7 @@ components:
         description:
           type: [string, 'null']
           maxLength: 2000
+          description: Trimmed. Omitted, null or only spaces means no description.
         dueDate:
           type: [string, 'null']
           format: date
