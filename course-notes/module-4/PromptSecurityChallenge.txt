@@ -1,0 +1,12 @@
+Analyse the endpoint as an Application Security Engineer.
+
+1. Identify potential vulnerabilities.
+2. Explain the causes and the impact.
+3. Classify them according to the applicable OWASP categories.
+4. Propose a fixed implementation.
+5. Generate tests for authorised and unauthorised access.
+6. Define how to validate the fix.
+
+Do not assume that authentication implies authorisation.
+Do not invent access rules.
+Distinguish inferred results from tested ones.

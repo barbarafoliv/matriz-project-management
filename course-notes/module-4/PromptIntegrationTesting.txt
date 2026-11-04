@@ -1,0 +1,12 @@
+Analyse the OpenAPI specification and the Matriz tasks API.
+
+Generate integration tests for:
+- Create, read and update operations.
+- HTTP status codes, schemas and error messages.
+- Data persistence and integrity.
+- Invalid data and non-existent resources.
+- Authentication and authorisation, where applicable.
+
+Use the existing framework and an isolated test
+database. Respect the real contracts.
+Run the tests and present the results.

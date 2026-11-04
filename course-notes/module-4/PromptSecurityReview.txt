@@ -1,0 +1,29 @@
+Act as an Application Security Engineer and perform
+a security review of the Matriz project.
+
+Context:
+- Analyse the architecture, requirements and access rules.
+- Check endpoints, services and configurations.
+- Consider the applicable OWASP recommendations.
+
+Identify vulnerabilities related to:
+1. Authentication and authorisation.
+2. SQL Injection and XSS.
+3. IDOR and Broken Access Control.
+4. Data validation and error handling.
+5. Exposure of secrets.
+6. Vulnerable dependencies.
+7. Insecure configurations.
+
+For each finding present:
+- File and location.
+- Vulnerability and evidence.
+- Impact and severity.
+- Recommended fix.
+- Suggested regression test.
+
+Distinguish confirmed vulnerabilities from suspected ones.
+Do not invent tool results.
+Do not change code without authorisation.
+
+Deliver a report organised by priority.

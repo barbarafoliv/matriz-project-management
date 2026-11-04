@@ -1,0 +1,21 @@
+Analyse the existing TaskService in this project and generate unit tests using the framework already configured.
+
+Context:
+- Check the requirements and acceptance criteria.
+- Analyse the interfaces and dependencies.
+- Respect the project conventions.
+
+Requirements:
+1. Identify business rules and scenarios.
+2. Include happy paths, boundary values, invalid inputs and exceptions.
+3. Use mocks for external dependencies.
+4. Use parameterised tests where appropriate.
+5. Define expected results based on the requirements.
+6. Do not change production code without authorisation.
+7. Run the tests and present the results, if possible.
+
+Deliverables:
+- Test files.
+- Covered scenarios.
+- Execution results.
+- Ambiguities and possible defects.

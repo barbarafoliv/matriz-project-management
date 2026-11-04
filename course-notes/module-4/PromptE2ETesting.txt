@@ -1,0 +1,33 @@
+Act as a QA Automation Engineer on the Matriz project.
+
+Goal:
+Implement an E2E test with Playwright.
+
+Context:
+- Analyse the frontend and the existing routes.
+- Check the requirements and acceptance criteria.
+- Identify the authentication and the real selectors.
+
+Flow:
+1. Authenticate a test user.
+2. Create a project.
+3. Create a task.
+4. Change the task status.
+5. Verify the update on the dashboard.
+
+Requirements:
+- Use Playwright and TypeScript.
+- Use stable selectors and isolated fixtures.
+- Avoid fixed waits.
+- Collect traces and screenshots on failure.
+- Do not invent pages or features.
+- Do not change production code without authorisation.
+
+Run the test and present the results.
+
+Validation points:
+
+•  Does the test run the complete functional flow?
+•  Do the assertions prove the acceptance criteria?
+•  Is the test reproducible and independent?
+•  Were the results actually executed and verified?

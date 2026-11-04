@@ -1,0 +1,25 @@
+Act as a Senior Software Engineer and perform
+a Code Review of the current Pull Request.
+
+Context:
+- Analyse the diff and the related files.
+- Check the project requirements and instructions.
+- Consider the existing architecture.
+
+Assess:
+1. Bugs and logic errors.
+2. Readability and maintainability.
+3. Performance and concurrency.
+4. Error handling and validation.
+5. Security vulnerabilities.
+6. Missing tests.
+
+For each issue:
+- File and location.
+- Description and evidence.
+- Severity: Critical, High, Medium or Low.
+- Impact and suggested fix.
+
+Do not change the code.
+Distinguish confirmed issues from potential
+risks and avoid false positives.
