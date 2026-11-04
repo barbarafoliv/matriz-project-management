@@ -1,16 +1,35 @@
 .app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-nav {
+  max-width: 1100px;
+  height: 52px;
+  margin: 0 auto;
+  padding: 0 16px;
   display: flex;
   align-items: center;
-  height: 52px;
-  padding: 0 16px;
-  border-bottom: 1px solid #e0e0e0;
-  background: #fff;
+  gap: 20px;
 }
 
 .app-logo {
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 0.07em;
+  text-decoration: none;
+}
+
+.app-nav-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-user {
+  font-size: 13px;
+  color: var(--muted);
 }
 
 main {

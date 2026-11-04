@@ -13,7 +13,16 @@ info:
       a new project and the author of a comment are never read from the request.
     - **CSRF:** every POST, PUT and DELETE, including sign-up and sign-in, must send the
       value of the `XSRF-TOKEN` cookie in the `X-XSRF-TOKEN` header (Angular does this
-      automatically). Otherwise the response is 403 `CSRF_TOKEN_INVALID`.
+      automatically). Otherwise the response is 403 `CSRF_TOKEN_INVALID`. Every response
+      sets or keeps the `XSRF-TOKEN` cookie (`Path=/`, readable by scripts), so a client
+      gets it from its first request, e.g. `GET /users/me`.
+    - **Session lifecycle:**
+      1. `GET /users/me` without a session: 401. No session is created.
+      2. `POST /sessions` with valid credentials: a new session is created and its ID is
+         sent in the `SESSION` cookie (`Path=/api; HttpOnly; SameSite=Lax`).
+      3. Each request with the cookie keeps the session alive. After 30 minutes without
+         requests it expires, and requests get 401 `UNAUTHENTICATED`.
+      4. `DELETE /sessions/current` ends the session and expires the cookie.
     - **Access:** a project the caller isn't a member of is reported as not found (404),
       so its existence isn't revealed (EC-04). A member who isn't the project manager
       gets 403 `NOT_PROJECT_MANAGER`.
@@ -151,7 +160,9 @@ paths:
       summary: Sign in
       description: >
         Signs in with email and password (US-01). A new session ID is issued.
-        After 5 failed attempts, sign-in is blocked for 15 minutes (NFR-02).
+        After 5 failed attempts in a row for an account, sign-in to it is blocked for
+        15 minutes, even with the right password (NFR-02). Failures for emails without an
+        account aren't counted.
       security: []
       requestBody:
         required: true

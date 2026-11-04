@@ -16,6 +16,15 @@ spring:
     hibernate:
       # The schema is owned by Liquibase; Hibernate only checks it.
       ddl-auto: validate
+  autoconfigure:
+    # Sign-in is handled by the accounts module, so Spring's default in-memory user isn't needed.
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+  session:
+    # Inactive sessions expire after 30 minutes (NFR-02).
+    timeout: 30m
+    jdbc:
+      # The session tables are created by Liquibase (002-spring-session.sql).
+      initialize-schema: never
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     # "demo" loads the demo accounts and projects (runs once).
@@ -24,6 +33,12 @@ spring:
 server:
   servlet:
     context-path: /api
+    session:
+      cookie:
+        # SESSION cookie: not readable by scripts, not sent on cross-site requests (ADR 0004).
+        # Not "secure" because the application runs locally without HTTPS (ADR 0006).
+        http-only: true
+        same-site: lax
 
 management:
   endpoints:

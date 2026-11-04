@@ -67,13 +67,17 @@ To check that the backend reaches the database: `curl http://localhost:8080/api/
 
 ### Demo accounts
 
-Created by the seed. All use the fake password **`matriz-demo-2026`**. Sign-in is added in Increment 2.
+Created by the seed. All use the fake password **`matriz-demo-2026`**.
 
 | Name | Email | Projects |
 |---|---|---|
 | Alice Example | alice@example.com | Website redesign (project manager), Mobile launch |
 | Bob Example | bob@example.com | Mobile launch (project manager), Website redesign |
 | Carol Example | carol@example.com | Research notes (project manager) |
+
+### Sessions
+
+Signing in creates a session on the server (stored in PostgreSQL). The browser keeps its ID in the `SESSION` cookie, which scripts can't read. The session ends on sign-out, or after 30 minutes without requests; the app then asks you to sign in again. After 5 wrong passwords in a row for an account, sign-in to it is blocked for 15 minutes. Details are in [docs/openapi.yaml](docs/openapi.yaml).
 
 ### Test
 
@@ -109,7 +113,7 @@ The documents are traceable: each user story (US-xx) is linked to a functional r
 
 ## Current status
 
-**Phase: MVP implementation.** Project skeleton, database schema and demo data are in place (Increment 1). Progress is tracked in the [implementation plan](docs/implementation-plan.md).
+**Phase: MVP implementation.** Project skeleton, database schema, demo data and sign-in are in place (Increments 1 and 2). Progress is tracked in the [implementation plan](docs/implementation-plan.md).
 
 - [x] Problem analysis and clarification
 - [x] Requirements and MVP scope

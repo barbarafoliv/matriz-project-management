@@ -166,7 +166,7 @@ The primary key ensures a user is assigned to a task at most once (EC-08).
 | content | Text | Required, 1 to 2000 characters, not only spaces |
 | created_at | Date and time | Required, set by the server when the comment is created |
 
-### SIGN_IN_ATTEMPT: failed sign-ins per email (NFR-02)
+### SIGN_IN_ATTEMPT: failed sign-ins per account email (NFR-02)
 
 | Attribute | Type | Rules |
 |---|---|---|
@@ -174,7 +174,7 @@ The primary key ensures a user is assigned to a task at most once (EC-08).
 | failed_count | Integer | Required, number of failed attempts in a row |
 | locked_until | Date and time | Optional. Set for 15 minutes after the 5th failed attempt |
 
-A row is deleted after a successful sign-in, and when the account with that email is deleted.
+Only emails of existing accounts are stored. A row is deleted after a successful sign-in, and when the account with that email is deleted.
 
 ## 4. Rules
 

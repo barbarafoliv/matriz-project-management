@@ -12,7 +12,7 @@ title: Implementation Plan
 |---|---|---|---|
 | 0 | Reconcile the documentation | — | Done |
 | 1 | Project skeleton and persistence | — | Done |
-| 2 | Authentication | US-01 | To do |
+| 2 | Authentication | US-01 | Done |
 | 3 | Projects, search and members | US-02, US-12, US-03 | To do |
 | 4 | Tasks, status, board, filters and late tasks | US-04, US-05, US-07, US-13, US-08 | To do |
 | 5 | Assignees and "My tasks" | US-10, US-06 | To do |
@@ -51,6 +51,8 @@ title: Implementation Plan
 - **Depends on:** Increment 1.
 - **Acceptance criteria:** US-01, EC-02. A request without a session gets 401. The 6th failed attempt gets 429 with `Retry-After`. After sign-out, `GET /users/me` gets 401.
 - **Checks:** MockMvc tests for valid and invalid credentials, no session, lockout and sign-out; manual sign-in with two demo accounts.
+- **Decisions:** failed sign-ins are only counted for existing accounts. The home screen is a placeholder ("Hello, *name*") until Increment 7.
+- **Result:** `./mvnw verify` 26 tests passed (16 sign-in tests with MockMvc, 1 cookie test on a real server, plus Increment 1's). `ng test` 17 tests passed. Manual, in the browser: a protected page redirects to sign-in; a wrong password shows "Email or password is incorrect." and keeps the email; Alice and Bob sign in and see their own names, also after a reload; `SESSION` is `HttpOnly` and not visible to scripts; deleting the session in the database sends the user back to sign-in; sign-out returns to sign-in. Found and fixed during the check: the `XSRF-TOKEN` cookie had `Path=/api`, so the browser couldn't send the token (now `Path=/`, with a regression test), and anonymous requests created sessions (request cache disabled, with a test). The "session expired" message is covered by unit tests; it can be seen in the browser from Increment 3, when pages call the API after loading.
 
 ### 3. Projects, search and members (US-02, US-12, US-03)
 

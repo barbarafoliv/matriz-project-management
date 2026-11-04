@@ -1,6 +1,17 @@
-<header class="app-header">
-  <span class="app-logo">MATRIZ</span>
-</header>
-<main id="main">
+<a href="#main" class="skip">Skip to content</a>
+@if (auth.currentUser(); as user) {
+  <header class="app-header">
+    <nav class="app-nav" aria-label="Main navigation">
+      <a class="app-logo" routerLink="/" aria-label="Matriz home">MATRIZ</a>
+      <div class="app-nav-right">
+        <span class="app-user">{{ user.name }}</span>
+        <button class="btn btn-sm" type="button" (click)="signOut()" [disabled]="signingOut()">
+          Sign out
+        </button>
+      </div>
+    </nav>
+  </header>
+}
+<main id="main" tabindex="-1">
   <router-outlet />
 </main>
