@@ -33,7 +33,7 @@ title: Test plan
 | T10 | Only the PM deletes a task | A member, then the PM, deletes a task | Member: 403 `NOT_PROJECT_MANAGER`; PM: 204 | Integration | `TaskTests.onlyTheProjectManagerCanDeleteATask` |
 | T10b | A member who isn't the PM edits a task | Ben (member) changes the title, description, due date and priority | 200 with the new values; another member sees the new title | Integration | `TaskTests.anyMemberCanEditATaskAndNullClearsOptionalFields` |
 | T11 | No session | Every task request (list, open, create, edit, change status, delete) without a session, with a valid CSRF token | 401 `UNAUTHENTICATED` for each, nothing created or changed | Integration | `TaskTests.requestsWithoutASessionAreRefusedAndChangeNothing`; also `SignInTests.requiresASessionForTheSignedInUser` (`/users/me`) |
-| T12 **E** | Create a task in the browser | Alice signs in, opens a new project, creates a task | The task is shown in the To Do column without reloading | E2E | `frontend/e2e/features/create-task.feature`, scenario "A new task appears in the To Do column without reloading the page" |
+| T12 **E** | Create a task in the browser | Alice signs in, creates and opens a project with no tasks, creates a task | The task is shown in the To Do column, the other columns are empty, and the page wasn't reloaded; after a reload it's still there (saved) | E2E | `frontend/e2e/features/create-task.feature`, scenario "A new task appears in the To Do column without reloading the page" |
 | T13 | Manual cross-account check | Carol uses the IDs of Alice's project and tasks | Not shown, not changed | Manual | [quality-security-review.md](quality-security-review.md) |
 
 ## 3. Decisions
@@ -60,4 +60,5 @@ The scenarios were drafted with an AI assistant and checked by the developer aga
 | E2E test on the development database, with demo data | The worksheet asks for an isolated test environment | Separate `db-e2e` database and servers |
 | E2E test as a plain Playwright spec | The developer asked for Gherkin, like the acceptance criteria | playwright-bdd feature file (T12) |
 | T06 checked a few fields, `null` fields with `doesNotExist()`, and only the title after reading back | `doesNotExist()` also passes when a field is missing, but the contract says optional fields are always present; the stricter check found that the response's timestamps were finer than the saved ones | All fields and the database row checked, and the `GET` must equal the `POST` response; clock fixed (verification.md, section 3) |
+| T12's title said "without reloading the page" | No step checked it; a full reload would also have passed | A step checks the page wasn't reloaded (it fails if the page reloads), and a final reload checks the task was saved |
 | Permission rows only for forbidden actions | A member's allowed edit (FR-04) wasn't shown | T10b added |

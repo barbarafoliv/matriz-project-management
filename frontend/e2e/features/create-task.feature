@@ -6,6 +6,9 @@ Feature: Create tasks
   Scenario: A new task appears in the To Do column without reloading the page
     Given I am signed in as "alice@example.com"
     And I have created the project "E2E project"
+    And the project has no tasks yet
     When I create the task "E2E task"
     Then I see "E2E task" in the "To Do" column
     And the "In Progress" and "Done" columns are empty
+    And the page was not reloaded
+    And after reloading the page, I still see "E2E task" in the "To Do" column

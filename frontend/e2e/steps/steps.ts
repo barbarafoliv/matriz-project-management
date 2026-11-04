@@ -24,7 +24,7 @@ Given('I am signed in as {string}', async ({ page }, email: string) => {
 
 Given('I have created the project {string}', async ({ page, createdProjects }, name: string) => {
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Projects', exact: true }).click();
-  await page.getByRole('button', { name: '+ New Project' }).first().click();
+  await page.getByRole('button', { name: '+ New Project' }).click();
   const dialog = page.getByRole('dialog', { name: 'New Project' });
   await dialog.getByLabel('Name').fill(name);
   await dialog.getByRole('button', { name: 'Create Project' }).click();
@@ -35,7 +35,14 @@ Given('I have created the project {string}', async ({ page, createdProjects }, n
   createdProjects.push(new URL(page.url()).pathname.split('/').pop()!);
 });
 
+Given('the project has no tasks yet', async ({ page }) => {
+  await expect(page.getByRole('status').getByRole('heading', { name: 'No tasks yet' })).toBeVisible();
+});
+
 When('I create the task {string}', async ({ page }, title: string) => {
+  // Marks this page, so a later step can tell whether it was reloaded.
+  await page.evaluate(() => ((window as unknown as Record<string, unknown>)['e2ePageNotReloaded'] = true));
+  // The board's header button. An empty board shows a second one, after it, in its message.
   await page.getByRole('button', { name: '+ New Task' }).first().click();
   const dialog = page.getByRole('dialog', { name: 'New Task' });
   await dialog.getByLabel('Title').fill(title);
@@ -52,6 +59,20 @@ Then('the {string} and {string} columns are empty', async ({ page }, first: stri
     await expect(page.getByRole('listitem', { name: `${column}, 0 tasks`, exact: true })).toBeVisible();
   }
 });
+
+Then('the page was not reloaded', async ({ page }) => {
+  const marked = await page.evaluate(() => (window as unknown as Record<string, unknown>)['e2ePageNotReloaded']);
+  expect(marked, 'the mark set before creating the task is still on the page').toBe(true);
+});
+
+Then(
+  'after reloading the page, I still see {string} in the {string} column',
+  async ({ page }, title: string, column: string) => {
+    // The task was saved, not only shown.
+    await page.reload();
+    await expect(boardColumn(page, column).getByRole('link', { name: title, exact: true })).toBeVisible();
+  },
+);
 
 /** A board column; its accessible name is "<status>, <n> task(s)". */
 function boardColumn(page: Page, column: string) {
