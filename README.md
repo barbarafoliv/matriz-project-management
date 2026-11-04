@@ -90,6 +90,15 @@ cd backend && ./mvnw verify                  # needs Docker: tests use a tempora
 cd frontend && npm test -- --watch=false
 ```
 
+End-to-end tests (Playwright, Chromium) run against the running app, so start the database, backend and frontend first (see [Run](#run)):
+
+```sh
+cd frontend && npx playwright install chromium   # once
+E2E_PASSWORD=matriz-demo-2026 npm run e2e         # signs in as Alice; creates and deletes its own project
+```
+
+On failure, the trace and screenshot are in `frontend/test-results/`; `npx playwright show-report` opens the report.
+
 ### Stop
 
 ```sh
