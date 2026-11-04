@@ -6,8 +6,9 @@ import { forkJoin } from 'rxjs';
 import { fieldMessages, toApiProblem } from '../../core/api-problem';
 import { Member, Project } from '../../core/projects/project';
 import { ProjectsService } from '../../core/projects/projects.service';
-import { PRIORITIES, Priority, STATUSES, Task, TaskStatus, formatDate, priorityLabel, statusLabel } from '../../core/tasks/task';
+import { PRIORITIES, Priority, STATUSES, Task, TaskStatus, formatDate } from '../../core/tasks/task';
 import { TasksService } from '../../core/tasks/tasks.service';
+import { PriorityBadge, StatusBadge } from '../../shared/badges';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { initials } from '../../shared/initials';
 import { trimmedMinLength } from '../../shared/validators';
@@ -19,7 +20,7 @@ type PageState = 'loading' | 'ready' | 'not-found' | 'error';
 /** Task detail page: details, status, assignees, comments, edit and delete (US-04, US-05, US-08, US-10, US-11). */
 @Component({
   selector: 'app-task-detail',
-  imports: [RouterLink, ReactiveFormsModule, ConfirmDialog, AssigneesPanel, CommentsPanel],
+  imports: [RouterLink, ReactiveFormsModule, ConfirmDialog, AssigneesPanel, CommentsPanel, PriorityBadge, StatusBadge],
   templateUrl: './task-detail.html',
 })
 export class TaskDetail implements OnInit {
@@ -34,8 +35,6 @@ export class TaskDetail implements OnInit {
   protected readonly statuses = STATUSES;
   protected readonly priorities = PRIORITIES;
   protected readonly formatDate = formatDate;
-  protected readonly statusLabel = statusLabel;
-  protected readonly priorityLabel = priorityLabel;
   protected readonly initials = initials;
 
   protected readonly state = signal<PageState>('loading');

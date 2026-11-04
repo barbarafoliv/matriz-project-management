@@ -1,8 +1,9 @@
 import { Component, ElementRef, Injector, OnInit, afterNextRender, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { PRIORITIES, Priority, STATUSES, Task, TaskStatus, formatDate, priorityLabel } from '../../core/tasks/task';
+import { PRIORITIES, Priority, STATUSES, Task, TaskStatus, formatDate } from '../../core/tasks/task';
 import { TasksService } from '../../core/tasks/tasks.service';
+import { PriorityBadge } from '../../shared/badges';
 import { initials } from '../../shared/initials';
 import { NewTaskDialog } from './new-task-dialog';
 
@@ -14,7 +15,7 @@ type BoardState = 'loading' | 'ready' | 'error';
  */
 @Component({
   selector: 'app-task-board',
-  imports: [RouterLink, NewTaskDialog],
+  imports: [RouterLink, NewTaskDialog, PriorityBadge],
   templateUrl: './task-board.html',
 })
 export class TaskBoard implements OnInit {
@@ -30,7 +31,6 @@ export class TaskBoard implements OnInit {
   protected readonly statuses = STATUSES;
   protected readonly priorities = PRIORITIES;
   protected readonly formatDate = formatDate;
-  protected readonly priorityLabel = priorityLabel;
   protected readonly initials = initials;
 
   protected readonly state = signal<BoardState>('loading');

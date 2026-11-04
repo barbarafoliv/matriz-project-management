@@ -83,7 +83,7 @@
                         }
                       </div>
                       <div class="tc-badges">
-                        <span [class]="'badge b-' + task.priority.toLowerCase()">{{ priorityLabel(task.priority) }}</span>
+                        <app-priority-badge [priority]="task.priority" />
                         @if (task.late) {
                           <span class="badge b-late">Late</span>
                         }

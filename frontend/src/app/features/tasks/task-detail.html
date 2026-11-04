@@ -32,10 +32,8 @@
         <div>
           <h1 class="page-title">{{ task.title }}</h1>
           <p class="badges">
-            <span class="badge" [class.b-todo]="task.status === 'TODO'" [class.b-prog]="task.status === 'IN_PROGRESS'" [class.b-done]="task.status === 'DONE'">
-              {{ statusLabel(task.status) }}
-            </span>
-            <span [class]="'badge b-' + task.priority.toLowerCase()">{{ priorityLabel(task.priority) }}</span>
+            <app-status-badge [status]="task.status" />
+            <app-priority-badge [priority]="task.priority" />
             @if (task.late) {
               <span class="badge b-late">Late</span>
             }

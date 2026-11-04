@@ -1,8 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { MyTask, formatDate, priorityLabel, statusLabel } from '../../core/tasks/task';
+import { MyTask, formatDate } from '../../core/tasks/task';
 import { TasksService } from '../../core/tasks/tasks.service';
+import { PriorityBadge, StatusBadge } from '../../shared/badges';
 
 type PageState = 'loading' | 'ready' | 'error';
 
@@ -13,7 +14,7 @@ type PageState = 'loading' | 'ready' | 'error';
  */
 @Component({
   selector: 'app-my-tasks-page',
-  imports: [RouterLink],
+  imports: [RouterLink, PriorityBadge, StatusBadge],
   template: `
     <div class="ph">
       <div>
@@ -67,12 +68,8 @@ type PageState = 'loading' | 'ready' | 'error';
                     </td>
                     <td class="muted">{{ task.project.name }}</td>
                     <td>{{ formatDate(task.dueDate) }}</td>
-                    <td><span [class]="'badge b-' + task.priority.toLowerCase()">{{ priorityLabel(task.priority) }}</span></td>
-                    <td>
-                      <span class="badge" [class.b-todo]="task.status === 'TODO'" [class.b-prog]="task.status === 'IN_PROGRESS'" [class.b-done]="task.status === 'DONE'">
-                        {{ statusLabel(task.status) }}
-                      </span>
-                    </td>
+                    <td><app-priority-badge [priority]="task.priority" /></td>
+                    <td><app-status-badge [status]="task.status" /></td>
                   </tr>
                 }
               </tbody>
@@ -87,8 +84,6 @@ export class MyTasksPage implements OnInit {
   private readonly tasksService = inject(TasksService);
 
   protected readonly formatDate = formatDate;
-  protected readonly priorityLabel = priorityLabel;
-  protected readonly statusLabel = statusLabel;
   protected readonly state = signal<PageState>('loading');
   protected readonly tasks = signal<MyTask[]>([]);
 
