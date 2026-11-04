@@ -12,7 +12,7 @@ title: Test plan
 |---|---|---|
 | Unit | JUnit 5 (backend), Vitest (frontend) | `./mvnw verify`, `npx ng test --watch=false` |
 | Integration | Spring Boot Test, MockMvc, PostgreSQL in Testcontainers | `./mvnw verify` |
-| E2E | Playwright (Chromium), against the running app | `npm run e2e` (see README) |
+| E2E | Playwright (Chromium), in its own environment: an empty `db-e2e` database with the demo data, and its own backend and frontend | `npm run e2e` (see README) |
 
 ## 2. Scenarios
 
@@ -41,5 +41,6 @@ title: Test plan
 - **The unit test checks the request rule, not the validator alone.** It validates `CreateTaskRequest`, so a change to the annotations (limits, messages) is caught.
 - **The limits are tested on both sides** (2/3 and 150/151), and after trimming, because the contract counts the trimmed length.
 - **Existing integration tests are reused.** They already cover T05, T06 and T08; only T07 was missing.
-- **The E2E test creates and deletes its own project**, so it doesn't depend on, or change, the demo data, and can be run again.
+- **The E2E test has its own environment.** `npm run e2e` recreates an empty database (`db-e2e`), and Playwright starts a backend that loads the demo data into it, and a frontend. The development data can't be changed by the tests, and each run starts from the same data.
+- **The E2E test creates and deletes its own project**, so it doesn't depend on the other demo projects, and can be run again in the same environment.
 - **Not in this plan:** status changes, filters, assignees and comments. They are covered in [verification.md](verification.md).

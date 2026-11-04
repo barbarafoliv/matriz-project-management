@@ -17,5 +17,24 @@ services:
       timeout: 3s
       retries: 10
 
+  # Separate database for the end-to-end tests (frontend: npm run e2e). Only started with
+  # "--profile e2e". Data is kept in memory, so it starts empty each time it's recreated.
+  db-e2e:
+    image: postgres:18
+    profiles: [e2e]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
 volumes:
   matriz-db:

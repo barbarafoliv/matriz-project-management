@@ -90,11 +90,12 @@ cd backend && ./mvnw verify                  # needs Docker: tests use a tempora
 cd frontend && npm test -- --watch=false
 ```
 
-End-to-end tests (Playwright, Chromium) run against the running app, so start the database, backend and frontend first (see [Run](#run)):
+End-to-end tests (Playwright, Chromium) run in their own environment: a separate, empty PostgreSQL (`db-e2e`, port 5433, data kept in memory) with the demo data, and their own backend (port 8081) and frontend (port 4201). The development database and servers aren't used, and can keep running. Needs Docker and `.env`.
 
 ```sh
 cd frontend && npx playwright install chromium   # once
-E2E_PASSWORD=matriz-demo-2026 npm run e2e         # signs in as Alice; creates and deletes its own project
+E2E_PASSWORD=matriz-demo-2026 npm run e2e         # recreates db-e2e, starts the servers, runs the tests as Alice
+docker compose --profile e2e rm -sf db-e2e        # optional: remove the E2E database
 ```
 
 On failure, the trace and screenshot are in `frontend/test-results/`; `npx playwright show-report` opens the report.
