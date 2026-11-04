@@ -19,7 +19,7 @@ title: Implementation Plan
 | 6 | Comments | US-11 | Done |
 | 7 | Dashboard | US-14 | Done |
 | 8 | Account deletion | US-09 | Done (built before 7) |
-| 9 | Verification and delivery | All | To do |
+| 9 | Verification and delivery | All | Done |
 
 ## 2. Increments
 
@@ -120,3 +120,4 @@ title: Implementation Plan
 - **Depends on:** Increments 1 to 8.
 - **Acceptance criteria:** the application starts by following the README from a clean clone, and every verification case has a recorded result.
 - **Checks:** full test suite (`./mvnw verify`, `ng test`), manual cases 01 to 09, run from a clean clone, final version tagged in Git.
+- **Result:** see [verification.md](verification.md). An independent AI review of permissions, validation and error handling found no high-severity defect; 4 issues were fixed with tests and the contract was aligned with the code; 4 that need simultaneous requests are listed as open. Refactoring: shared priority and status badges. Final: 85 backend and 82 frontend tests pass.

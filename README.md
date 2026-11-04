@@ -65,6 +65,10 @@ On first start, the backend creates the schema and loads the demo data with Liqu
 
 To check that the backend reaches the database: `curl http://localhost:8080/api/actuator/health` should show `"db":{"status":"UP"}`.
 
+### Database schema and demo data
+
+The schema is created by Liquibase when the backend starts (`backend/src/main/resources/db/changelog/`). The demo data is a changeset with the `demo` context, which runs once: restarting doesn't delete or duplicate data. To start again from an empty database, see [Stop](#stop).
+
 ### Demo accounts
 
 Created by the seed. All use the fake password **`matriz-demo-2026`**.
@@ -107,18 +111,19 @@ docker compose stop       # stops PostgreSQL, keeps the data
 | [docs/ui/](docs/ui/design-decisions.md) | UI prototype ([prototype.html](docs/ui/prototype.html)) and UI/UX design decisions. |
 | [docs/openapi.yaml](docs/openapi.yaml) | REST API contract (OpenAPI 3.1): endpoints, DTOs, validation rules and errors. |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Implementation increments, with components, dependencies, acceptance criteria, checks and status. |
+| [docs/verification.md](docs/verification.md) | Verification results: commands, cases 01–09 with evidence, bugs fixed, limitations and use of AI. |
 | [AGENTS.md](AGENTS.md) | Instructions for coding agents working on the project. |
 
 The documents are traceable: each user story (US-xx) is linked to a functional requirement (FR-xx) in the requirements.
 
 ## Current status
 
-**Phase: MVP implementation.** Sign-in, projects, search, members, tasks (board, filters, late tasks), assignees, "My tasks", comments, account deletion and the dashboard work (Increments 1 to 8). Verification and delivery (Increment 9) is next. Progress is tracked in the [implementation plan](docs/implementation-plan.md).
+**Phase: MVP complete.** All *Must* requirements are built and verified: sign-in, dashboard, projects and search, members, tasks with board, filters and late tasks, assignees, "My tasks", comments and account deletion. The results are in [docs/verification.md](docs/verification.md); the increments in the [implementation plan](docs/implementation-plan.md).
 
 - [x] Problem analysis and clarification
 - [x] Requirements and MVP scope
 - [x] MVP user stories and acceptance criteria
 - [x] Technical design and technology choice (architecture, data model, API contract and ADRs 0001 to 0006)
 - [x] Implementation plan
-- [ ] MVP implementation
-- [ ] Testing against the acceptance criteria
+- [x] MVP implementation
+- [x] Testing against the acceptance criteria

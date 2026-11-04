@@ -8,7 +8,8 @@ Before starting a task, read the documents relevant to it:
 - [docs/requirements.md](docs/requirements.md): goals, user types, requirements (FR, NFR), MVP scope and out-of-scope features.
 - [docs/user-stories.md](docs/user-stories.md): MVP user stories (US), acceptance criteria and exceptional cases (EC).
 - [docs/constraints.md](docs/constraints.md): constraints, assumptions, security and privacy rules, pending technical decisions.
-- [README.md](README.md): project overview, current status, and build and test commands (once defined).
+- [README.md](README.md): project overview, current status, and build, run and test commands.
+- [docs/implementation-plan.md](docs/implementation-plan.md) and [docs/verification.md](docs/verification.md): what was built, how it was checked, and known limitations.
 
 These documents are the source of truth. The `course-notes/` folder is not product documentation.
 
@@ -36,6 +37,7 @@ These documents are the source of truth. The `course-notes/` folder is not produ
   - Database: `docker compose up -d` (from the repository root, needs `.env`).
   - Backend: `cd backend && ./mvnw verify` (needs Docker running), run with `./mvnw spring-boot:run`.
   - Frontend: `cd frontend && npx ng build` and `npx ng test --watch=false`, run with `npm start`.
+  - The backend tests need Docker running (Testcontainers). Record new results in `docs/verification.md`.
 - Add or update tests for any behaviour you change, based on the acceptance criteria where they exist.
 - Report the commands you ran and their results, the files you changed, and any assumptions you made.
 - If you can't validate a change, explain what prevented it.
