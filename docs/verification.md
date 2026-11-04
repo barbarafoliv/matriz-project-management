@@ -14,7 +14,7 @@ title: Verification
 | `npx ng test --watch=false` | `frontend/` | 82 tests, 0 failures |
 | `npx ng build` | `frontend/` | Build complete, no warnings |
 | README steps from a clean clone | temporary folder | Passed: schema and demo data created, health `db: UP`, Alice signs in with the README password, app and `/api` proxy work; 82 backend and 79 frontend tests passed at commit `ff93f3d` (before the review fixes, which added 6 tests) |
-| Contract against code | `docs/openapi.yaml`, controllers | 24 operations; all implemented except `POST /users` (optional sign-up, FR-18) |
+| Contract against code | `docs/openapi.yaml`, controllers | 25 operations (version 1.0.0); all implemented except `POST /users` (optional sign-up, FR-18) |
 
 ## 2. Cases
 

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Matriz API
-  version: 0.3.0
+  version: 1.0.0
   description: |
     REST API of the Matriz MVP (FR-01 to FR-10, FR-14 to FR-17), using JSON over HTTP (ADR 0003).
 
@@ -54,6 +54,8 @@ tags:
     description: Projects, project search, dashboard counts and project members (FR-02, FR-03, FR-16, FR-17).
   - name: Tasks
     description: Tasks, filters, project board, "My tasks", assignees and comments (FR-04 to FR-10, FR-15).
+  - name: Operations
+    description: Checking that the application is running and reaches the database.
 
 paths:
 
@@ -706,6 +708,39 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+
+  # ── Operations ────────────────────────────
+
+  /actuator/health:
+    get:
+      tags: [Operations]
+      operationId: getHealth
+      summary: Health check
+      description: >
+        Whether the application is running and reaches the database (README, "Run").
+        Works without a session. Only the status of each component is shown, without
+        details.
+      security: []
+      responses:
+        '200':
+          description: Everything is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              example:
+                status: UP
+                components:
+                  db: { status: UP }
+                  diskSpace: { status: UP }
+                  ping: { status: UP }
+        '503':
+          description: A component, such as the database, is down (`status` is `DOWN`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
 components:
 
   securitySchemes:
@@ -1177,6 +1212,31 @@ components:
     TaskStatus:
       type: string
       enum: [TODO, IN_PROGRESS, DONE]
+
+    # ── Operations ──────────────────────────
+
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+        components:
+          type: object
+          description: The status of each component, such as `db`.
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [UP, DOWN]
+        groups:
+          type: array
+          description: Health groups the application provides.
+          items:
+            type: string
+          examples: [[liveness, readiness]]
 
     # ── Errors ──────────────────────────────
 
