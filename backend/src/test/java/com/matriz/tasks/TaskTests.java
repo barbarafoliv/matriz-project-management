@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +29,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import tools.jackson.databind.json.JsonMapper;
@@ -80,26 +83,44 @@ class TaskTests {
 
 	@Test
 	void createsATaskAsToDoWithMediumPriorityByDefault() throws Exception {
-		String location = this.mvc.perform(asUser(this.ben, post(tasks())).content(body("  Write the copy  ", null, null, null)))
+		// Ben is a member, not the project manager: any member can create a task (FR-04).
+		MvcResult created = this.mvc.perform(asUser(this.ben, post(tasks())).content(body("  Write the copy  ", null, null, null)))
 			.andExpect(status().isCreated())
 			.andExpect(header().string("Location", endsWith(tasks() + "/" + newestTaskId())))
+			.andExpect(jsonPath("$.id").value(newestTaskId()))
+			.andExpect(jsonPath("$.projectId").value(this.project))
 			.andExpect(jsonPath("$.title").value("Write the copy"))
-			.andExpect(jsonPath("$.status").value("TODO"))
-			.andExpect(jsonPath("$.priority").value("MEDIUM"))
-			.andExpect(jsonPath("$.description").doesNotExist())
-			.andExpect(jsonPath("$.dueDate").doesNotExist())
+			// Optional fields are always present, as null when empty (docs/openapi.yaml).
+			.andExpect(jsonPath("$.description").value(nullValue()))
+			.andExpect(jsonPath("$.dueDate").value(nullValue()))
 			.andExpect(jsonPath("$.assignees", hasSize(0)))
+			.andExpect(jsonPath("$.priority").value("MEDIUM"))
+			.andExpect(jsonPath("$.status").value("TODO"))
 			.andExpect(jsonPath("$.late").value(false))
+			.andReturn();
+		Map<String, Object> task = this.json.readValue(created.getResponse().getContentAsString(), Map.class);
+		assertThat(task).containsOnlyKeys("id", "projectId", "title", "description", "assignees", "dueDate", "priority",
+				"status", "late", "createdAt", "updatedAt");
+		assertThat(Instant.parse((String) task.get("createdAt"))).isEqualTo(Instant.parse((String) task.get("updatedAt")));
+
+		// Saved: read back from the database ...
+		assertThat(this.jdbc.queryForMap(
+				"SELECT project_id, title, description, due_date, priority, status FROM task WHERE id = ?", newestTaskId()))
+			.containsEntry("project_id", this.project)
+			.containsEntry("title", "Write the copy")
+			.containsEntry("description", null)
+			.containsEntry("due_date", null)
+			.containsEntry("priority", "MEDIUM")
+			.containsEntry("status", "TODO");
+
+		// ... and through the API, by another member: the same task as the one created.
+		String location = created.getResponse().getHeader("Location");
+		String read = this.mvc.perform(get(location.substring(location.indexOf("/projects"))).with(this.ana.signedIn()))
+			.andExpect(status().isOk())
 			.andReturn()
 			.getResponse()
-			.getHeader("Location");
-
-		// Saved: read back from the database, then through the API.
-		assertThat(this.jdbc.queryForObject("SELECT title FROM task WHERE id = ?", String.class, newestTaskId()))
-			.isEqualTo("Write the copy");
-		this.mvc.perform(get(location.substring(location.indexOf("/projects"))).with(this.ana.signedIn()))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.title").value("Write the copy"));
+			.getContentAsString();
+		assertThat(this.json.readValue(read, Map.class)).isEqualTo(task);
 	}
 
 	@Test
