@@ -1,16 +1,24 @@
 import { defineConfig, devices } from '@playwright/test';
+import { defineBddConfig } from 'playwright-bdd';
 
 /**
  * End-to-end tests (Practical Worksheet 04, Exercise 4), in their own environment: the
  * `db-e2e` database (docker-compose.yml, profile `e2e`, port 5433, recreated empty by
  * `npm run e2e`), and a backend (port 8081) and frontend (port 4201) started here. The
  * development database and servers (5432, 8080, 4200) aren't used.
+ *
+ * Scenarios are written in Gherkin (e2e/features) with step definitions in e2e/steps;
+ * playwright-bdd turns them into Playwright tests in .features-gen (`bddgen`).
  */
+const testDir = defineBddConfig({
+  features: 'e2e/features/*.feature',
+  steps: 'e2e/steps/*.ts',
+});
 const backendPort = 8081;
 const frontendPort = 4201;
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir,
   fullyParallel: false,
   workers: 1,
   retries: 0,

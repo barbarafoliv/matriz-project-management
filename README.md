@@ -90,7 +90,7 @@ cd backend && ./mvnw verify                  # needs Docker: tests use a tempora
 cd frontend && npm test -- --watch=false
 ```
 
-End-to-end tests (Playwright, Chromium) run in their own environment: a separate, empty PostgreSQL (`db-e2e`, port 5433, data kept in memory) with the demo data, and their own backend (port 8081) and frontend (port 4201). The development database and servers aren't used, and can keep running. Needs Docker and `.env`.
+End-to-end tests are written in Gherkin (`frontend/e2e/features/*.feature`, steps in `frontend/e2e/steps/`) and run by Playwright (Chromium) with [playwright-bdd](https://github.com/vitalets/playwright-bdd), which turns each scenario into a Playwright test (`npx bddgen`, done by `npm run e2e`). They run in their own environment: a separate, empty PostgreSQL (`db-e2e`, port 5433, data kept in memory) with the demo data, and their own backend (port 8081) and frontend (port 4201). The development database and servers aren't used, and can keep running. Needs Docker and `.env`.
 
 ```sh
 cd frontend && npx playwright install chromium   # once

@@ -12,7 +12,7 @@ title: Test plan
 |---|---|---|
 | Unit | JUnit 5 (backend), Vitest (frontend) | `./mvnw verify`, `npx ng test --watch=false` |
 | Integration | Spring Boot Test, MockMvc, PostgreSQL in Testcontainers | `./mvnw verify` |
-| E2E | Playwright (Chromium), in its own environment: an empty `db-e2e` database with the demo data, and its own backend and frontend | `npm run e2e` (see README) |
+| E2E | Gherkin scenarios run by Playwright (Chromium) with playwright-bdd, in its own environment: an empty `db-e2e` database with the demo data, and its own backend and frontend | `npm run e2e` (see README) |
 
 ## 2. Scenarios
 
@@ -32,7 +32,7 @@ title: Test plan
 | T09 | Task reached through another project | Task ID of project A under project B | 404 `TASK_NOT_FOUND` | Integration | `TaskTests.aTaskCanOnlyBeReachedThroughItsOwnProject` |
 | T10 | Only the PM deletes a task | A member, then the PM, deletes a task | Member: 403 `NOT_PROJECT_MANAGER`; PM: 204 | Integration | `TaskTests.onlyTheProjectManagerCanDeleteATask` |
 | T11 | No session | A request without a session | 401 `UNAUTHENTICATED` | Integration | `SignInTests.requiresASessionForTheSignedInUser` (only `/users/me`; task endpoints rely on the same global rule in `SecurityConfig`, not tested separately) |
-| T12 **E** | Create a task in the browser | Alice signs in, opens a new project, creates a task | The task is shown in the To Do column without reloading | E2E | `frontend/e2e/create-task.spec.ts` |
+| T12 **E** | Create a task in the browser | Alice signs in, opens a new project, creates a task | The task is shown in the To Do column without reloading | E2E | `frontend/e2e/features/create-task.feature`, scenario "A new task appears in the To Do column without reloading the page" |
 | T13 | Manual cross-account check | Carol uses the IDs of Alice's project and tasks | Not shown, not changed | Manual | [quality-security-review.md](quality-security-review.md) |
 
 ## 3. Decisions
@@ -41,6 +41,7 @@ title: Test plan
 - **The unit test checks the request rule, not the validator alone.** It validates `CreateTaskRequest`, so a change to the annotations (limits, messages) is caught.
 - **The limits are tested on both sides** (2/3 and 150/151), and after trimming, because the contract counts the trimmed length.
 - **Existing integration tests are reused.** They already cover T05, T06 and T08; only T07 was missing.
+- **E2E scenarios are written in Gherkin**, in the same Given / When / Then form as the acceptance criteria in user-stories.md, so they can be read and checked against them.
 - **The E2E test has its own environment.** `npm run e2e` recreates an empty database (`db-e2e`), and Playwright starts a backend that loads the demo data into it, and a frontend. The development data can't be changed by the tests, and each run starts from the same data.
 - **The E2E test creates and deletes its own project**, so it doesn't depend on the other demo projects, and can be run again in the same environment.
 - **Not in this plan:** status changes, filters, assignees and comments. They are covered in [verification.md](verification.md).

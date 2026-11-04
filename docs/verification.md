@@ -16,7 +16,7 @@ title: Verification
 | `npm run lint` | `frontend/` | All files pass linting |
 | `./mvnw compile spotbugs:check` | `backend/` | No findings (SpotBugs with FindSecBugs) |
 | `npm audit`; OSV-Scanner | `frontend/`, `backend/` | 0 known vulnerabilities (frontend 649 packages, backend 165) |
-| `E2E_PASSWORD=… npm run e2e` | `frontend/` | 1 test passed, in its own database (`db-e2e`) and servers (ports 8081, 4201); the development database was unchanged, and the test's project was deleted |
+| `E2E_PASSWORD=… npm run e2e` | `frontend/` | 1 Gherkin scenario passed (playwright-bdd), in its own database (`db-e2e`) and servers (ports 8081, 4201); the development database was unchanged, and the test's project was deleted |
 | Access between demo accounts (`curl`) | running app | 14 × 404 for a non-member, 4 × 403 for a member who isn't the PM, data unchanged ([quality-security-review.md](quality-security-review.md), section 3) |
 | README steps from a clean clone | temporary folder | Passed: schema and demo data created, health `db: UP`, Alice signs in with the README password, app and `/api` proxy work; 82 backend and 79 frontend tests passed at commit `ff93f3d` (before the review fixes, which added 6 tests) |
 | Contract against code | `docs/openapi.yaml`, controllers | 25 operations (version 1.0.0); all implemented except `POST /users` (optional sign-up, FR-18) |
