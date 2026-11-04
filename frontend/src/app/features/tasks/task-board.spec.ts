@@ -94,6 +94,22 @@ describe('TaskBoard', () => {
     expect(page.querySelector('.col-hd')!.textContent).toContain('In Progress');
   });
 
+  it('ignores an older response that arrives after a newer one', () => {
+    http.expectOne('/api/projects/7/tasks').flush([aTask({})]);
+    select('filter-priority', 'HIGH');
+    select('filter-priority', 'LOW');
+    const older = http.expectOne('/api/projects/7/tasks?priority=HIGH');
+    const newer = http.expectOne('/api/projects/7/tasks?priority=LOW');
+
+    newer.flush([aTask({ id: 2, title: 'Low task', priority: 'LOW' })]);
+    if (!older.cancelled) {
+      older.flush([aTask({ id: 3, title: 'High task', priority: 'HIGH' })]);
+    }
+    fixture.detectChanges();
+
+    expect(Array.from(page.querySelectorAll('.tc-title')).map((title) => title.textContent)).toEqual(['Low task']);
+  });
+
   it('explains when no task matches the filters, and clears them', () => {
     http.expectOne('/api/projects/7/tasks').flush([aTask({})]);
     select('filter-status', 'DONE');

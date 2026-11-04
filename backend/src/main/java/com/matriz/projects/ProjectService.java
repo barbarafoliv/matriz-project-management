@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -131,7 +132,13 @@ public class ProjectService {
 		if (this.members.findByProjectIdAndUserId(projectId, user.getId()).isPresent()) {
 			throw ProjectErrors.alreadyMember();
 		}
-		this.members.save(new ProjectMember(projectId, user.getId(), Role.MEMBER));
+		try {
+			this.members.saveAndFlush(new ProjectMember(projectId, user.getId(), Role.MEMBER));
+		}
+		catch (DataIntegrityViolationException ex) {
+			// Added at the same moment by another request: the primary key keeps one row.
+			throw ProjectErrors.alreadyMember();
+		}
 		return new MemberView(user, Role.MEMBER);
 	}
 

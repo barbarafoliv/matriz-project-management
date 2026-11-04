@@ -37,6 +37,21 @@ describe('sessionExpiredInterceptor', () => {
     expect(navigate).toHaveBeenCalledWith(['/sign-in']);
   });
 
+  it('treats a 401 when deleting the account as an expired session', () => {
+    client.delete('/api/users/me').subscribe({ error: () => undefined });
+    http.expectOne('/api/users/me').flush({ code: 'UNAUTHENTICATED' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(auth.sessionExpired()).toBe(true);
+    expect(navigate).toHaveBeenCalledWith(['/sign-in']);
+  });
+
+  it('leaves the check of who is signed in to the guards', () => {
+    client.get('/api/users/me').subscribe({ error: () => undefined });
+    http.expectOne('/api/users/me').flush({ code: 'UNAUTHENTICATED' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('leaves a failed sign-in to the sign-in screen', () => {
     client.post('/api/sessions', {}).subscribe({ error: () => undefined });
     http.expectOne('/api/sessions').flush({ code: 'INVALID_CREDENTIALS' }, { status: 401, statusText: 'Unauthorized' });

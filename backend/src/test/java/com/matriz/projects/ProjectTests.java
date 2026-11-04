@@ -99,6 +99,13 @@ class ProjectTests {
 	}
 
 	@Test
+	void checksTheDescriptionLengthAfterTrimming() throws Exception {
+		createProject(this.ana, "Garden plan", "x".repeat(1000) + "  ")
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.description").value("x".repeat(1000)));
+	}
+
+	@Test
 	void listsOnlyTheCallersProjectsSortedByName() throws Exception {
 		this.data.project("Zebra study", this.ana);
 		this.data.project("apple orchard", this.ana, this.ben);

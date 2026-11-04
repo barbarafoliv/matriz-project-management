@@ -27,7 +27,9 @@ info:
       so its existence isn't revealed (EC-04). A member who isn't the project manager
       gets 403 `NOT_PROJECT_MANAGER`.
     - **Errors:** every error is `application/problem+json` (RFC 9457) with a `code`.
-      Unexpected errors return 500 `INTERNAL_ERROR`, without internal details.
+      Unexpected errors return 500 `INTERNAL_ERROR`, without internal details. Requests
+      for a path or method that doesn't exist (404, 405) or with an unsupported content
+      type (406, 415) get problem+json from the framework, without a `code`.
     - **Late tasks:** `late` is computed by the server using its local date. The
       application runs on the user's machine (ADR 0006), so this is the user's local
       date (FR-08, EC-05).
@@ -226,7 +228,6 @@ paths:
           description: Text to search for in the project name. Trimmed; empty means no search.
           schema:
             type: string
-            maxLength: 100
           examples:
             search:
               value: web
@@ -744,7 +745,7 @@ components:
 
   headers:
     SetSessionCookie:
-      description: Sets the session cookie (`SESSION=...; Path=/; HttpOnly; SameSite=Lax`).
+      description: Sets the session cookie (`SESSION=...; Path=/api; HttpOnly; SameSite=Lax`).
       schema:
         type: string
     ClearSessionCookie:
@@ -1044,8 +1045,8 @@ components:
 
     UpdateTaskRequest:
       type: object
-      description: Full replacement. `null` clears an optional field.
-      required: [title, description, dueDate, priority]
+      description: Full replacement. `null` or an omitted `description` or `dueDate` clears it.
+      required: [title, priority]
       properties:
         title:
           type: string

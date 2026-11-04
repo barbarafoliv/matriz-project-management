@@ -139,6 +139,13 @@ class TaskTests {
 	}
 
 	@Test
+	void checksTheDescriptionLengthAfterTrimming() throws Exception {
+		this.mvc.perform(asUser(this.ana, post(tasks())).content(body("Fine", "x".repeat(2000) + "   ", null, null)))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.description").value("x".repeat(2000)));
+	}
+
+	@Test
 	void listsTasksByDueDateWithTasksWithoutOneLast() throws Exception {
 		this.data.task(this.project, "No date", "TODO", "LOW", null);
 		this.data.task(this.project, "Later", "TODO", "LOW", LocalDate.of(2030, 3, 1));

@@ -105,6 +105,25 @@ class MemberTests {
 	}
 
 	@Test
+	void simultaneousRequestsToAddTheSameMemberCreateOneMembershipAndNoServerError() throws Exception {
+		java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(8);
+		java.util.List<java.util.concurrent.Future<Integer>> results = new java.util.ArrayList<>();
+		for (int i = 0; i < 8; i++) {
+			results.add(pool.submit(() -> addMember(this.ana, this.cleo.email()).andReturn().getResponse().getStatus()));
+		}
+		java.util.List<Integer> statuses = new java.util.ArrayList<>();
+		for (java.util.concurrent.Future<Integer> result : results) {
+			statuses.add(result.get());
+		}
+		pool.shutdown();
+
+		assertThat(statuses).containsOnly(201, 409).containsOnlyOnce(201);
+		assertThat(this.jdbc.queryForObject("SELECT COUNT(*) FROM project_member WHERE project_id = ? AND user_id = ?",
+				Integer.class, this.project, this.cleo.id()))
+			.isEqualTo(1);
+	}
+
+	@Test
 	void letsOnlyTheProjectManagerManageMembers() throws Exception {
 		addMember(this.ben, this.cleo.email())
 			.andExpect(status().isForbidden())

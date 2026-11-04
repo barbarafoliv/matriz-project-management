@@ -1,5 +1,6 @@
 import { Component, ElementRef, Injector, OnInit, afterNextRender, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { PRIORITIES, Priority, STATUSES, Task, TaskStatus, formatDate } from '../../core/tasks/task';
 import { TasksService } from '../../core/tasks/tasks.service';
@@ -38,6 +39,8 @@ export class TaskBoard implements OnInit {
   protected readonly status = signal<TaskStatus | ''>('');
   protected readonly priority = signal<Priority | ''>('');
   protected readonly creating = signal(false);
+  /** The request in progress; a new one cancels it, so an older answer can't win. */
+  private request?: Subscription;
 
   /** With a status filter, only that status's column is shown. */
   protected readonly columns = computed(() =>
@@ -54,7 +57,8 @@ export class TaskBoard implements OnInit {
   /** Asks the API for the tasks that match the filters. */
   protected load(): void {
     this.state.set('loading');
-    this.tasksService
+    this.request?.unsubscribe();
+    this.request = this.tasksService
       .list(this.projectId(), { status: this.status() || null, priority: this.priority() || null })
       .subscribe({
         next: (tasks) => {
