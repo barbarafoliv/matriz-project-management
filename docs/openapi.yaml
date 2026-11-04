@@ -39,6 +39,8 @@ info:
       filtered by status and priority (FR-10).
     - **Text fields:** names, titles and comments are trimmed. A value made only of
       spaces is rejected with field error `BLANK` (EC-03, EC-10).
+    - **Lengths:** `minLength` and `maxLength` count characters, so an emoji counts once.
+      Names, titles, descriptions and comments are counted after trimming.
 
 servers:
   - url: http://localhost:8080/api

@@ -10,6 +10,7 @@ Before starting a task, read the documents relevant to it:
 - [docs/constraints.md](docs/constraints.md): constraints, assumptions, security and privacy rules, pending technical decisions.
 - [README.md](README.md): project overview, current status, and build, run and test commands.
 - [docs/implementation-plan.md](docs/implementation-plan.md) and [docs/verification.md](docs/verification.md): what was built, how it was checked, and known limitations.
+- [docs/test-plan.md](docs/test-plan.md) and [docs/quality-security-review.md](docs/quality-security-review.md): test scenarios, and review and security findings with their decisions.
 
 These documents are the source of truth. The `course-notes/` folder is not product documentation.
 
@@ -37,6 +38,8 @@ These documents are the source of truth. The `course-notes/` folder is not produ
   - Database: `docker compose up -d` (from the repository root, needs `.env`).
   - Backend: `cd backend && ./mvnw verify` (needs Docker running), run with `./mvnw spring-boot:run`.
   - Frontend: `cd frontend && npx ng build` and `npx ng test --watch=false`, run with `npm start`.
+  - End-to-end: `cd frontend && E2E_PASSWORD=<demo password from the README> npm run e2e` (needs Docker and `.env`; uses its own database and servers).
+  - Static analysis: `cd frontend && npm run lint`, and `cd backend && ./mvnw compile spotbugs:check`. Dependency checks: `npm audit`, and OSV-Scanner for the backend (README, Test).
   - The backend tests need Docker running (Testcontainers). Record new results in `docs/verification.md`.
 - Add or update tests for any behaviour you change, based on the acceptance criteria where they exist.
 - Report the commands you ran and their results, the files you changed, and any assumptions you made.

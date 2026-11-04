@@ -138,6 +138,8 @@ docker compose stop       # stops PostgreSQL, keeps the data
 | [docs/openapi.yaml](docs/openapi.yaml) | REST API contract (OpenAPI 3.1): endpoints, DTOs, validation rules and errors. |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Implementation increments, with components, dependencies, acceptance criteria, checks and status. |
 | [docs/verification.md](docs/verification.md) | Verification results: commands, cases 01–09 with evidence, bugs fixed, limitations and use of AI. |
+| [docs/test-plan.md](docs/test-plan.md) | Test plan for tasks and their permissions: scenarios, expected results, test levels and the tests that cover them. |
+| [docs/quality-security-review.md](docs/quality-security-review.md) | Code Review and Security Review: findings with evidence, access checks between accounts, static analysis, dependency scans and decisions. |
 | [AGENTS.md](AGENTS.md) | Instructions for coding agents working on the project. |
 
 The documents are traceable: each user story (US-xx) is linked to a functional requirement (FR-xx) in the requirements.
