@@ -10,10 +10,12 @@ title: Verification
 
 | Command | Where | Result |
 |---|---|---|
-| `./mvnw verify` | `backend/` | 99 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
-| `npx ng test --watch=false` | `frontend/` | 82 tests, 0 failures |
+| `./mvnw verify` | `backend/` | 100 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
+| `npx ng test --watch=false` | `frontend/` | 92 tests, 0 failures |
 | `npx ng build` | `frontend/` | Build complete, no warnings |
 | `npm run lint` | `frontend/` | All files pass linting |
+| `./mvnw compile spotbugs:check` | `backend/` | No findings (SpotBugs with FindSecBugs) |
+| `npm audit`; OSV-Scanner | `frontend/`, `backend/` | 0 known vulnerabilities (frontend 649 packages, backend 165) |
 | `E2E_PASSWORD=… npm run e2e` | `frontend/`, app running | 1 test passed, 3 runs in a row; no data left behind |
 | Access between demo accounts (`curl`) | running app | 14 × 404 for a non-member, 4 × 403 for a member who isn't the PM, data unchanged ([quality-security-review.md](quality-security-review.md), section 3) |
 | README steps from a clean clone | temporary folder | Passed: schema and demo data created, health `db: UP`, Alice signs in with the README password, app and `/api` proxy work; 82 backend and 79 frontend tests passed at commit `ff93f3d` (before the review fixes, which added 6 tests) |
@@ -54,6 +56,7 @@ Each was reproduced, its cause found, fixed in a limited way and covered by a re
 | Review | A description at the limit plus a trailing space was rejected | Length checked before trimming | `ProjectTests` and `TaskTests.checksTheDescriptionLengthAfterTrimming` |
 | Worksheet 04 review | A deletion that wasn't committed still signed the user out everywhere | Spring Session commits session changes on its own | `AccountDeletionTests.keepsTheSessionsWhenTheDeletionIsNotCommitted` |
 | Worksheet 04 review | Text with emoji was rejected before the documented length | Length counted in UTF-16 units, not characters | `CreateTaskRequestTests.countsCharactersNotUtf16UnitsSoEmojiCountOnce`, `TaskTests.savesATitleOf150EmojiBecauseLengthsCountCharacters` |
+| Worksheet 04 review | The forms stopped typing at 75 emoji, and sent a 2-emoji title the API rejects | Same, in the browser `maxlength` and the form validators | `validators.spec`, length specs of the task, project and comment forms |
 
 ## 4. Refactoring
 

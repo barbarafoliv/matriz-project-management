@@ -10,4 +10,9 @@ import java.util.List;
 public record TaskView(long id, long projectId, String title, String description, List<UserSummary> assignees,
 		LocalDate dueDate, Priority priority, TaskStatus status, boolean late, Instant createdAt, Instant updatedAt) {
 
+	public TaskView {
+		// Immutable, so a view can't be changed after it's built (SpotBugs EI_EXPOSE_REP).
+		assignees = List.copyOf(assignees);
+	}
+
 }

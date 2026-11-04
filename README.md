@@ -99,7 +99,21 @@ E2E_PASSWORD=matriz-demo-2026 npm run e2e         # signs in as Alice; creates a
 
 On failure, the trace and screenshot are in `frontend/test-results/`; `npx playwright show-report` opens the report.
 
-Static analysis of the frontend (ESLint with angular-eslint): `cd frontend && npm run lint`. The current results are in [docs/quality-security-review.md](docs/quality-security-review.md).
+Static analysis and dependency checks (results in [docs/quality-security-review.md](docs/quality-security-review.md)):
+
+```sh
+cd backend && ./mvnw compile spotbugs:check   # SpotBugs with FindSecBugs; add -Dspotbugs.threshold=Low for all findings
+cd frontend && npm run lint && npm audit      # ESLint with angular-eslint; known vulnerabilities in npm packages
+```
+
+Backend dependencies are checked with [OSV-Scanner](https://google.github.io/osv-scanner/), run once with Docker on a list of all dependencies:
+
+```sh
+cd backend && ./mvnw org.cyclonedx:cyclonedx-maven-plugin:2.9.1:makeBom -DincludeTestScope=true -DoutputFormat=json
+docker run --rm -v "$(pwd)/target/bom.json:/src/bom.cdx.json:ro" ghcr.io/google/osv-scanner:latest scan source -L /src/bom.cdx.json
+```
+
+Behind a proxy that inspects HTTPS, also mount its CA certificate and add `-e SSL_CERT_FILE=/certs/ca.pem -v <ca-file>:/certs/ca.pem:ro`, or OSV-Scanner can't reach its database and reports no issues.
 
 ### Stop
 

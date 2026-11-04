@@ -11,6 +11,11 @@ public record MyTask(long id, long projectId, String title, String description, 
 		LocalDate dueDate, Priority priority, TaskStatus status, boolean late, Instant createdAt, Instant updatedAt,
 		ProjectSummary project) {
 
+	public MyTask {
+		// Immutable, so a view can't be changed after it's built (SpotBugs EI_EXPOSE_REP).
+		assignees = List.copyOf(assignees);
+	}
+
 	static MyTask of(TaskView task, String projectName) {
 		return new MyTask(task.id(), task.projectId(), task.title(), task.description(), task.assignees(),
 				task.dueDate(), task.priority(), task.status(), task.late(), task.createdAt(), task.updatedAt(),
