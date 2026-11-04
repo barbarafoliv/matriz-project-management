@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, input, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
@@ -11,7 +11,7 @@ import { TasksService } from '../../core/tasks/tasks.service';
 import { PriorityBadge, StatusBadge } from '../../shared/badges';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { initials } from '../../shared/initials';
-import { trimmedMinLength } from '../../shared/validators';
+import { trimmedMaxLength, trimmedMinLength } from '../../shared/validators';
 import { AssigneesPanel } from './assignees-panel';
 import { CommentsPanel } from './comments-panel';
 
@@ -43,8 +43,8 @@ export class TaskDetail implements OnInit {
   protected readonly members = signal<Member[]>([]);
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    title: ['', [trimmedMinLength(3), Validators.maxLength(150)]],
-    description: ['', [Validators.maxLength(2000)]],
+    title: ['', [trimmedMinLength(3), trimmedMaxLength(150)]],
+    description: ['', [trimmedMaxLength(2000)]],
     priority: ['MEDIUM' as Priority],
     dueDate: [''],
   });
@@ -98,6 +98,13 @@ export class TaskDetail implements OnInit {
       return control.hasError('required') ? 'Title must not be empty.' : 'Title must be between 3 and 150 characters.';
     }
     return this.serverErrors()['title'] ?? null;
+  }
+
+  protected descriptionError(): string | null {
+    if (this.form.controls.description.invalid) {
+      return 'Description must be at most 2000 characters.';
+    }
+    return this.serverErrors()['description'] ?? null;
   }
 
   /** A status button saves straight away (docs/ui/design-decisions.md). */

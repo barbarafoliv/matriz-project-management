@@ -101,6 +101,18 @@ describe('TaskDetail', () => {
     expect(page.querySelector('h1')!.textContent).toContain('Write better copy');
   });
 
+  it('rejects a description over the limit without calling the API', async () => {
+    await load('MEMBER');
+    const description = page.querySelector<HTMLTextAreaElement>('#task-description')!;
+    description.value = 'x'.repeat(2001);
+    description.dispatchEvent(new Event('input'));
+    page.querySelector('form')!.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(page.textContent).toContain('Description must be at most 2000 characters.');
+    http.expectNone((request) => request.method === 'PUT');
+  });
+
   it('keeps the edits when the API rejects them', async () => {
     await load('MEMBER');
     const title = page.querySelector<HTMLInputElement>('#task-title')!;

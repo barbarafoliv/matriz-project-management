@@ -46,6 +46,28 @@ describe('NewTaskDialog', () => {
     http.expectNone('/api/projects/7/tasks');
   });
 
+  it('rejects a title or description over the limit without calling the API, and keeps the text', async () => {
+    type('#task-title', 'x'.repeat(151));
+    type('#task-description', 'y'.repeat(2001));
+    await submit();
+
+    expect(page.textContent).toContain('Title must be between 3 and 150 characters.');
+    expect(page.textContent).toContain('Description must be at most 2000 characters.');
+    expect(page.querySelector<HTMLInputElement>('#task-title')!.value).toHaveLength(151);
+    http.expectNone('/api/projects/7/tasks');
+  });
+
+  it('counts an emoji as one character, like the API', async () => {
+    type('#task-title', '😀'.repeat(2));
+    await submit();
+    expect(page.textContent).toContain('Title must be between 3 and 150 characters.');
+    http.expectNone('/api/projects/7/tasks');
+
+    type('#task-title', '😀'.repeat(150));
+    await submit();
+    http.expectOne('/api/projects/7/tasks').flush({ id: 5 });
+  });
+
   it('creates the task with the trimmed title', async () => {
     const created = vi.fn();
     fixture.componentInstance.created.subscribe(created);

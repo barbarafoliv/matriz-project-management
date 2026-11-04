@@ -87,6 +87,16 @@ describe('CommentsPanel', () => {
     http.expectNone((request) => request.method === 'POST');
   });
 
+  it('counts characters, so 2000 emoji are sent and 2001 are rejected', async () => {
+    http.expectOne('/api/projects/7/tasks/3/comments').flush([]);
+    await write('😀'.repeat(2001));
+    expect(page.querySelector('[role="alert"]')!.textContent).toContain('Comment must be at most 2000 characters.');
+    http.expectNone((request) => request.method === 'POST');
+
+    await write('😀'.repeat(2000));
+    http.expectOne((request) => request.method === 'POST').flush(comment(9, '😀'.repeat(2000), { id: 1, name: 'Alice Example' }));
+  });
+
   it('keeps the text when the API rejects the comment', async () => {
     http.expectOne('/api/projects/7/tasks/3/comments').flush([]);
     await write('Hello');

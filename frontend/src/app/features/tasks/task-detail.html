@@ -77,7 +77,7 @@
             }
             <div class="field">
               <label class="label" for="task-title">Title <span aria-hidden="true">*</span></label>
-              <input class="input" id="task-title" type="text" formControlName="title" maxlength="150" aria-required="true" [attr.aria-invalid]="!!titleError()" />
+              <input class="input" id="task-title" type="text" formControlName="title" aria-required="true" [attr.aria-invalid]="!!titleError()" />
               @if (titleError(); as message) {
                 <span class="err-msg" role="alert">{{ message }}</span>
               } @else {
@@ -86,8 +86,8 @@
             </div>
             <div class="field">
               <label class="label" for="task-description">Description</label>
-              <textarea class="input" id="task-description" rows="3" maxlength="2000" formControlName="description" placeholder="No description."></textarea>
-              @if (serverErrors()['description']; as message) {
+              <textarea class="input" id="task-description" rows="3" formControlName="description" placeholder="No description."></textarea>
+              @if (descriptionError(); as message) {
                 <span class="err-msg" role="alert">{{ message }}</span>
               }
             </div>

@@ -47,6 +47,17 @@ describe('ProjectFormDialog', () => {
     http.expectNone('/api/projects');
   });
 
+  it('rejects a name or description over the limit without calling the API', async () => {
+    await open();
+    type('#project-name', '😀'.repeat(101));
+    type('#project-description', 'x'.repeat(1001));
+    await submit();
+
+    expect(page.textContent).toContain('Name must be between 3 and 100 characters.');
+    expect(page.textContent).toContain('Description must be at most 1000 characters.');
+    http.expectNone('/api/projects');
+  });
+
   it('creates the project with the trimmed name', async () => {
     await open();
     const saved = vi.fn();

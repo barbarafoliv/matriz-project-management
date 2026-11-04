@@ -1,11 +1,11 @@
 import { Component, inject, input, output, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 import { fieldMessages, toApiProblem } from '../../core/api-problem';
 import { PRIORITIES, Priority, Task } from '../../core/tasks/task';
 import { TasksService } from '../../core/tasks/tasks.service';
 import { Modal } from '../../shared/modal';
-import { trimmedMinLength } from '../../shared/validators';
+import { trimmedMaxLength, trimmedMinLength } from '../../shared/validators';
 
 /** New Task (US-04, EC-03). Assignees are added on the task page (docs/ui/design-decisions.md). */
 @Component({
@@ -24,7 +24,6 @@ import { trimmedMinLength } from '../../shared/validators';
             id="task-title"
             type="text"
             formControlName="title"
-            maxlength="150"
             aria-required="true"
             aria-describedby="task-title-hint"
             [attr.aria-invalid]="!!titleError()"
@@ -37,8 +36,8 @@ import { trimmedMinLength } from '../../shared/validators';
         </div>
         <div class="field">
           <label class="label" for="task-description">Description</label>
-          <textarea class="input" id="task-description" rows="2" maxlength="2000" formControlName="description" placeholder="Optional…"></textarea>
-          @if (serverErrors()['description']; as message) {
+          <textarea class="input" id="task-description" rows="2" formControlName="description" placeholder="Optional…"></textarea>
+          @if (descriptionError(); as message) {
             <span class="err-msg" role="alert">{{ message }}</span>
           }
         </div>
@@ -74,8 +73,8 @@ export class NewTaskDialog {
 
   protected readonly priorities = PRIORITIES;
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    title: ['', [trimmedMinLength(3), Validators.maxLength(150)]],
-    description: ['', [Validators.maxLength(2000)]],
+    title: ['', [trimmedMinLength(3), trimmedMaxLength(150)]],
+    description: ['', [trimmedMaxLength(2000)]],
     priority: ['MEDIUM' as Priority],
     dueDate: [''],
   });
@@ -90,6 +89,14 @@ export class NewTaskDialog {
       return control.hasError('required') ? 'Title must not be empty.' : 'Title must be between 3 and 150 characters.';
     }
     return this.serverErrors()['title'] ?? null;
+  }
+
+  protected descriptionError(): string | null {
+    const control = this.form.controls.description;
+    if (control.invalid && (control.touched || this.submitted())) {
+      return 'Description must be at most 2000 characters.';
+    }
+    return this.serverErrors()['description'] ?? null;
   }
 
   protected submit(): void {

@@ -5,6 +5,7 @@ import { fieldMessages, toApiProblem } from '../../core/api-problem';
 import { Comment, formatDateTime } from '../../core/tasks/task';
 import { TasksService } from '../../core/tasks/tasks.service';
 import { initials } from '../../shared/initials';
+import { trimmedLength } from '../../shared/validators';
 
 type ListState = 'loading' | 'ready' | 'error';
 
@@ -59,7 +60,6 @@ const MAX_LENGTH = 2000;
             id="comment-content"
             name="content"
             rows="2"
-            [maxlength]="maxLength"
             aria-required="true"
             [attr.aria-invalid]="!!error()"
             aria-describedby="comment-error"
@@ -82,7 +82,6 @@ export class CommentsPanel implements OnInit {
 
   protected readonly initials = initials;
   protected readonly formatDateTime = formatDateTime;
-  protected readonly maxLength = MAX_LENGTH;
   protected readonly state = signal<ListState>('loading');
   protected readonly comments = signal<Comment[]>([]);
   protected readonly pending = signal(false);
@@ -113,7 +112,7 @@ export class CommentsPanel implements OnInit {
       this.error.set('Comment must not be empty.');
       return;
     }
-    if (text.length > MAX_LENGTH) {
+    if (trimmedLength(text) > MAX_LENGTH) {
       this.error.set('Comment must be at most 2000 characters.');
       return;
     }

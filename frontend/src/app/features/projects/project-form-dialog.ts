@@ -1,11 +1,11 @@
 import { Component, OnInit, inject, input, output, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 import { fieldMessages, toApiProblem } from '../../core/api-problem';
 import { Project } from '../../core/projects/project';
 import { ProjectsService } from '../../core/projects/projects.service';
 import { Modal } from '../../shared/modal';
-import { trimmedMinLength } from '../../shared/validators';
+import { trimmedMaxLength, trimmedMinLength } from '../../shared/validators';
 
 /** New Project and Edit Project (US-02, EC-03). */
 @Component({
@@ -24,7 +24,6 @@ import { trimmedMinLength } from '../../shared/validators';
             id="project-name"
             type="text"
             formControlName="name"
-            maxlength="100"
             aria-required="true"
             aria-describedby="project-name-hint"
             [attr.aria-invalid]="!!nameError()"
@@ -42,10 +41,9 @@ import { trimmedMinLength } from '../../shared/validators';
             id="project-description"
             rows="3"
             formControlName="description"
-            maxlength="1000"
             placeholder="Optional…"
           ></textarea>
-          @if (serverErrors()['description']; as message) {
+          @if (descriptionError(); as message) {
             <span class="err-msg" role="alert">{{ message }}</span>
           }
         </div>
@@ -71,8 +69,8 @@ export class ProjectFormDialog implements OnInit {
   readonly closed = output<void>();
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    name: ['', [trimmedMinLength(3), Validators.maxLength(100)]],
-    description: ['', [Validators.maxLength(1000)]],
+    name: ['', [trimmedMinLength(3), trimmedMaxLength(100)]],
+    description: ['', [trimmedMaxLength(1000)]],
   });
   protected readonly pending = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -92,6 +90,14 @@ export class ProjectFormDialog implements OnInit {
       return control.hasError('required') ? 'Name must not be empty.' : 'Name must be between 3 and 100 characters.';
     }
     return this.serverErrors()['name'] ?? null;
+  }
+
+  protected descriptionError(): string | null {
+    const control = this.form.controls.description;
+    if (control.invalid && (control.touched || this.submitted())) {
+      return 'Description must be at most 1000 characters.';
+    }
+    return this.serverErrors()['description'] ?? null;
   }
 
   protected submit(): void {
