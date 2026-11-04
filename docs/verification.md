@@ -21,6 +21,7 @@ title: Verification
 | `E2E_PASSWORD=… npm run e2e` | `frontend/` | 1 Gherkin scenario (playwright-bdd) passed 3 runs in a row, each on a new `db-e2e` database, with its own servers (ports 8081, 4201); the development database was unchanged. Checked that it fails when the task isn't in the expected column, and when the page is reloaded after creating the task; the screenshot and trace were saved |
 | Access between demo accounts (`curl`) | running app | 14 × 404 for a non-member, 4 × 403 for a member who isn't the PM, data unchanged ([quality-security-review.md](quality-security-review.md), section 3) |
 | README steps from a clean clone | temporary folder | Passed: schema and demo data created, health `db: UP`, Alice signs in with the README password, app and `/api` proxy work; 82 backend and 79 frontend tests passed at commit `ff93f3d` (before the review fixes, which added 6 tests) |
+| Worksheet 04 test commands from a clean clone at commit `2b44bce` | temporary folder | Passed: `./mvnw verify` 141 tests and `spotbugs:check`; `npm ci` (0 vulnerabilities), `ng test` 96 tests, `ng build`, `ng lint`; `npm run e2e` 1 scenario, on the clone's own `db-e2e` |
 | Contract against code | `docs/openapi.yaml`, controllers | 25 operations (version 1.0.0); all implemented except `POST /users` (optional sign-up, FR-18) |
 
 ## 2. Cases
@@ -75,6 +76,11 @@ The priority and status badges were repeated on the board, the task page and My 
 - Load times (NFR-04) weren't measured.
 - Public sign-up (FR-18) and password recovery (FR-19) aren't built; they are optional.
 - All demo accounts manage a project, so none of them can be deleted (EC-06). A real deletion was shown with a throwaway account.
+- Practical Worksheet 04:
+  - Only one end-to-end scenario, and only in Chromium. The step definitions aren't type-checked (`@types/node` isn't installed; Playwright runs them without checking types).
+  - SonarQube and Semgrep weren't used; ESLint, SpotBugs, OSV-Scanner and gitleaks were. SpotBugs runs on demand, not in `./mvnw verify`.
+  - The database checks on names, titles and comments (`BTRIM` in `001-schema.sql`) only trim ASCII spaces. The API rejects other blank text first (quality-security-review.md, F7).
+  - The optional extension (tests and static analysis in a CI/CD workflow) wasn't done.
 - Open review findings, not fixed: deleting an account at the same moment as creating a project could leave a project without a manager; a sign-in with an unknown email answers slightly faster; simultaneous failed sign-ins can be under-counted; an assignment made while the member is being removed could remain. They need two requests at the same moment, and changing them affects security handling.
 
 ## 6. Use of AI
@@ -84,3 +90,11 @@ The priority and status badges were repeated on the board, the task page and My 
 | Compare the MVP with the sheet's scope and propose a plan (Exercise 1). The AI listed the differences and recommended keeping public sign-up as a *Must*. | Rejected: the sheet takes precedence, so sign-up became optional and demo accounts come from a seed. The access rules were confirmed with the instructor. | Traceability review of requirements, stories, data model and contract; demo accounts tested by `SignInTests.demoAccountsAcceptThePasswordListedInTheReadme`. |
 | Propose the implementation choices (Exercise 2). The AI proposed Flyway, PostgreSQL installed locally, and the demo password in an environment variable. | Corrected: Liquibase instead of Flyway, PostgreSQL in Docker Compose, and the fake demo password written in the README. | `SchemaAndSeedTests`; restart check (no data lost or duplicated); README followed from a clean clone. |
 | Implement sign-in with a limit on failed attempts (Exercise 3). The AI recommended also counting failures for emails without an account. | Rejected as more than needed: only existing accounts are counted. The AI's first version also had a bug its own tests missed (CSRF cookie path), found in the browser. | `SignInTests.doesNotCountFailuresForEmailsWithoutAnAccount`, `blocksSignInAfterFiveFailedAttemptsEvenWithTheRightPassword`; `SessionCookieTests` for the cookie fix. |
+| Practical Worksheet 04, Exercise 1: draft the test plan. | Reviewed against the user stories, the contract and the code; seven corrections, including a coverage claim that wasn't true. | [test-plan.md](test-plan.md), section 4. |
+| Worksheet 04, Exercises 2 to 4: write and strengthen the tests. | Accepted after checking that each new test fails when the behaviour breaks; the end-to-end test was moved to its own database and to Gherkin at the developer's request. | Deliberate changes to the rule, the security rules and the page, each caught (sections 1 and 3). |
+| Worksheet 04, Exercise 5: two AI code reviews and the security review. | Every finding checked by hand before deciding; the developer chose which to fix. One finding (F6) was a regression caused by an earlier AI change. | [quality-security-review.md](quality-security-review.md): evidence, decisions and regression tests. |
+
+## 7. Delivery (Practical Worksheet 04)
+
+- **Branch and commit:** `main`, code as of commit `2b44bce`. Later commits only change documentation.
+- **Not run or not checked, and still open:** section 5 above, and [quality-security-review.md](quality-security-review.md), section 6.
