@@ -1,0 +1,85 @@
+<div class="ph">
+  <div>
+    <h1 class="page-title">Projects</h1>
+    <p class="muted">Projects you are a member of.</p>
+  </div>
+  <button class="btn btn-primary" type="button" (click)="creating.set(true)">+ New Project</button>
+</div>
+
+<div class="toolbar" role="search">
+  <div class="field search">
+    <label class="label" for="project-search">Search by name</label>
+    <input
+      class="input"
+      id="project-search"
+      type="search"
+      placeholder="e.g. launch"
+      [value]="search()"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </div>
+</div>
+
+@switch (state().status) {
+  @case ('loading') {
+    <div class="proj-grid" aria-busy="true" aria-label="Loading projects">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skel" style="height: 120px"></div>
+      }
+    </div>
+  }
+  @case ('error') {
+    <div class="alert alert-error" role="alert">
+      Could not load projects. <button class="btn-link" type="button" (click)="reload()">Try again</button>
+    </div>
+  }
+  @case ('ready') {
+    @let projects = list();
+    @if (projects.length === 0 && search().trim()) {
+      <div class="empty" role="status">
+        <h2>No projects match your search.</h2>
+        <p>Try another name, or clear the search.</p>
+        <button class="btn" type="button" (click)="clearSearch()">Clear search</button>
+      </div>
+    } @else if (projects.length === 0) {
+      <div class="empty" role="status">
+        <h2>No projects yet</h2>
+        <p>Create your first project to start organising your team's work.</p>
+        <button class="btn btn-primary" type="button" (click)="creating.set(true)">+ New Project</button>
+      </div>
+    } @else {
+      <div class="proj-grid">
+        @for (project of projects; track project.id) {
+          <a
+            class="proj-card"
+            [routerLink]="['/projects', project.id]"
+            [attr.aria-label]="project.name + (project.myRole === 'PROJECT_MANAGER' ? ', you are project manager' : ', member')"
+          >
+            <div class="proj-card-hd">
+              <span class="proj-name">{{ project.name }}</span>
+              @if (project.myRole === 'PROJECT_MANAGER') {
+                <span class="badge b-pm">PM</span>
+              }
+            </div>
+            <p class="proj-desc">
+              @if (project.description) {
+                {{ project.description }}
+              } @else {
+                <em class="faint">No description</em>
+              }
+            </p>
+            <div class="counts" aria-label="Tasks per status">
+              <span class="count">To Do <strong>{{ project.taskCounts.todo }}</strong></span>
+              <span class="count">In Progress <strong>{{ project.taskCounts.inProgress }}</strong></span>
+              <span class="count">Done <strong>{{ project.taskCounts.done }}</strong></span>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  }
+}
+
+@if (creating()) {
+  <app-project-form-dialog (saved)="onCreated()" (closed)="creating.set(false)" />
+}

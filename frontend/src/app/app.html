@@ -3,6 +3,7 @@
   <header class="app-header">
     <nav class="app-nav" aria-label="Main navigation">
       <a class="app-logo" routerLink="/" aria-label="Matriz home">MATRIZ</a>
+      <a class="nav-link" routerLink="/projects" routerLinkActive="active" ariaCurrentWhenActive="page">Projects</a>
       <div class="app-nav-right">
         <span class="app-user">{{ user.name }}</span>
         <button class="btn btn-sm" type="button" (click)="signOut()" [disabled]="signingOut()">

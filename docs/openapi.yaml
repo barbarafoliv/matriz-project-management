@@ -928,7 +928,7 @@ components:
         description:
           type: [string, 'null']
           maxLength: 1000
-          description: Omitted or null clears it.
+          description: Trimmed. Omitted, null or only spaces clears it.
 
     Project:
       type: object

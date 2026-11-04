@@ -20,6 +20,20 @@
   text-decoration: none;
 }
 
+.nav-link {
+  padding: 5px 9px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background: var(--bg);
+  color: var(--text);
+}
+
 .app-nav-right {
   margin-left: auto;
   display: flex;

@@ -53,7 +53,12 @@ export class AuthService {
   signOut(): Observable<void> {
     return this.http.delete<void>(`${API_BASE_URL}/sessions/current`).pipe(
       map(() => undefined),
-      finalize(() => this.setUser(null)),
+      finalize(() => {
+        this.user.set(null);
+        // Signing out also removes the CSRF token. Asking the API again on the next page
+        // gets a new one, which the next sign-in needs.
+        this.checked = false;
+      }),
     );
   }
 

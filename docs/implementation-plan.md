@@ -13,7 +13,7 @@ title: Implementation Plan
 | 0 | Reconcile the documentation | — | Done |
 | 1 | Project skeleton and persistence | — | Done |
 | 2 | Authentication | US-01 | Done |
-| 3 | Projects, search and members | US-02, US-12, US-03 | To do |
+| 3 | Projects, search and members | US-02, US-12, US-03 | Done |
 | 4 | Tasks, status, board, filters and late tasks | US-04, US-05, US-07, US-13, US-08 | To do |
 | 5 | Assignees and "My tasks" | US-10, US-06 | To do |
 | 6 | Comments | US-11 | To do |
@@ -62,6 +62,7 @@ title: Implementation Plan
 - **Depends on:** Increment 2.
 - **Acceptance criteria:** US-02, US-12, US-03, EC-03 (name), EC-04, EC-07, EC-11. **First complete path:** sign in, create a project, see it in the list, and see it again after reloading the page and restarting the backend. Deleting a project leaves no orphan rows.
 - **Checks:** **authorisation test**: user B gets 404 on user A's project, even with the project ID changed in the request. **Persistence test**: create a project, then read it back from the database. Manual run of the first complete path.
+- **Result:** `./mvnw verify` 47 tests passed (12 project tests and 9 member tests added; both sheet tests are in `ProjectTests`). `ng test` 35 tests passed. Manual, in the browser: Alice only sees her 2 projects; a blank name is rejected; the new project appears in the list without a reload, and is still there after reloading the page and restarting the backend; search ignores case and shows the no-results message; edit; Manage Members rejects an unknown email and adds Bob; Bob sees the project without PM actions; Carol gets "Project not found." for its URL; removing a member and deleting the project ask for confirmation; no rows are left after the delete; "Your session has expired" shows after the session is deleted in the database. Found and fixed during the check: signing in again right after signing out failed with 403, because sign-out removes the CSRF token and the app didn't fetch a new one (regression test in `auth.service.spec.ts`).
 
 ### 4. Tasks, status, board, filters and late tasks (US-04, US-05, US-07, US-13, US-08)
 

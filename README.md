@@ -113,7 +113,7 @@ The documents are traceable: each user story (US-xx) is linked to a functional r
 
 ## Current status
 
-**Phase: MVP implementation.** Project skeleton, database schema, demo data and sign-in are in place (Increments 1 and 2). Progress is tracked in the [implementation plan](docs/implementation-plan.md).
+**Phase: MVP implementation.** Sign-in, projects, project search and members work (Increments 1 to 3). Progress is tracked in the [implementation plan](docs/implementation-plan.md).
 
 - [x] Problem analysis and clarification
 - [x] Requirements and MVP scope

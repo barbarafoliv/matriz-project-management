@@ -1,0 +1,88 @@
+<nav class="bc" aria-label="Breadcrumb">
+  <a routerLink="/projects">Projects</a>
+  <span aria-hidden="true">›</span>
+  <span aria-current="page">{{ project()?.name ?? 'Project' }}</span>
+</nav>
+
+@switch (state()) {
+  @case ('loading') {
+    <div aria-busy="true" aria-label="Loading project">
+      <div class="skel" style="height: 24px; width: 40%; margin-bottom: 12px"></div>
+      <div class="skel" style="height: 14px; width: 60%"></div>
+    </div>
+  }
+  @case ('not-found') {
+    <div class="empty" role="status">
+      <h2>Project not found.</h2>
+      <p>It doesn't exist, or you aren't a member of it.</p>
+      <a class="btn" routerLink="/projects">Back to Projects</a>
+    </div>
+  }
+  @case ('error') {
+    <div class="alert alert-error" role="alert">
+      Could not load the project. <button class="btn-link" type="button" (click)="load()">Try again</button>
+    </div>
+  }
+  @case ('ready') {
+    @if (project(); as project) {
+      <div class="ph">
+        <div>
+          <h1 class="page-title">{{ project.name }}</h1>
+          @if (project.description) {
+            <p class="muted">{{ project.description }}</p>
+          }
+        </div>
+        @if (isManager()) {
+          <div class="actions">
+            <button class="btn btn-sm" type="button" (click)="dialog.set('edit')">Edit</button>
+            <button class="btn btn-sm btn-danger" type="button" (click)="dialog.set('delete')">Delete</button>
+          </div>
+        }
+      </div>
+
+      <div class="members" aria-label="Project members">
+        <span>Members:</span>
+        @for (member of members(); track member.userId) {
+          <span
+            class="av"
+            [class.av-pm]="member.role === 'PROJECT_MANAGER'"
+            [title]="member.name + (member.role === 'PROJECT_MANAGER' ? ' (PM)' : '')"
+            [attr.aria-label]="member.name + (member.role === 'PROJECT_MANAGER' ? ', project manager' : '')"
+          >{{ initials(member.name) }}</span>
+        }
+        @if (isManager()) {
+          <button class="btn btn-sm btn-ghost" type="button" (click)="dialog.set('members')">Manage Members</button>
+        }
+      </div>
+
+      <div class="empty" role="status">
+        <h2>Tasks</h2>
+        <p>The project's tasks will appear here.</p>
+      </div>
+
+      @switch (dialog()) {
+        @case ('edit') {
+          <app-project-form-dialog [project]="project" (saved)="onSaved($event)" (closed)="closeDialog()" />
+        }
+        @case ('delete') {
+          <app-confirm-dialog
+            title="Delete project?"
+            message="This will permanently delete the project and all its tasks, assignments and comments. This action cannot be undone."
+            [pending]="deletePending()"
+            [error]="deleteError()"
+            (confirmed)="deleteProject()"
+            (closed)="closeDialog()"
+          />
+        }
+        @case ('members') {
+          <app-members-dialog
+            [projectId]="project.id"
+            [members]="members()"
+            (changed)="reloadMembers()"
+            (closed)="closeDialog()"
+          />
+        }
+      }
+    }
+  }
+}

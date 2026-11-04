@@ -20,6 +20,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -41,6 +42,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 			.body(Problems.of(ex.getStatus(), ex.getCode(), ex.getMessage(), request.getRequestURI()));
 	}
 
+	@ExceptionHandler(FieldValidationException.class)
+	ResponseEntity<ProblemDetail> handleFieldValidation(FieldValidationException ex, HttpServletRequest request) {
+		ProblemDetail problem = validationProblem(request.getRequestURI(),
+				List.of(Map.of("field", ex.getField(), "code", ex.getFieldCode(), "message", ex.getMessage())));
+		return ResponseEntity.badRequest().body(problem);
+	}
+
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	ResponseEntity<ProblemDetail> handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
 		return ResponseEntity.badRequest()
@@ -59,23 +67,42 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
 			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-		ProblemDetail problem = Problems.of(HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_FAILED,
-				"One or more fields are invalid.", path(request));
-		problem.setTitle("Validation failed");
-		// One entry per field (EC-03): the most basic problem first, e.g. BLANK before INVALID_FORMAT.
-		Map<String, FieldError> firstPerField = new LinkedHashMap<>();
-		ex.getBindingResult()
-			.getFieldErrors()
+		return ResponseEntity.badRequest()
+			.body(validationProblem(path(request), fieldErrors(ex.getBindingResult().getFieldErrors())));
+	}
+
+	/**
+	 * Invalid path or query parameters, such as a project ID below 1, or an invalid body on
+	 * a method that also validates its path parameters.
+	 */
+	@Override
+	protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		List<FieldError> bodyErrors = ex.getBeanResults()
 			.stream()
+			.flatMap(result -> result.getFieldErrors().stream())
+			.toList();
+		if (!bodyErrors.isEmpty() && ex.getValueResults().isEmpty()) {
+			return ResponseEntity.badRequest().body(validationProblem(path(request), fieldErrors(bodyErrors)));
+		}
+		return ResponseEntity.badRequest()
+			.body(Problems.of(HttpStatus.BAD_REQUEST, ErrorCode.MALFORMED_REQUEST, "The request is malformed.",
+					path(request)));
+	}
+
+	/**
+	 * One entry per field (EC-03): the most basic problem first, e.g. BLANK before INVALID_FORMAT.
+	 */
+	private static List<Map<String, String>> fieldErrors(List<FieldError> all) {
+		Map<String, FieldError> firstPerField = new LinkedHashMap<>();
+		all.stream()
 			.sorted(Comparator.comparingInt(error -> FIELD_ERROR_ORDER.indexOf(fieldErrorCode(error))))
 			.forEach(error -> firstPerField.putIfAbsent(error.getField(), error));
-		List<Map<String, String>> errors = firstPerField.values()
+		return firstPerField.values()
 			.stream()
 			.map(error -> Map.of("field", error.getField(), "code", fieldErrorCode(error), "message",
 					String.valueOf(error.getDefaultMessage())))
 			.toList();
-		problem.setProperty("errors", errors);
-		return ResponseEntity.badRequest().body(problem);
 	}
 
 	@Override
@@ -94,7 +121,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 		return switch (String.valueOf(error.getCode())) {
 			case "NotNull", "NotEmpty" -> "REQUIRED";
 			case "NotBlank" -> (value == null || value.toString().isEmpty()) ? "REQUIRED" : "BLANK";
-			case "Size" -> isTooLong(error) ? "TOO_LONG" : "TOO_SHORT";
+			case "Size", "TrimmedLength" -> isTooLong(error) ? "TOO_LONG" : "TOO_SHORT";
 			case "Email", "Pattern" -> "INVALID_FORMAT";
 			default -> "INVALID_VALUE";
 		};
@@ -103,9 +130,18 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	private static boolean isTooLong(FieldError error) {
 		if (error.contains(ConstraintViolation.class) && error.getRejectedValue() instanceof CharSequence value) {
 			Object max = error.unwrap(ConstraintViolation.class).getConstraintDescriptor().getAttributes().get("max");
-			return max instanceof Integer limit && value.length() > limit;
+			int length = "TrimmedLength".equals(error.getCode()) ? value.toString().strip().length() : value.length();
+			return max instanceof Integer limit && length > limit;
 		}
 		return false;
+	}
+
+	private static ProblemDetail validationProblem(String instance, List<Map<String, String>> errors) {
+		ProblemDetail problem = Problems.of(HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_FAILED,
+				"One or more fields are invalid.", instance);
+		problem.setTitle("Validation failed");
+		problem.setProperty("errors", errors);
+		return problem;
 	}
 
 	private static String path(WebRequest request) {

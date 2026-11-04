@@ -23,3 +23,12 @@ export function toApiProblem(error: unknown): ApiProblem {
   }
   return { status: 0 };
 }
+
+/** The message for each invalid field, by field name. */
+export function fieldMessages(problem: ApiProblem): Record<string, string> {
+  const messages: Record<string, string> = {};
+  for (const error of problem.errors ?? []) {
+    messages[error.field] ??= error.message;
+  }
+  return messages;
+}

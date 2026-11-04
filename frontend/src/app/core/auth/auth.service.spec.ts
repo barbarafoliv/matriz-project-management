@@ -60,6 +60,16 @@ describe('AuthService', () => {
     expect(auth.currentUser()).toBeNull();
   });
 
+  it('asks the API again after signing out, to get a new CSRF token for the next sign-in', () => {
+    auth.signIn('alice@example.com', 'secret').subscribe();
+    http.expectOne('/api/sessions').flush(alice);
+    auth.signOut().subscribe();
+    http.expectOne('/api/sessions/current').flush(null, { status: 204, statusText: 'No Content' });
+
+    auth.loadCurrentUser().subscribe();
+    http.expectOne('/api/users/me').flush({}, { status: 401, statusText: 'Unauthorized' });
+  });
+
   it('reports an expired session only if someone was signed in', () => {
     auth.handleExpiredSession();
     expect(auth.sessionExpired()).toBe(false);
