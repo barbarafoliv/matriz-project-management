@@ -32,7 +32,7 @@ title: Test plan
 | T09 | Task reached through another project | Task ID of project A under project B | 404 `TASK_NOT_FOUND` | Integration | `TaskTests.aTaskCanOnlyBeReachedThroughItsOwnProject` |
 | T10 | Only the PM deletes a task | A member, then the PM, deletes a task | Member: 403 `NOT_PROJECT_MANAGER`; PM: 204 | Integration | `TaskTests.onlyTheProjectManagerCanDeleteATask` |
 | T10b | A member who isn't the PM edits a task | Ben (member) changes the title, description, due date and priority | 200 with the new values; another member sees the new title | Integration | `TaskTests.anyMemberCanEditATaskAndNullClearsOptionalFields` |
-| T11 | No session | A request without a session | 401 `UNAUTHENTICATED` | Integration | `SignInTests.requiresASessionForTheSignedInUser` (only `/users/me`; task endpoints rely on the same global rule in `SecurityConfig`, not tested separately) |
+| T11 | No session | Every task request (list, open, create, edit, change status, delete) without a session, with a valid CSRF token | 401 `UNAUTHENTICATED` for each, nothing created or changed | Integration | `TaskTests.requestsWithoutASessionAreRefusedAndChangeNothing`; also `SignInTests.requiresASessionForTheSignedInUser` (`/users/me`) |
 | T12 **E** | Create a task in the browser | Alice signs in, opens a new project, creates a task | The task is shown in the To Do column without reloading | E2E | `frontend/e2e/features/create-task.feature`, scenario "A new task appears in the To Do column without reloading the page" |
 | T13 | Manual cross-account check | Carol uses the IDs of Alice's project and tasks | Not shown, not changed | Manual | [quality-security-review.md](quality-security-review.md) |
 
@@ -54,7 +54,7 @@ The scenarios were drafted with an AI assistant and checked by the developer aga
 
 | AI suggestion | What the review found | Decision |
 |---|---|---|
-| T11 covered by `SessionCookieTests` for "any task request" | No test sends a task request without a session; only `/users/me` is tested | Row corrected; gap recorded |
+| T11 covered by `SessionCookieTests` for "any task request" | No test sent a task request without a session; only `/users/me` was tested | Test added for every task endpoint. Checked that it fails when anonymous `GET` requests are allowed |
 | Title limits tested only with plain ASCII text | The review found that an emoji counted as two characters (quality-security-review.md, F3) | T03b added, rule fixed |
 | E2E test on the development database, with demo data | The worksheet asks for an isolated test environment | Separate `db-e2e` database and servers |
 | E2E test as a plain Playwright spec | The developer asked for Gherkin, like the acceptance criteria | playwright-bdd feature file (T12) |

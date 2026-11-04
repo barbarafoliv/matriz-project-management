@@ -288,6 +288,30 @@ class TaskTests {
 	}
 
 	@Test
+	void requestsWithoutASessionAreRefusedAndChangeNothing() throws Exception {
+		long task = this.data.task(this.project, "Private", "TODO", "LOW", null);
+		String url = tasks() + "/" + task;
+
+		// With a valid CSRF token, so only the missing session is checked (NFR-02).
+		for (ResultActions result : new ResultActions[] { this.mvc.perform(get(tasks())),
+				this.mvc.perform(get(url)),
+				this.mvc.perform(post(tasks()).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+					.content(body("Sneaky", null, null, null))),
+				this.mvc.perform(put(url).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+					.content(body("Taken", null, null, "LOW"))),
+				this.mvc.perform(put(url + "/status").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+					.content("{\"status\":\"DONE\"}")),
+				this.mvc.perform(delete(url).with(csrf())) }) {
+			result.andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+		}
+		assertThat(this.jdbc.queryForObject("SELECT title || ' ' || status FROM task WHERE id = ?", String.class, task))
+			.isEqualTo("Private TODO");
+		assertThat(this.jdbc.queryForObject("SELECT COUNT(*) FROM task WHERE project_id = ?", Integer.class,
+				this.project))
+			.isEqualTo(1);
+	}
+
+	@Test
 	void aTaskCanOnlyBeReachedThroughItsOwnProject() throws Exception {
 		long task = this.data.task(this.project, "In team project", "TODO", "LOW", null);
 		long anasOtherProject = this.data.project("Ana's other project", this.ana);

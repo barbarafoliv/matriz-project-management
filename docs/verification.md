@@ -10,7 +10,7 @@ title: Verification
 
 | Command | Where | Result |
 |---|---|---|
-| `./mvnw verify` | `backend/` | 102 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
+| `./mvnw verify` | `backend/` | 103 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
 | `npx ng test --watch=false` | `frontend/` | 95 tests, 0 failures |
 | `npx ng build` | `frontend/` | Build complete, no warnings |
 | `npm run lint` | `frontend/` | All files pass linting |
