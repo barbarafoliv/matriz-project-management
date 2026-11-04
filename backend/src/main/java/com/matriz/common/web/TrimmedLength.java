@@ -12,9 +12,9 @@ import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
 
 /**
- * The text's length, without leading and trailing spaces, is between {@link #min()} and
- * {@link #max()}. Names and titles are stored trimmed (docs/openapi.yaml). Null is valid;
- * use {@code @NotBlank} to require a value.
+ * The text's length in characters, without leading and trailing spaces, is between
+ * {@link #min()} and {@link #max()}. Names and titles are stored trimmed (docs/openapi.yaml).
+ * Null is valid; use {@code @NotBlank} to require a value.
  */
 @Documented
 @Constraint(validatedBy = TrimmedLength.Validator.class)
@@ -49,7 +49,9 @@ public @interface TrimmedLength {
 			if (value == null) {
 				return true;
 			}
-			int length = value.toString().strip().length();
+			// Characters (code points), like the database and the contract: an emoji counts once.
+			String trimmed = value.toString().strip();
+			int length = trimmed.codePointCount(0, trimmed.length());
 			return length >= this.min && length <= this.max;
 		}
 

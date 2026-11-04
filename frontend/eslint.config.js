@@ -26,7 +26,8 @@ module.exports = defineConfig([
       '@angular-eslint/component-selector': [
         'error',
         {
-          type: 'element',
+          // Attribute selectors too: the project card is a real link, `a[app-project-card]`.
+          type: ['element', 'attribute'],
           prefix: 'app',
           style: 'kebab-case',
         },
@@ -36,6 +37,9 @@ module.exports = defineConfig([
   {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
-    rules: {},
+    rules: {
+      // The project card component fills its link and gives it an aria-label.
+      '@angular-eslint/template/elements-content': ['error', { allowList: ['app-project-card'] }],
+    },
   },
 ]);

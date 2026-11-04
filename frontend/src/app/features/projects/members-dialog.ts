@@ -59,7 +59,7 @@ import { initials } from '../../shared/initials';
     @if (removing(); as member) {
       <app-confirm-dialog
         title="Remove member?"
-        [message]="member.name + ' will lose access to this project, and will be removed from the tasks they\\'re assigned to in it.'"
+        [message]="removeMessage(member)"
         confirmLabel="Remove"
         [pending]="removePending()"
         [error]="removeError()"
@@ -91,6 +91,10 @@ export class MembersDialog {
   protected readonly removing = signal<Member | null>(null);
   protected readonly removePending = signal(false);
   protected readonly removeError = signal<string | null>(null);
+
+  protected removeMessage(member: Member): string {
+    return `${member.name} will lose access to this project, and will be removed from the tasks they're assigned to in it.`;
+  }
 
   protected add(): void {
     const email = this.email.trim();

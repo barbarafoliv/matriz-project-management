@@ -4,15 +4,18 @@ title: Verification
 
 # Matriz: Verification
 
-> Results of checking the MVP against [requirements.md](requirements.md) and [user-stories.md](user-stories.md) (Practical Sheet 03, Exercises 8 and 9). Final run on 2026-11-04, on Windows 11 with Docker (Rancher Desktop), JDK 21, Node.js 24 and Chromium.
+> Results of checking the MVP against [requirements.md](requirements.md) and [user-stories.md](user-stories.md) (Practical Sheet 03, Exercises 8 and 9, and Practical Worksheet 04). Final run on 2026-11-04, on Windows 11 with Docker (Rancher Desktop), JDK 21, Node.js 24 and Chromium.
 
 ## 1. Commands and results
 
 | Command | Where | Result |
 |---|---|---|
-| `./mvnw verify` | `backend/` | 85 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
+| `./mvnw verify` | `backend/` | 99 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
 | `npx ng test --watch=false` | `frontend/` | 82 tests, 0 failures |
 | `npx ng build` | `frontend/` | Build complete, no warnings |
+| `npm run lint` | `frontend/` | All files pass linting |
+| `E2E_PASSWORD=… npm run e2e` | `frontend/`, app running | 1 test passed, 3 runs in a row; no data left behind |
+| Access between demo accounts (`curl`) | running app | 14 × 404 for a non-member, 4 × 403 for a member who isn't the PM, data unchanged ([quality-security-review.md](quality-security-review.md), section 3) |
 | README steps from a clean clone | temporary folder | Passed: schema and demo data created, health `db: UP`, Alice signs in with the README password, app and `/api` proxy work; 82 backend and 79 frontend tests passed at commit `ff93f3d` (before the review fixes, which added 6 tests) |
 | Contract against code | `docs/openapi.yaml`, controllers | 25 operations (version 1.0.0); all implemented except `POST /users` (optional sign-up, FR-18) |
 
@@ -49,6 +52,8 @@ Each was reproduced, its cause found, fixed in a limited way and covered by a re
 | Review | Changing filters quickly could show tasks of the previous filter | An older response could arrive last | `task-board.spec` |
 | Review | Two simultaneous "add member" requests could give 500 | The primary key error wasn't handled | `MemberTests.simultaneousRequestsToAddTheSameMemberCreateOneMembershipAndNoServerError` (best effort: it can't force the race) |
 | Review | A description at the limit plus a trailing space was rejected | Length checked before trimming | `ProjectTests` and `TaskTests.checksTheDescriptionLengthAfterTrimming` |
+| Worksheet 04 review | A deletion that wasn't committed still signed the user out everywhere | Spring Session commits session changes on its own | `AccountDeletionTests.keepsTheSessionsWhenTheDeletionIsNotCommitted` |
+| Worksheet 04 review | Text with emoji was rejected before the documented length | Length counted in UTF-16 units, not characters | `CreateTaskRequestTests.countsCharactersNotUtf16UnitsSoEmojiCountOnce`, `TaskTests.savesATitleOf150EmojiBecauseLengthsCountCharacters` |
 
 ## 4. Refactoring
 
@@ -56,7 +61,7 @@ The priority and status badges were repeated on the board, the task page and My 
 
 ## 5. Limitations and what wasn't checked
 
-- Browser checks were manual (scripted with Playwright during development). There are no end-to-end tests in the repository, and only Chromium was used.
+- Only one end-to-end test (create a task, [test-plan.md](test-plan.md) T12); other browser checks were manual. Only Chromium was used.
 - HTTPS wasn't used: the application runs locally ([ADR 0006](decisions/0006-run-locally.md)).
 - Load times (NFR-04) weren't measured.
 - Public sign-up (FR-18) and password recovery (FR-19) aren't built; they are optional.

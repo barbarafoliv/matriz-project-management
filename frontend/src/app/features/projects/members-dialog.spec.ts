@@ -86,7 +86,7 @@ describe('MembersDialog', () => {
     page.querySelector<HTMLButtonElement>('[aria-label="Remove Bob Example"]')!.click();
     await fixture.whenStable();
     expect(page.textContent).toContain('Remove member?');
-    expect(page.textContent).toContain("Bob Example will lose access to this project");
+    expect(page.textContent).toContain("Bob Example will lose access to this project, and will be removed from the tasks they're assigned to in it.");
 
     page.querySelector<HTMLButtonElement>('app-confirm-dialog .btn-danger')!.click();
     const request = http.expectOne('/api/projects/7/members/2');

@@ -8,6 +8,8 @@ import { AfterViewInit, Component, ElementRef, input, output, viewChild } from '
 @Component({
   selector: 'app-modal',
   template: `
+    <!-- Clicking outside is a mouse shortcut; from the keyboard, Escape and ✕ close the dialog. -->
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
     <div class="overlay" (click)="closed.emit()">
       <div
         #dialog

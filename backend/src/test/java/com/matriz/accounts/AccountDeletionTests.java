@@ -24,6 +24,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.matriz.TestData;
 import com.matriz.TestData.TestUser;
@@ -45,6 +47,12 @@ class AccountDeletionTests {
 
 	@Autowired
 	PasswordEncoder passwordEncoder;
+
+	@Autowired
+	AccountDeletionService accountDeletion;
+
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
 	TestData data;
 
@@ -142,6 +150,21 @@ class AccountDeletionTests {
 		this.mvc.perform(delete("/users/me").cookie(laptop).with(csrf())).andExpect(status().isNoContent());
 
 		this.mvc.perform(get("/users/me").cookie(phone)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void keepsTheSessionsWhenTheDeletionIsNotCommitted() throws Exception {
+		Cookie session = signIn(this.ben.email(), this.password);
+
+		// The deletion fails after the service has run, so its transaction is rolled back.
+		new TransactionTemplate(this.transactionManager).executeWithoutResult((status) -> {
+			this.accountDeletion.deleteAccount(this.ben.id());
+			status.setRollbackOnly();
+		});
+
+		assertThat(count("SELECT COUNT(*) FROM app_user WHERE id = ?", this.ben.id())).isEqualTo(1);
+		assertThat(count("SELECT COUNT(*) FROM spring_session WHERE principal_name = ?", this.ben.email())).isEqualTo(1);
+		this.mvc.perform(get("/users/me").cookie(session)).andExpect(status().isOk());
 	}
 
 	@Test

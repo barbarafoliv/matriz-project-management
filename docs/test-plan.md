@@ -23,6 +23,7 @@ title: Test plan
 | T01 **E** | Valid title | `"Write the copy"` | Accepted | Unit | `CreateTaskRequestTests.acceptsAValidTitle` |
 | T02 **E** | Title at the limits | 3 and 150 characters, also with spaces around | Accepted | Unit | `acceptsTitlesAtTheLimits`, `ignoresLeadingAndTrailingSpacesWhenCountingTheLength` |
 | T03 **E** | Title just outside the limits | 2 and 151 characters, `"  ab  "` | Rejected: "Title must be between 3 and 150 characters." | Unit | `rejectsTitlesJustOutsideTheLimits`, `rejectsATitleThatIsTooShortOnceTrimmed` |
+| T03b | Emoji in the title | 150 and 151 emoji | 150 accepted and saved, 151 rejected (lengths count characters) | Unit, Integration | `countsCharactersNotUtf16UnitsSoEmojiCountOnce`, `TaskTests.savesATitleOf150EmojiBecauseLengthsCountCharacters` |
 | T04 **E** | Empty, blank or missing title | `""`, `"     "`, no title | Rejected: "Title must not be empty." | Unit | `rejectsAnEmptyTitleOrOneMadeOnlyOfSpaces`, `rejectsAMissingTitle` |
 | T05 **E** | Invalid title through the API | `"     "` | 400 `VALIDATION_FAILED`, field `title`, nothing saved | Integration | `TaskTests.rejectsATitleMadeOnlyOfSpacesAndSavesNothing`, `rejectsOtherInvalidFields` |
 | T06 **E** | Create and read a task | Member creates `"  Write the copy  "` | 201, `Location` header, title trimmed, To Do, Medium; found in the database and through `GET` by another member | Integration | `TaskTests.createsATaskAsToDoWithMediumPriorityByDefault` |

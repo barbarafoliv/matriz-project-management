@@ -103,6 +103,11 @@ class ProjectTests {
 		createProject(this.ana, "Garden plan", "x".repeat(1000) + "  ")
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.description").value("x".repeat(1000)));
+
+		this.mvc.perform(put("/projects/" + idOfProject("Garden plan")).with(this.ana.signedIn()).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(body("Garden plan", "y".repeat(1000) + "  ")))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.description").value("y".repeat(1000)));
 	}
 
 	@Test

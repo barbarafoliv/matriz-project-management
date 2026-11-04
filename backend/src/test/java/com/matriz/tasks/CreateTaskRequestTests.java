@@ -62,6 +62,14 @@ class CreateTaskRequestTests {
 	}
 
 	@Test
+	void countsCharactersNotUtf16UnitsSoEmojiCountOnce() {
+		String emoji = "😀"; // one character, two UTF-16 units
+		assertThat(titleErrors(emoji.repeat(150))).isEmpty();
+		assertThat(titleErrors(emoji.repeat(151))).containsExactly("Title must be between 3 and 150 characters.");
+		assertThat(titleErrors(emoji.repeat(2))).containsExactly("Title must be between 3 and 150 characters.");
+	}
+
+	@Test
 	void rejectsATitleThatIsTooShortOnceTrimmed() {
 		assertThat(titleErrors("  ab  ")).containsExactly("Title must be between 3 and 150 characters.");
 	}

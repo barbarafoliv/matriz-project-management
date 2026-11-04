@@ -143,6 +143,21 @@ class TaskTests {
 		this.mvc.perform(asUser(this.ana, post(tasks())).content(body("Fine", "x".repeat(2000) + "   ", null, null)))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.description").value("x".repeat(2000)));
+
+		long task = this.data.task(this.project, "To edit", "TODO", "LOW", null);
+		this.mvc.perform(asUser(this.ana, put(tasks() + "/" + task)).content(body("To edit", "y".repeat(2000) + "  ", null, "LOW")))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.description").value("y".repeat(2000)));
+	}
+
+	@Test
+	void savesATitleOf150EmojiBecauseLengthsCountCharacters() throws Exception {
+		String title = "😀".repeat(150);
+		this.mvc.perform(asUser(this.ana, post(tasks())).content(body(title, null, null, null)))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.title").value(title));
+		assertThat(this.jdbc.queryForObject("SELECT title FROM task WHERE id = ?", String.class, newestTaskId()))
+			.isEqualTo(title);
 	}
 
 	@Test

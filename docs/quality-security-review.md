@@ -22,7 +22,7 @@ title: Quality and security review
 
 | # | Where | Finding | Evidence | Impact | Severity | Status | Proposed fix and regression test |
 |---|---|---|---|---|---|---|---|
-| F1 | `backend/.../accounts/AccountDeletionService.java:58` | Sessions are deleted before the account deletion is committed | Spring Session's `JdbcHttpSessionConfiguration` 4.1.1 runs session operations with `REQUIRES_NEW` (checked in the bytecode), so they commit on their own, before the outer transaction deletes the user | If the user deletion then fails, the user is signed out everywhere but the account is kept, and the API answers 500. Safe: no access is kept, nothing leaks | Low | Mechanism confirmed; no failing case found (no constraint blocks the deletion) | Delete the sessions after the commit. Test: make the user deletion fail and check the account and its sessions are kept |
+| F1 | `backend/.../accounts/AccountDeletionService.java:58` | Sessions are deleted before the account deletion is committed | Spring Session's `JdbcHttpSessionConfiguration` 4.1.1 runs session operations with `REQUIRES_NEW` (checked in the bytecode), so they commit on their own, before the outer transaction deletes the user | If the user deletion then fails, the user is signed out everywhere but the account is kept, and the API answers 500. Safe: no access is kept, nothing leaks | Low | Confirmed: reproduced by rolling back the deletion (section 4); no real constraint makes the deletion fail today | Delete the sessions after the commit. Test: make the user deletion fail and check the account and its sessions are kept |
 | F2 | `backend/.../tasks/UpdateTaskRequest.java:17`, `projects/ProjectRequest.java` | Missing test: on edit, the description length is checked after trimming | Only create is tested (`TaskTests.checksTheDescriptionLengthAfterTrimming`, `ProjectTests`) | A future change to edit could reject valid text without a failing test | Low | Confirmed (test gap) | `PUT` a task with 2000 characters plus spaces, and a project with 1000; expect 200 and the trimmed value |
 | F3 | `backend/.../common/web/TrimmedLength.java:51` | Length is counted in UTF-16 units, not characters | `String.length()` counts an emoji as 2; `VARCHAR(n)` and OpenAPI `maxLength` count characters | Text with emoji is rejected before the documented maximum. Nothing too long gets through. The browser `maxlength` counts the same way, so the app is consistent | Low | Confirmed | Count code points. Unit test: a 150-emoji title is accepted, 151 rejected |
 | F4 | `frontend/package-lock.json` | 31 moderate advisories in development tools (`glob`, `minimatch` through the Angular CLI and ESLint) | `npm audit`; `npm audit --omit=dev`: 0. Before this worksheet: 16, all in development tools | None in the delivered app; only build tools on the developer's machine | Low | Confirmed | Update when the Angular and ESLint versions with fixes are released. `npm audit fix --force` would install breaking versions |
@@ -54,14 +54,20 @@ Afterwards, the project, its members and the task were unchanged (`updated_at` e
 
 ## 4. Decisions
 
-| Finding | Decision |
-|---|---|
-| F1–F3 | Pending: to be decided by the developer |
-| F4 | Not fixed: development tools only, and no non-breaking fix is available |
-| ESLint | Pending: fix or adjust the rules, so `npm run lint` passes |
+The developer reviewed the findings and asked for F1–F3 and the ESLint errors to be fixed. Each regression test failed before its fix and passes after it.
+
+| Finding | Decision | Fix | Regression test |
+|---|---|---|---|
+| F1 | Fixed | Sessions are deleted after the deletion is committed (`TransactionSynchronization.afterCommit`) | `AccountDeletionTests.keepsTheSessionsWhenTheDeletionIsNotCommitted`. It reproduced the problem: with the old code, a rolled-back deletion kept the account but removed its session |
+| F2 | Fixed (tests only) | — | `TaskTests` and `ProjectTests.checksTheDescriptionLengthAfterTrimming` now also edit (`PUT`) |
+| F3 | Fixed | `TrimmedLength` counts code points | `CreateTaskRequestTests.countsCharactersNotUtf16UnitsSoEmojiCountOnce`, `TaskTests.savesATitleOf150EmojiBecauseLengthsCountCharacters` (saved in PostgreSQL) |
+| F4 | Not fixed | Development tools only, and no non-breaking fix is available | — |
+| ESLint | Fixed; `npm run lint` passes | Members dialog: message moved into the component (same text). Rules set for the intentional patterns: attribute selectors with the `app` prefix, and `app-project-card` counted as link content. Modal overlay: rule turned off on that line, with the reason | `members-dialog.spec` checks the full message |
+
+After the fixes, the access check in section 3 was run again, with the same results.
 
 ## 5. Not checked
 
 - Backend static analysis and dependency scan (no tool configured).
-- F1 wasn't reproduced; it needs a failure during the commit.
+- The browser `maxlength` still counts emoji as 2, so the forms stop typing before the backend limit (stricter, not a risk).
 - Simultaneous requests (open findings in [verification.md](verification.md), section 5).

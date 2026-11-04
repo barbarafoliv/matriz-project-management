@@ -7,6 +7,8 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.matriz.common.web.ApiException;
 import com.matriz.common.web.ErrorCode;
@@ -17,8 +19,8 @@ import com.matriz.projects.ProjectService;
  *
  * <p>The user is deleted, and the database removes their memberships and assignments and
  * sets the author of their comments to null (docs/database.md, section 4). Their failed
- * sign-in record and all their sessions are deleted too. The email can then be used by a new
- * account.
+ * sign-in record is deleted too, and all their sessions once the deletion is committed. The
+ * email can then be used by a new account.
  */
 @Service
 public class AccountDeletionService {
@@ -54,8 +56,17 @@ public class AccountDeletionService {
 		}
 		this.attempts.deleteById(user.getEmail().toLowerCase(Locale.ROOT));
 		this.users.delete(user);
-		// Sign the user out everywhere: their sessions are stored under their email.
-		this.sessions.findByPrincipalName(user.getEmail()).keySet().forEach(this.sessions::deleteById);
+		// Sign the user out everywhere (their sessions are stored under their email), but only
+		// once the deletion is committed: Spring Session commits its changes on its own.
+		String email = user.getEmail();
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				AccountDeletionService.this.sessions.findByPrincipalName(email)
+					.keySet()
+					.forEach(AccountDeletionService.this.sessions::deleteById);
+			}
+		});
 	}
 
 }
