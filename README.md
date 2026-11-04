@@ -99,6 +99,8 @@ E2E_PASSWORD=matriz-demo-2026 npm run e2e         # signs in as Alice; creates a
 
 On failure, the trace and screenshot are in `frontend/test-results/`; `npx playwright show-report` opens the report.
 
+Static analysis of the frontend (ESLint with angular-eslint): `cd frontend && npm run lint`. The current results are in [docs/quality-security-review.md](docs/quality-security-review.md).
+
 ### Stop
 
 ```sh

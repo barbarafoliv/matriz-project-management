@@ -1,0 +1,67 @@
+---
+title: Quality and security review
+---
+
+# Matriz: Quality and security review
+
+> Code Review and Security Review (Practical Worksheet 04, Exercise 5), on 2026-11-04. Rules checked against [constraints.md, section 3](constraints.md#3-security-and-privacy), EC-04 and [openapi.yaml](openapi.yaml).
+
+## 1. Scope and checks
+
+| Check | How | Done |
+|---|---|---|
+| Code Review | AI review of `git diff 466333c^..HEAD -- backend frontend` (account deletion, dashboard, badge refactor, earlier review fixes, Worksheet 04 tests), focused on bugs, validation, error handling, access control and missing tests. Each finding was checked by hand. | Yes |
+| Access between accounts | `curl` against the running app with the demo accounts, see section 3 | Yes |
+| Static analysis | ESLint with angular-eslint (`npm run lint`), frontend only | Yes |
+| Dependencies | `npm audit` | Yes, frontend only |
+| Backend static analysis and dependency scan | No tool configured | No |
+
+## 2. Findings
+
+**Confirmed** = traced in the code or reproduced. **Suspected** = plausible, not shown.
+
+| # | Where | Finding | Evidence | Impact | Severity | Status | Proposed fix and regression test |
+|---|---|---|---|---|---|---|---|
+| F1 | `backend/.../accounts/AccountDeletionService.java:58` | Sessions are deleted before the account deletion is committed | Spring Session's `JdbcHttpSessionConfiguration` 4.1.1 runs session operations with `REQUIRES_NEW` (checked in the bytecode), so they commit on their own, before the outer transaction deletes the user | If the user deletion then fails, the user is signed out everywhere but the account is kept, and the API answers 500. Safe: no access is kept, nothing leaks | Low | Mechanism confirmed; no failing case found (no constraint blocks the deletion) | Delete the sessions after the commit. Test: make the user deletion fail and check the account and its sessions are kept |
+| F2 | `backend/.../tasks/UpdateTaskRequest.java:17`, `projects/ProjectRequest.java` | Missing test: on edit, the description length is checked after trimming | Only create is tested (`TaskTests.checksTheDescriptionLengthAfterTrimming`, `ProjectTests`) | A future change to edit could reject valid text without a failing test | Low | Confirmed (test gap) | `PUT` a task with 2000 characters plus spaces, and a project with 1000; expect 200 and the trimmed value |
+| F3 | `backend/.../common/web/TrimmedLength.java:51` | Length is counted in UTF-16 units, not characters | `String.length()` counts an emoji as 2; `VARCHAR(n)` and OpenAPI `maxLength` count characters | Text with emoji is rejected before the documented maximum. Nothing too long gets through. The browser `maxlength` counts the same way, so the app is consistent | Low | Confirmed | Count code points. Unit test: a 150-emoji title is accepted, 151 rejected |
+| F4 | `frontend/package-lock.json` | 31 moderate advisories in development tools (`glob`, `minimatch` through the Angular CLI and ESLint) | `npm audit`; `npm audit --omit=dev`: 0. Before this worksheet: 16, all in development tools | None in the delivered app; only build tools on the developer's machine | Low | Confirmed | Update when the Angular and ESLint versions with fixes are released. `npm audit fix --force` would install breaking versions |
+
+### ESLint results
+
+`npm run lint` reports 6 errors. None is a defect in the app.
+
+| Where | Rule | Assessment |
+|---|---|---|
+| `dashboard.ts:52`, `projects-page.html:53` | `<a>` should have content | False positive: the project card component fills the link and gives it an `aria-label` |
+| `members-dialog.ts:62` | Parsing error | The linter can't read the escaped `\\'` in an inline template; the Angular compiler can, and the dialog is tested |
+| `project-card.ts:12` | Component selector prefix | Intentional `a[app-project-card]` attribute selector, so the card is a real link |
+| `modal.ts:11` (2) | Click without a key event, not focusable | The overlay click is a mouse shortcut; the dialog closes with Escape and the ✕ button |
+
+## 3. Access between accounts (IDOR / Broken Access Control)
+
+Alice is the project manager of "Website redesign" (project 1, Bob is a member). Carol isn't a member. Carol used Alice's real project and task IDs; Bob tried the PM-only actions.
+
+| Request by | Requests | Result |
+|---|---|---|
+| Carol | `GET`, `PUT`, `DELETE` project; `GET`, `POST` members (adding herself); `GET`, `POST` tasks; `GET`, `PUT`, `DELETE` task; `PUT` status; `POST` assignee (herself); `GET`, `POST` comments | 404 `PROJECT_NOT_FOUND` for all 14 |
+| Carol | `GET /projects`, `GET /projects?q=web`, `GET /users/me/tasks` | Only her own project; no task of Alice's project |
+| Bob | Edit and delete the project, add a member, delete a task | 403 `NOT_PROJECT_MANAGER` for all 4 |
+| No session | `GET` a task | 401 `UNAUTHENTICATED` |
+| Alice, without the CSRF token | `PUT` status | 403 `CSRF_TOKEN_INVALID` |
+
+Afterwards, the project, its members and the task were unchanged (`updated_at` equal to `created_at`). **No vulnerability found.** The same rules are covered by automated tests (verification.md, case 08).
+
+## 4. Decisions
+
+| Finding | Decision |
+|---|---|
+| F1–F3 | Pending: to be decided by the developer |
+| F4 | Not fixed: development tools only, and no non-breaking fix is available |
+| ESLint | Pending: fix or adjust the rules, so `npm run lint` passes |
+
+## 5. Not checked
+
+- Backend static analysis and dependency scan (no tool configured).
+- F1 wasn't reproduced; it needs a failure during the commit.
+- Simultaneous requests (open findings in [verification.md](verification.md), section 5).
