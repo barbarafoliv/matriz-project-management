@@ -31,6 +31,7 @@ title: Test plan
 | T08 **E** | Non-member access | A non-member lists, opens, creates, edits, changes status and deletes, using real IDs | 404 `PROJECT_NOT_FOUND` for each, task unchanged | Integration | `TaskTests.nonMembersCannotSeeOrChangeTasksEvenWhenTheIdsAreChanged` |
 | T09 | Task reached through another project | Task ID of project A under project B | 404 `TASK_NOT_FOUND` | Integration | `TaskTests.aTaskCanOnlyBeReachedThroughItsOwnProject` |
 | T10 | Only the PM deletes a task | A member, then the PM, deletes a task | Member: 403 `NOT_PROJECT_MANAGER`; PM: 204 | Integration | `TaskTests.onlyTheProjectManagerCanDeleteATask` |
+| T10b | A member who isn't the PM edits a task | Ben (member) changes the title, description, due date and priority | 200 with the new values; another member sees the new title | Integration | `TaskTests.anyMemberCanEditATaskAndNullClearsOptionalFields` |
 | T11 | No session | A request without a session | 401 `UNAUTHENTICATED` | Integration | `SignInTests.requiresASessionForTheSignedInUser` (only `/users/me`; task endpoints rely on the same global rule in `SecurityConfig`, not tested separately) |
 | T12 **E** | Create a task in the browser | Alice signs in, opens a new project, creates a task | The task is shown in the To Do column without reloading | E2E | `frontend/e2e/features/create-task.feature`, scenario "A new task appears in the To Do column without reloading the page" |
 | T13 | Manual cross-account check | Carol uses the IDs of Alice's project and tasks | Not shown, not changed | Manual | [quality-security-review.md](quality-security-review.md) |
@@ -44,4 +45,17 @@ title: Test plan
 - **E2E scenarios are written in Gherkin**, in the same Given / When / Then form as the acceptance criteria in user-stories.md, so they can be read and checked against them.
 - **The E2E test has its own environment.** `npm run e2e` recreates an empty database (`db-e2e`), and Playwright starts a backend that loads the demo data into it, and a frontend. The development data can't be changed by the tests, and each run starts from the same data.
 - **The E2E test creates and deletes its own project**, so it doesn't depend on the other demo projects, and can be run again in the same environment.
+- **Permissions are tested both ways:** what a member may do (T06, T10b) and what a non-member or a member who isn't the PM may not (T08, T10).
 - **Not in this plan:** status changes, filters, assignees and comments. They are covered in [verification.md](verification.md).
+
+## 4. Review of the AI draft
+
+The scenarios were drafted with an AI assistant and checked by the developer against the user stories, the contract and the code.
+
+| AI suggestion | What the review found | Decision |
+|---|---|---|
+| T11 covered by `SessionCookieTests` for "any task request" | No test sends a task request without a session; only `/users/me` is tested | Row corrected; gap recorded |
+| Title limits tested only with plain ASCII text | The review found that an emoji counted as two characters (quality-security-review.md, F3) | T03b added, rule fixed |
+| E2E test on the development database, with demo data | The worksheet asks for an isolated test environment | Separate `db-e2e` database and servers |
+| E2E test as a plain Playwright spec | The developer asked for Gherkin, like the acceptance criteria | playwright-bdd feature file (T12) |
+| Permission rows only for forbidden actions | A member's allowed edit (FR-04) wasn't shown | T10b added |
