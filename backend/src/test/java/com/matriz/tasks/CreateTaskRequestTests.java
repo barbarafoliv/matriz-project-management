@@ -18,8 +18,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Unit tests of the task title rule: 3 to 150 characters after trimming, not only spaces
- * (FR-04, US-04, EC-03, docs/openapi.yaml CreateTaskRequest; Practical Worksheet 04
- * Exercise 2). Bean Validation only: no Spring context and no database.
+ * (FR-04, US-04, EC-03, docs/openapi.yaml CreateTaskRequest and UpdateTaskRequest; Practical
+ * Worksheet 04 Exercise 2). Each case is checked for creating and for editing a task. Bean
+ * Validation only: no Spring context and no database.
  */
 class CreateTaskRequestTests {
 
@@ -85,10 +86,17 @@ class CreateTaskRequestTests {
 		assertThat(titleErrors(null)).containsExactly("Title must not be empty.");
 	}
 
+	/** The title errors of a new task, after checking that editing a task gives the same ones. */
 	private static Set<String> titleErrors(String title) {
-		Set<ConstraintViolation<CreateTaskRequest>> violations = validator
-			.validate(new CreateTaskRequest(title, null, null, null));
-		return violations.stream()
+		Set<String> create = titleErrorsOf(new CreateTaskRequest(title, null, null, null));
+		Set<String> edit = titleErrorsOf(new UpdateTaskRequest(title, null, null, Priority.MEDIUM));
+		assertThat(edit).as("editing a task uses the same title rule as creating one").isEqualTo(create);
+		return create;
+	}
+
+	private static Set<String> titleErrorsOf(Object request) {
+		return validator.validate(request)
+			.stream()
 			.filter(violation -> violation.getPropertyPath().toString().equals("title"))
 			.map(ConstraintViolation::getMessage)
 			.collect(Collectors.toSet());

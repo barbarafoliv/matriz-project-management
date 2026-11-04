@@ -20,7 +20,7 @@ title: Test plan
 
 | # | Scenario | Input | Expected result | Level | Test |
 |---|---|---|---|---|---|
-| T01 **E** | Valid title | `"Write the copy"` | Accepted | Unit | `CreateTaskRequestTests.acceptsAValidTitle` |
+| T01 **E** | Valid title (create and edit) | `"Write the copy"` | Accepted | Unit | `CreateTaskRequestTests.acceptsAValidTitle` |
 | T02 **E** | Title at the limits | 3 and 150 characters, also with spaces around | Accepted | Unit | `acceptsTitlesAtTheLimits`, `ignoresLeadingAndTrailingSpacesWhenCountingTheLength` |
 | T03 **E** | Title just outside the limits | 2 and 151 characters, `"  ab  "` | Rejected: "Title must be between 3 and 150 characters." | Unit | `rejectsTitlesJustOutsideTheLimits`, `rejectsATitleThatIsTooShortOnceTrimmed` |
 | T03b | Emoji in the title | 150 and 151 emoji | 150 accepted and saved, 151 rejected (lengths count characters) | Unit, Integration | `countsCharactersNotUtf16UnitsSoEmojiCountOnce`, `TaskTests.savesATitleOf150EmojiBecauseLengthsCountCharacters` |
@@ -39,7 +39,8 @@ title: Test plan
 ## 3. Decisions
 
 - **Non-members get 404, not 403.** EC-04 says the project is shown "as if it didn't exist". A 403 would confirm that it exists.
-- **The unit test checks the request rule, not the validator alone.** It validates `CreateTaskRequest`, so a change to the annotations (limits, messages) is caught.
+- **The unit test checks the request rule, not the validator alone.** It validates `CreateTaskRequest` and `UpdateTaskRequest`, and requires both to give the same errors, so a change to either one's annotations (limits, messages) is caught. T01–T04 apply to creating and editing.
+- **The rule was changed only where it didn't match the contract.** Counting emoji as two characters (T03b) went against `maxLength`; the test was written first, failed, and then the rule was fixed. No test was changed to fit the code.
 - **The limits are tested on both sides** (2/3 and 150/151), and after trimming, because the contract counts the trimmed length.
 - **Existing integration tests are reused.** They already cover T05, T06 and T08; only T07 was missing.
 - **E2E scenarios are written in Gherkin**, in the same Given / When / Then form as the acceptance criteria in user-stories.md, so they can be read and checked against them.

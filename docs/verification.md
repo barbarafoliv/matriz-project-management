@@ -11,6 +11,7 @@ title: Verification
 | Command | Where | Result |
 |---|---|---|
 | `./mvnw verify` | `backend/` | 103 tests, 0 failures (PostgreSQL 18 in Testcontainers) |
+| `./mvnw test -Dtest=CreateTaskRequestTests` | `backend/` | Unit tests of the task title rule (Worksheet 04, Exercise 2): 11 tests, 0 failures, under 1 second, no Spring or database. Each case is checked for creating and editing a task. Seven deliberate changes to the rule (limits 2, 4 and 151, no not-blank check, no trimming, UTF-16 counting, and a looser edit rule) each made tests fail |
 | `npx ng test --watch=false` | `frontend/` | 95 tests, 0 failures |
 | `npx ng build` | `frontend/` | Build complete, no warnings |
 | `npm run lint` | `frontend/` | All files pass linting |
