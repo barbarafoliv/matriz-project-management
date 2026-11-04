@@ -39,6 +39,15 @@ export interface MyTask extends Task {
   project: { id: number; name: string };
 }
 
+/** A comment (docs/openapi.yaml, Comment). `author` is null if their account was deleted. */
+export interface Comment {
+  id: number;
+  taskId: number;
+  content: string;
+  author: UserSummary | null;
+  createdAt: string;
+}
+
 export interface TaskRequest {
   title: string;
   description: string | null;
@@ -57,6 +66,13 @@ export function statusLabel(status: TaskStatus): string {
 
 export function priorityLabel(priority: Priority): string {
   return PRIORITIES.find((item) => item.value === priority)!.label;
+}
+
+/** Shows a date and time from the API (ISO, UTC) in local time, as 15/11/2026 14:05. */
+export function formatDateTime(value: string): string {
+  const date = new Date(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /** Shows an ISO date (2026-11-15) as 15/11/2026, without time zone conversions. */

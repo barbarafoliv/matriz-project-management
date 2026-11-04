@@ -44,6 +44,7 @@
       </div>
 
       <div class="detail">
+        <div class="stack">
         <section class="card panel" aria-labelledby="details-title">
           <h2 id="details-title">Details</h2>
           @if (task.late) {
@@ -122,6 +123,9 @@
             </div>
           </form>
         </section>
+
+        <app-comments-panel [projectId]="task.projectId" [taskId]="task.id" />
+        </div>
 
         <app-assignees-panel [task]="task" [members]="members()" (changed)="onAssigneesChanged($event)" />
       </div>

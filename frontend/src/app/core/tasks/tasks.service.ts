@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { API_BASE_URL } from '../api.config';
-import { MyTask, Task, TaskFilters, TaskRequest, TaskStatus } from './task';
+import { Comment, MyTask, Task, TaskFilters, TaskRequest, TaskStatus } from './task';
 
 /** Tasks API (US-04, US-05, US-07, US-13). */
 @Injectable({ providedIn: 'root' })
@@ -53,6 +53,16 @@ export class TasksService {
 
   unassign(projectId: number, taskId: number, userId: number): Observable<void> {
     return this.http.delete<void>(`${this.url(projectId)}/${taskId}/assignees/${userId}`);
+  }
+
+  /** A task's comments, oldest first (US-11). */
+  comments(projectId: number, taskId: number): Observable<Comment[]> {
+    return this.http.get<Comment[]>(`${this.url(projectId)}/${taskId}/comments`);
+  }
+
+  /** Adds a comment; the API sets the author and date. */
+  addComment(projectId: number, taskId: number, content: string): Observable<Comment> {
+    return this.http.post<Comment>(`${this.url(projectId)}/${taskId}/comments`, { content });
   }
 
   /** Tasks assigned to the signed-in user in all their projects (US-06). */

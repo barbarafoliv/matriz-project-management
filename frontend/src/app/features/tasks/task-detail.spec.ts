@@ -48,6 +48,9 @@ describe('TaskDetail', () => {
     http.expectOne('/api/projects/7/tasks/3').flush(aTask({ id: 3, title: 'Write the copy', ...task }));
     http.expectOne('/api/projects/7/members').flush(members);
     fixture.detectChanges();
+    // The comments panel loads the task's comments.
+    http.expectOne('/api/projects/7/tasks/3/comments').flush([]);
+    fixture.detectChanges();
     await fixture.whenStable();
   }
 

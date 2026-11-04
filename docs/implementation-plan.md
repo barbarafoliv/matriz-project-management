@@ -16,7 +16,7 @@ title: Implementation Plan
 | 3 | Projects, search and members | US-02, US-12, US-03 | Done |
 | 4 | Tasks, status, board, filters and late tasks | US-04, US-05, US-07, US-13, US-08 | Done |
 | 5 | Assignees and "My tasks" | US-10, US-06 | Done |
-| 6 | Comments | US-11 | To do |
+| 6 | Comments | US-11 | Done |
 | 7 | Dashboard | US-14 | To do |
 | 8 | Account deletion | US-09 | To do |
 | 9 | Verification and delivery | All | To do |
@@ -92,6 +92,7 @@ title: Implementation Plan
 - **Depends on:** Increment 4.
 - **Acceptance criteria:** US-11, EC-10. Comments are still there after reopening the task.
 - **Checks:** MockMvc test that sends a different author in the request and checks the saved author is the signed-in user; validation tests (blank, 2001 characters); non-member gets 404.
+- **Result:** `./mvnw verify` 75 tests passed (6 comment tests added, including `ignoresAnAuthorOrDateSentInTheRequest`). `ng test` 67 tests passed. Manual, in the browser: the demo comments show oldest first with author and local time; a blank comment is rejected; Alice's new comment appears without a reload with her name and the current time, and the box is cleared; after a backend restart Bob sees it and his reply appears with his name. Comments from deleted accounts show as "Deleted user" (covered by tests; account deletion comes in Increment 8). Two comments written during the check are still in the local database.
 
 ### 7. Dashboard (US-14)
 

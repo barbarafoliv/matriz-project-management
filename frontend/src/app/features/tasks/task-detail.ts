@@ -12,13 +12,14 @@ import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { initials } from '../../shared/initials';
 import { trimmedMinLength } from '../../shared/validators';
 import { AssigneesPanel } from './assignees-panel';
+import { CommentsPanel } from './comments-panel';
 
 type PageState = 'loading' | 'ready' | 'not-found' | 'error';
 
-/** Task detail page: details, status, assignees, edit and delete (US-04, US-05, US-08, US-10). */
+/** Task detail page: details, status, assignees, comments, edit and delete (US-04, US-05, US-08, US-10, US-11). */
 @Component({
   selector: 'app-task-detail',
-  imports: [RouterLink, ReactiveFormsModule, ConfirmDialog, AssigneesPanel],
+  imports: [RouterLink, ReactiveFormsModule, ConfirmDialog, AssigneesPanel, CommentsPanel],
   templateUrl: './task-detail.html',
 })
 export class TaskDetail implements OnInit {
