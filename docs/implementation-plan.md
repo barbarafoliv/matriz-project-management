@@ -21,7 +21,7 @@ title: Implementation Plan
 | 8 | Account deletion | US-09 | Done (built before 7) |
 | 9 | Verification and delivery | All | Done |
 | 10 | Docker images | — | Done |
-| 11 | Docker Compose | — | Planned |
+| 11 | Docker Compose | — | Done |
 | 12 | CI pipeline | — | Planned |
 | 13 | Documentation and release candidate 1.1.0-rc.1 | — | Planned |
 | 14 | Final validation | All | Planned |
@@ -155,7 +155,7 @@ Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare
     - `backend` (built from `backend/`; `DB_URL` points to `db`; waits until `db` is healthy; healthcheck on `/api/actuator/health`; port 8080 not published).
     - `frontend` (built from `frontend/`; waits until `backend` is healthy; healthcheck on nginx; published on port 4200, the only service the browser uses).
     - `db` and its `matriz-db` volume stay as they are; `db-e2e` stays behind the `e2e` profile. The services talk over Compose's default network, by service name.
-  - `.env.example`: any new variables, with fake values.
+  - `.env.example`: any new variables, with fake values. None were needed: the backend container uses `DB_USERNAME` and `DB_PASSWORD`, and its `DB_URL` is set in `docker-compose.yml`. Only the comments changed.
 - **Depends on:** Increment 10.
 - **Acceptance criteria:**
   - `docker compose up -d` starts all three services, and they become healthy.
@@ -164,6 +164,14 @@ Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare
   - The logs have no unresolved errors.
   - The development flow (`docker compose up -d db`, `./mvnw spring-boot:run`, `npm start`) and `npm run e2e` still work.
 - **Checks:** `docker compose config -q`, `build`, `up -d`, `ps`, `logs --tail=50`; manual check in the browser; recreate the containers and check the data.
+- **Result:**
+  - `docker compose config -q` and `docker compose build` passed. `docker compose up -d` started `db`, then `backend`, then `frontend`, each after the previous one was healthy, and all three became healthy.
+  - Through `http://localhost:4200`, `/api/actuator/health` returned `db: UP` and `/api/users/me` returned 401 without a session. Port 8080 wasn't reachable from the host.
+  - On the existing `matriz-db` volume, Liquibase found the 9 changesets already run and ran 0.
+  - In the browser, Alice signed in, opened "Website redesign", created a task and moved it to In Progress.
+  - After `docker compose down` and `docker compose up -d --wait`, the task was still In Progress, in the database and on its page, and Alice was still signed in, because sessions are stored in PostgreSQL. The task was then deleted through the UI, so the development data is unchanged.
+  - `docker compose logs` had no `WARN` or `ERROR` lines.
+  - `npm run e2e` passed (1 scenario) with the full stack running. With only `docker compose up -d db`, `./mvnw spring-boot:run` started and reached the database. `npm start` wasn't run again; its proxy is unchanged.
 
 ### 12. CI pipeline
 

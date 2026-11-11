@@ -1,4 +1,6 @@
-# Local PostgreSQL for Matriz (ADR 0002, ADR 0006). Settings come from .env (see .env.example).
+# Matriz with Docker Compose (ADR 0007). Settings come from .env (see .env.example).
+#   docker compose up -d      the whole application on http://localhost:4200
+#   docker compose up -d db   only PostgreSQL, for development with ./mvnw and npm start
 services:
   db:
     image: postgres:18
@@ -7,6 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
+      # Published for development (./mvnw spring-boot:run connects on localhost).
       - "5432:5432"
     volumes:
       # Named volume: data survives restarts and "docker compose down".
@@ -16,6 +19,42 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # Spring Boot API. Not published: the browser reaches it through the frontend (/api).
+  backend:
+    build: ./backend
+    image: matriz-backend
+    environment:
+      # The database is reached by its service name; DB_URL in .env (localhost) is for development.
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # Also checks the database connection (show-components in application.yml).
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/api/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # Angular app served by nginx, which forwards /api to the backend (one origin, ADR 0004).
+  frontend:
+    build: ./frontend
+    image: matriz-frontend
+    ports:
+      - "4200:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
 
   # Separate database for the end-to-end tests (frontend: npm run e2e). Only started with
   # "--profile e2e". Data is kept in memory, so it starts empty each time it's recreated.
