@@ -1,0 +1,8 @@
+# Only the Maven wrapper, pom.xml and src/ are needed to build the image.
+target/
+.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+.vscode/
+HELP.md
+.env

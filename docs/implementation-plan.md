@@ -20,7 +20,7 @@ title: Implementation Plan
 | 7 | Dashboard | US-14 | Done |
 | 8 | Account deletion | US-09 | Done (built before 7) |
 | 9 | Verification and delivery | All | Done |
-| 10 | Docker images | — | Planned |
+| 10 | Docker images | — | Done |
 | 11 | Docker Compose | — | Planned |
 | 12 | CI pipeline | — | Planned |
 | 13 | Documentation and release candidate 1.1.0-rc.1 | — | Planned |
@@ -133,11 +133,20 @@ Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare
 
 - **Components:**
   - `backend/Dockerfile`: multi-stage. A JDK 21 stage builds the jar with the Maven wrapper (tests skipped, because CI runs them). A Java 21 JRE stage runs it as a non-root user and exposes port 8080.
-  - `frontend/Dockerfile`: multi-stage. A Node.js 24 stage runs `npm ci` and `ng build`. An nginx stage serves the files, forwards `/api` to `backend:8080`, and sends unknown paths to `index.html` so Angular routes work after a reload.
+  - `frontend/Dockerfile`: multi-stage. A Node.js 24 stage runs `npm ci` and `ng build`. An nginx stage (`nginx-unprivileged`, non-root, port 8080) serves the files.
+  - `frontend/nginx/default.conf`: forwards `/api` to `backend:8080`, and sends unknown paths to `index.html` so Angular routes work after a reload.
   - `backend/.dockerignore` and `frontend/.dockerignore`: leave out `target/`, `node_modules/`, test output, IDE files and `.env`.
 - **Depends on:** Increment 9. Docker running.
 - **Acceptance criteria:** both images build. Each container starts with `docker run`, with the database settings passed as environment variables. No credentials are in the Dockerfiles or images.
 - **Checks:** `docker build`, `docker images`, `docker run`, `docker ps`, `docker logs`. `docker history` and a search of the Dockerfiles to confirm no credentials.
+- **Result:** both images build (`matriz-backend` 581 MB, `matriz-frontend` 92 MB). Run with `docker run` on a Docker network, with a throwaway PostgreSQL 18 container and the settings from `.env`:
+  - all three containers started; the backend runs as `matriz` (uid 999) and nginx as `nginx` (uid 101);
+  - Liquibase created the schema and the demo data;
+  - through nginx on port 4200, `/api/actuator/health` returned `db: UP`, `/api/users/me` returned 401 without a session, and `/projects/1` loaded the app;
+  - in the browser, Alice signed in, saw her dashboard, opened "Website redesign" and created a task, which appeared without a reload and was still there after reloading the page;
+  - the backend logs had no `WARN` or `ERROR` lines, and the nginx logs had no errors;
+  - no credentials in `docker history`, the image environment or the Dockerfiles.
+- **Found and fixed:** `npm ci` failed in the image, because the npm bundled with `node:24-alpine` (11.19.1) reports `@emnapi/core` and `@emnapi/runtime` missing from `package-lock.json`. npm 11.6.2, the version in `package.json` (`packageManager`), accepts the same lock file on Linux. The image now installs npm 11.6.2 first; the lock file is unchanged. CI must use the same npm version (Increment 12).
 
 ### 11. Docker Compose
 

@@ -1,0 +1,13 @@
+# Only the sources and config needed for "npm ci" and "ng build".
+node_modules/
+dist/
+.angular/
+coverage/
+test-results/
+playwright-report/
+.features-gen/
+e2e/
+.vscode/
+.idea/
+.env
+Dockerfile
