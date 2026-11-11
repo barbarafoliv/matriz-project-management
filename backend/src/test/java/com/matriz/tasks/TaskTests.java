@@ -139,7 +139,7 @@ class TaskTests {
 
 		assertThat(this.jdbc.queryForObject("SELECT COUNT(*) FROM task WHERE project_id = ?", Integer.class,
 				this.project))
-			.isOne(); // Temporary: deliberately wrong, to check that CI fails.
+			.isZero();
 	}
 
 	@Test
