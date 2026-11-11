@@ -42,6 +42,7 @@ Decided so far:
 - Sign-in: email and password, with server-side sessions ([ADR 0004](decisions/0004-use-email-password-with-server-side-sessions.md)).
 - Application stack: Spring Boot (backend) and Angular (frontend) ([ADR 0005](decisions/0005-use-spring-boot-and-angular.md)).
 - Hosting: local only ([ADR 0006](decisions/0006-run-locally.md)).
+- Containers and continuous integration: Docker Compose and GitHub Actions ([ADR 0007](decisions/0007-run-with-docker-compose-and-check-with-github-actions.md)).
 - API contract: [openapi.yaml](openapi.yaml).
 - Implementation choices (build tool, data access, migrations, seed, tests): [architecture.md, section 5](architecture.md#5-technologies-and-hosting).
 

@@ -20,6 +20,13 @@ title: Implementation Plan
 | 7 | Dashboard | US-14 | Done |
 | 8 | Account deletion | US-09 | Done (built before 7) |
 | 9 | Verification and delivery | All | Done |
+| 10 | Docker images | — | Planned |
+| 11 | Docker Compose | — | Planned |
+| 12 | CI pipeline | — | Planned |
+| 13 | Documentation and release candidate 1.1.0-rc.1 | — | Planned |
+| 14 | Final validation | All | Planned |
+
+Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare the delivery with Docker, Docker Compose and GitHub Actions ([ADR 0007](decisions/0007-run-with-docker-compose-and-check-with-github-actions.md)). They don't change any feature.
 
 ## 2. Increments
 
@@ -121,3 +128,66 @@ title: Implementation Plan
 - **Acceptance criteria:** the application starts by following the README from a clean clone, and every verification case has a recorded result.
 - **Checks:** full test suite (`./mvnw verify`, `ng test`), manual cases 01 to 09, run from a clean clone, final version tagged in Git.
 - **Result:** see [verification.md](verification.md). An independent AI review of permissions, validation and error handling found no high-severity defect; 4 issues were fixed with tests and the contract was aligned with the code; 4 that need simultaneous requests are listed as open. Refactoring: shared priority and status badges. Final: 85 backend and 82 frontend tests pass.
+
+### 10. Docker images
+
+- **Components:**
+  - `backend/Dockerfile`: multi-stage. A JDK 21 stage builds the jar with the Maven wrapper (tests skipped, because CI runs them). A Java 21 JRE stage runs it as a non-root user and exposes port 8080.
+  - `frontend/Dockerfile`: multi-stage. A Node.js 24 stage runs `npm ci` and `ng build`. An nginx stage serves the files, forwards `/api` to `backend:8080`, and sends unknown paths to `index.html` so Angular routes work after a reload.
+  - `backend/.dockerignore` and `frontend/.dockerignore`: leave out `target/`, `node_modules/`, test output, IDE files and `.env`.
+- **Depends on:** Increment 9. Docker running.
+- **Acceptance criteria:** both images build. Each container starts with `docker run`, with the database settings passed as environment variables. No credentials are in the Dockerfiles or images.
+- **Checks:** `docker build`, `docker images`, `docker run`, `docker ps`, `docker logs`. `docker history` and a search of the Dockerfiles to confirm no credentials.
+
+### 11. Docker Compose
+
+- **Components:**
+  - `docker-compose.yml`:
+    - `backend` (built from `backend/`; `DB_URL` points to `db`; waits until `db` is healthy; healthcheck on `/api/actuator/health`; port 8080 not published).
+    - `frontend` (built from `frontend/`; waits until `backend` is healthy; healthcheck on nginx; published on port 4200, the only service the browser uses).
+    - `db` and its `matriz-db` volume stay as they are; `db-e2e` stays behind the `e2e` profile. The services talk over Compose's default network, by service name.
+  - `.env.example`: any new variables, with fake values.
+- **Depends on:** Increment 10.
+- **Acceptance criteria:**
+  - `docker compose up -d` starts all three services, and they become healthy.
+  - In the browser, through the frontend: sign in, open a project, create a task and change its status.
+  - The data is still there after `docker compose down` and `up -d`.
+  - The logs have no unresolved errors.
+  - The development flow (`docker compose up -d db`, `./mvnw spring-boot:run`, `npm start`) and `npm run e2e` still work.
+- **Checks:** `docker compose config -q`, `build`, `up -d`, `ps`, `logs --tail=50`; manual check in the browser; recreate the containers and check the data.
+
+### 12. CI pipeline
+
+- **Components:** `.github/workflows/ci.yml`, run on `push` and `pull_request`, with `permissions: contents: read`. Jobs:
+  - `backend`: JDK 21, `./mvnw verify` (Testcontainers uses the runner's Docker), `./mvnw spotbugs:check`.
+  - `frontend`: Node.js 24, `npm ci`, `npm run lint`, `npx ng test --watch=false`, `npx ng build`.
+  - `e2e`: `.env` created from `.env.example` (fake values only), Chromium installed, `npm run e2e`. The Playwright report is uploaded when it fails.
+  - `docker`: `needs` the three jobs above; builds both images (`docker compose build`) and doesn't push them.
+- **Depends on:** Increment 11.
+- **Acceptance criteria:** the workflow passes on GitHub; it fails when a required test fails; images are built only after the checks pass; no secrets are used or printed.
+- **Checks:** a passing run in the Actions tab; a temporary commit that breaks a test makes the run fail and skips `docker`; reverting it makes the run pass again.
+
+### 13. Documentation and release candidate 1.1.0-rc.1
+
+- **Components:**
+  - README: running with Docker Compose, the development flow with `up -d db`, CI and its badge, and links to the new documents.
+  - `docs/architecture.md`: the component diagram in Mermaid, and a section on how the containers are deployed.
+  - `CHANGELOG.md`: 1.0.0 and 1.1.0-rc.1 (Keep a Changelog, Semantic Versioning).
+  - Release notes for 1.1.0-rc.1.
+  - The OpenAPI contract is already in `docs/openapi.yaml`. The API doesn't change, so it stays at version 1.0.0.
+  - `AGENTS.md`: the Docker commands.
+- **Depends on:** Increment 12.
+- **Acceptance criteria:** every feature, technology, command and setting in the documentation matches the code. Anything that couldn't be confirmed is listed for review. The candidate version is proposed but not published.
+- **Checks:** follow every documented command; check the Mermaid diagram renders on GitHub.
+
+### 14. Final validation
+
+- **Components:** `docs/verification.md`: a section for Practical Worksheet 05 covering the requirements met, the problems found and how they were fixed, the CI results, use of AI, and limitations.
+- **Depends on:** Increment 13.
+- **Acceptance criteria:**
+  - The application runs by following the README from a clean clone.
+  - The containers are healthy, and sign-in, projects, tasks and comments work.
+  - CI passes.
+  - The logs have been reviewed.
+  - No credentials are in the tracked files.
+- **Checks:** clean-clone run; `docker compose ps` and `logs`; manual check of the main features; gitleaks; an AI review of the documentation, Docker configuration, pipeline and test results.

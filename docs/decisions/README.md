@@ -12,3 +12,4 @@ permalink: /decisions/
 - [0004 - Use Email and Password with Server-Side Sessions](./0004-use-email-password-with-server-side-sessions.md)
 - [0005 - Use Spring Boot and Angular](./0005-use-spring-boot-and-angular.md)
 - [0006 - Run Locally](./0006-run-locally.md)
+- [0007 - Run with Docker Compose and Check with GitHub Actions](./0007-run-with-docker-compose-and-check-with-github-actions.md)

@@ -29,3 +29,4 @@ Matriz will run locally on the developer's machine. There is no external hosting
 ## Notes
 
 - PostgreSQL runs in a local Docker container instead of a local installation, so setup is the same on every machine (see [architecture.md](../architecture.md#implementation-choices)). It still runs only on the developer's machine. The decision is unchanged.
+- The backend and frontend can also run in Docker containers, and a GitHub Actions workflow builds and tests every change ([ADR 0007](0007-run-with-docker-compose-and-check-with-github-actions.md)). That workflow doesn't deploy anything, so the application still runs only on the developer's machine.
