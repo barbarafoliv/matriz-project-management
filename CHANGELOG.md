@@ -27,6 +27,7 @@ Release candidate. No features change. The REST API has the same endpoints and d
 - Lengths of names, titles, descriptions, comments, emails and passwords count characters, not UTF-16 units, in the API and the forms. An emoji counts once.
 - Names, titles and comments made only of Unicode spaces (for example no-break spaces) are rejected, as in the forms.
 - Deleting an account ends its sessions only after the deletion is saved.
+- Two requests at the same moment to add or assign the same member both answered 201; the second now gets 409 (F9 in the [quality and security review](docs/quality-security-review.md)).
 - `backend/mvnw` is executable, so `./mvnw` works on Linux and macOS.
 
 ### Security

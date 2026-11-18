@@ -105,3 +105,9 @@ Checked again on the current code:
 
 - Simultaneous requests (open findings in [verification.md](verification.md), section 5).
 - SonarQube and Semgrep weren't used; ESLint, SpotBugs, OSV-Scanner and gitleaks were.
+
+## 7. Found by CI (Worksheet 05)
+
+| # | Where | Finding | Evidence | Severity | Status | Decision and regression test |
+|---|---|---|---|---|---|---|
+| F9 | `backend/.../projects/ProjectMember.java`, `tasks/TaskAssignee.java` | Two requests at the same moment to add the same member (or assign the same member) could both answer 201. Only one row was saved | The key (project or task, and user) is set before saving, so Spring Data's `save` merged the new instance instead of inserting it: when another request had just committed the same row, the merge updated it, and the primary key never rejected it. The `catch` for `DataIntegrityViolationException` in `ProjectService.addMember` and `AssigneeService.assign` was never reached. `MemberTests.simultaneousRequestsToAddTheSameMemberCreateOneMembershipAndNoServerError` failed in CI twice ([run 44281102452](https://github.com/barbarafoliv/matriz-project-management/actions/runs/44281102452): statuses `[409, 201, 409, 201, …]`, and run 44285097799), but passed locally | Low: the data stays correct, but the API reports success twice, and the second request overwrites the saved row (an assignment's time) | Confirmed. Older than Worksheet 05 | Fixed: both entities implement `Persistable`, so a new instance is inserted (`persist`) and the primary key rejects the second one (409). `MemberTests.savingANewMembershipThatAlreadyExistsIsRejectedAndChangesNothing` and `AssigneeTests.savingANewAssignmentThatAlreadyExistsIsRejectedAndChangesNothing` failed every time before the fix. The new `AssigneeTests.simultaneousRequestsToAssignTheSameMemberCreateOneAssignmentAndNoServerError` and the members one passed 10 runs in a row after it |

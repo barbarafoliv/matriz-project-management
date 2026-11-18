@@ -1,6 +1,7 @@
 package com.matriz.tasks;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -10,7 +11,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,6 +49,9 @@ class AssigneeTests {
 
 	@Autowired
 	JdbcTemplate jdbc;
+
+	@Autowired
+	TaskAssigneeRepository assignments;
 
 	TestData data;
 
@@ -188,6 +199,42 @@ class AssigneeTests {
 			.andExpect(status().isNoContent());
 
 		this.mvc.perform(get("/users/me/tasks").with(this.ben.signedIn())).andExpect(jsonPath("$", hasSize(0)));
+	}
+
+	@Test
+	void savingANewAssignmentThatAlreadyExistsIsRejectedAndChangesNothing() throws Exception {
+		assign(this.ana, this.ben.id()).andExpect(status().isCreated());
+		String assignedAt = this.jdbc.queryForObject(
+				"SELECT created_at::text FROM task_assignee WHERE task_id = ? AND user_id = ?", String.class, this.task,
+				this.ben.id());
+
+		// A new assignment with the same key must be inserted, so the primary key rejects it;
+		// merging it would update the existing row instead (here, when it was made).
+		assertThatThrownBy(() -> this.assignments.saveAndFlush(new TaskAssignee(this.task, this.ben.id(), Instant.EPOCH)))
+			.isInstanceOf(DataIntegrityViolationException.class);
+
+		assertThat(this.jdbc.queryForObject("SELECT created_at::text FROM task_assignee WHERE task_id = ? AND user_id = ?",
+				String.class, this.task, this.ben.id()))
+			.isEqualTo(assignedAt);
+	}
+
+	@Test
+	void simultaneousRequestsToAssignTheSameMemberCreateOneAssignmentAndNoServerError() throws Exception {
+		ExecutorService pool = Executors.newFixedThreadPool(8);
+		List<Future<Integer>> results = new ArrayList<>();
+		for (int i = 0; i < 8; i++) {
+			results.add(pool.submit(() -> assign(this.ana, this.ben.id()).andReturn().getResponse().getStatus()));
+		}
+		List<Integer> statuses = new ArrayList<>();
+		for (Future<Integer> result : results) {
+			statuses.add(result.get());
+		}
+		pool.shutdown();
+
+		assertThat(statuses).containsOnly(201, 409).containsOnlyOnce(201);
+		assertThat(this.jdbc.queryForObject("SELECT COUNT(*) FROM task_assignee WHERE task_id = ? AND user_id = ?",
+				Integer.class, this.task, this.ben.id()))
+			.isEqualTo(1);
 	}
 
 	private String assignees() {

@@ -1,6 +1,7 @@
 package com.matriz.projects;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.endsWith;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,6 +42,9 @@ class MemberTests {
 
 	@Autowired
 	JdbcTemplate jdbc;
+
+	@Autowired
+	ProjectMemberRepository members;
 
 	TestData data;
 
@@ -121,6 +126,18 @@ class MemberTests {
 		assertThat(this.jdbc.queryForObject("SELECT COUNT(*) FROM project_member WHERE project_id = ? AND user_id = ?",
 				Integer.class, this.project, this.cleo.id()))
 			.isEqualTo(1);
+	}
+
+	@Test
+	void savingANewMembershipThatAlreadyExistsIsRejectedAndChangesNothing() {
+		// Ben is already a member. A new membership with the same key must be inserted, so the
+		// primary key rejects it; merging it would silently update Ben's row instead.
+		assertThatThrownBy(() -> this.members.saveAndFlush(new ProjectMember(this.project, this.ben.id(), Role.MEMBER)))
+			.isInstanceOf(DataIntegrityViolationException.class);
+
+		assertThat(this.jdbc.queryForObject("SELECT role FROM project_member WHERE project_id = ? AND user_id = ?",
+				String.class, this.project, this.ben.id()))
+			.isEqualTo("MEMBER");
 	}
 
 	@Test
