@@ -36,9 +36,11 @@ server:
     session:
       cookie:
         # SESSION cookie: not readable by scripts, not sent on cross-site requests (ADR 0004).
-        # Not "secure" because the application runs locally without HTTPS (ADR 0006).
         http-only: true
         same-site: lax
+        # Sent only over HTTPS. On by COOKIES_SECURE=true on Render (ADR 0008); off locally,
+        # where there is no HTTPS. Also applies to the XSRF-TOKEN cookie (SecurityConfig).
+        secure: ${COOKIES_SECURE:false}
 
 management:
   endpoints:

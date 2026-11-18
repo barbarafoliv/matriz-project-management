@@ -1,0 +1,54 @@
+# Render Blueprint for Matriz (ADR 0008): free plans, deployed after the CI checks pass.
+# The database (Neon) settings are entered in the Render dashboard, never in this file.
+services:
+  # Backend: Spring Boot API from backend/Dockerfile, connected to Neon over SSL.
+  - type: web
+    name: matriz-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/actuator/health
+    autoDeployTrigger: checksPass
+    envVars:
+      # The port the backend listens on (Spring Boot's default).
+      - key: PORT
+        value: "8080"
+      # HTTPS only: the SESSION and XSRF-TOKEN cookies are Secure (application.yml).
+      - key: COOKIES_SECURE
+        value: "true"
+      # The free plan has 512 MB; let the JVM use most of it.
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:MaxRAMPercentage=75"
+      # Neon, direct (not pooled) connection:
+      # jdbc:postgresql://<host>/<database>?sslmode=require
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+  # Frontend: Angular, served as static files. /api is forwarded to the backend, so the
+  # browser sees one origin and the session cookie works (ADR 0004).
+  - type: web
+    name: matriz
+    runtime: static
+    rootDir: frontend
+    # npm as declared in package.json ("packageManager"): newer npm rejects the lock file.
+    buildCommand: npm install -g npm@11.6.2 && npm ci && npx ng build
+    staticPublishPath: dist/matriz-frontend/browser
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+    routes:
+      # Must match the backend's address in the Render dashboard.
+      - type: rewrite
+        source: /api/*
+        destination: https://matriz-api.onrender.com/api/*
+      # Angular routes: unknown paths load the app.
+      - type: rewrite
+        source: /*
+        destination: /index.html

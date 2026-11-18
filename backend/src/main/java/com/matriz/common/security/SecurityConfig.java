@@ -1,5 +1,6 @@
 package com.matriz.common.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,11 +36,14 @@ import com.matriz.common.web.ErrorCode;
 public class SecurityConfig {
 
 	@Bean
-	SecurityFilterChain apiSecurity(HttpSecurity http, ProblemResponseWriter problems) throws Exception {
+	SecurityFilterChain apiSecurity(HttpSecurity http, ProblemResponseWriter problems,
+			@Value("${server.servlet.session.cookie.secure:false}") boolean secureCookies) throws Exception {
 		PathPatternRequestMatcher.Builder path = PathPatternRequestMatcher.withDefaults();
 		// The client reads XSRF-TOKEN from pages outside /api, so the cookie must use path "/".
 		CookieCsrfTokenRepository csrfTokens = CookieCsrfTokenRepository.withHttpOnlyFalse();
 		csrfTokens.setCookiePath("/");
+		// Sent only over HTTPS when the SESSION cookie is (application.yml, ADR 0008).
+		csrfTokens.setCookieCustomizer(cookie -> cookie.secure(secureCookies));
 		return http
 			.authorizeHttpRequests(requests -> requests
 				.requestMatchers(path.matcher(HttpMethod.POST, "/sessions")).permitAll()
