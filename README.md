@@ -1,5 +1,7 @@
 # Matriz
 
+[![CI](https://github.com/barbarafoliv/matriz-project-management/actions/workflows/ci.yml/badge.svg)](https://github.com/barbarafoliv/matriz-project-management/actions/workflows/ci.yml)
+
 Matriz is a simple shared workspace where a small team plans projects, organises tasks and sees progress in one place.
 
 ## The problem
@@ -37,13 +39,18 @@ The MVP is the smallest version where a team can **create a project, assign task
 
 Features planned for later versions (progress summary, notifications, priority matrix view, filter by assignee, public sign-up, password recovery) and features out of scope are listed in the [requirements](docs/requirements.md).
 
+## Try it online
+
+**https://matriz-c1ft.onrender.com**: sign in with one of the [demo accounts](#demo-accounts).
+
+It runs on free plans (Render and Neon), so after about 15 minutes without visitors the backend sleeps, and the next request takes about a minute. The demo data is shared by everyone who signs in, so it may have been changed.
+
 ## Getting started
 
 ### Requirements
 
-- JDK 21
-- Node.js 24 and npm
-- Docker with Docker Compose (for example Rancher Desktop or Docker Desktop), running
+- Docker with Docker Compose (for example Rancher Desktop or Docker Desktop), running. This is enough to run the application.
+- For development and the tests: JDK 21, and Node.js 24 with npm 11.6 (`packageManager` in `frontend/package.json`; newer npm versions reject the lock file in `npm ci`).
 
 ### Set up
 
@@ -51,19 +58,30 @@ From the repository root:
 
 ```sh
 cp .env.example .env      # then change the two passwords in .env (local values, never committed)
-docker compose up -d      # starts PostgreSQL 18 in Docker, data kept in the "matriz-db" volume
 ```
 
-### Run
+### Run with Docker Compose
 
 ```sh
+docker compose up -d      # builds the images and starts db, backend and frontend
+docker compose ps         # all three should be "healthy"
+```
+
+The application is on **http://localhost:4200**. The frontend (nginx) forwards `/api` to the backend, which isn't published on its own port. The data is kept in the `matriz-db` volume. `docker compose logs --tail=50` shows the latest logs, and `docker compose up -d --build` rebuilds the images after a code change.
+
+### Run for development
+
+```sh
+docker compose up -d db                  # only PostgreSQL 18, on localhost:5432
 cd backend && ./mvnw spring-boot:run     # API on http://localhost:8080/api
 cd frontend && npm install && npm start  # app on http://localhost:4200, /api forwarded to the backend
 ```
 
+`npm start` and the Docker Compose frontend both use port 4200, so stop one before starting the other (`docker compose stop frontend backend`).
+
 On first start, the backend creates the schema and loads the demo data with Liquibase. Later starts skip what has already run, so data isn't deleted or duplicated.
 
-To check that the backend reaches the database: `curl http://localhost:8080/api/actuator/health` should show `"db":{"status":"UP"}`.
+To check that the backend reaches the database, `curl http://localhost:4200/api/actuator/health` (or `:8080` in development) should show `"db":{"status":"UP"}`.
 
 ### Database schema and demo data
 
@@ -71,7 +89,7 @@ The schema is created by Liquibase when the backend starts (`backend/src/main/re
 
 ### Demo accounts
 
-Created by the seed. All use the fake password **`matriz-demo-2026`**.
+Created by the seed, locally and online. All use the fake password **`matriz-demo-2026`**.
 
 | Name | Email | Projects |
 |---|---|---|
@@ -81,7 +99,7 @@ Created by the seed. All use the fake password **`matriz-demo-2026`**.
 
 ### Sessions
 
-Signing in creates a session on the server (stored in PostgreSQL). The browser keeps its ID in the `SESSION` cookie, which scripts can't read. The session ends on sign-out, or after 30 minutes without requests; the app then asks you to sign in again. After 5 wrong passwords in a row for an account, sign-in to it is blocked for 15 minutes. Details are in [docs/openapi.yaml](docs/openapi.yaml).
+Signing in creates a session on the server (stored in PostgreSQL). The browser keeps its ID in the `SESSION` cookie, which scripts can't read. Online, the session and CSRF cookies are only sent over HTTPS (`COOKIES_SECURE=true`); locally they aren't, because there is no HTTPS. The session ends on sign-out, or after 30 minutes without requests; the app then asks you to sign in again. After 5 wrong passwords in a row for an account, sign-in to it is blocked for 15 minutes. Details are in [docs/openapi.yaml](docs/openapi.yaml).
 
 ### Test
 
@@ -122,13 +140,33 @@ Secrets in the code and its history are checked with [gitleaks](https://github.c
 docker run --rm -v "$(pwd):/repo:ro" zricethezav/gitleaks:latest git /repo --redact
 ```
 
+### Continuous integration
+
+Every push and pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on GitHub Actions, with read-only permissions and no secrets:
+- backend tests and SpotBugs;
+- frontend lint, tests and build;
+- the end-to-end test.
+
+The Docker images are built only after all three pass. Results are in the repository's **Actions** tab. When a test fails, the test reports are attached to the run.
+
 ### Stop
 
 ```sh
-docker compose stop       # stops PostgreSQL, keeps the data
+docker compose stop       # stops the containers, keeps the data
+docker compose down       # also removes the containers; the data is still kept
 ```
 
 `docker compose down -v` also **deletes the database volume** and all data; the next backend start recreates the schema and demo data.
+
+## Deployment
+
+The online version runs on Render, with the database on Neon ([ADR 0008](docs/decisions/0008-host-on-render-and-neon.md), [architecture, section 6](docs/architecture.md#6-deployment)). [`render.yaml`](render.yaml) describes both services:
+- a static site for the frontend, which forwards `/api` to the backend;
+- a web service built from `backend/Dockerfile`.
+
+Render deploys `main` after the CI checks pass.
+
+The database settings (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`) are only set in the Render dashboard. `DB_URL` uses Neon's *direct* (not pooled) connection, as `jdbc:postgresql://<host>/<database>?sslmode=require&channelBinding=require`.
 
 ## Documentation
 
@@ -137,7 +175,7 @@ docker compose stop       # stops PostgreSQL, keeps the data
 | [docs/requirements.md](docs/requirements.md) | Vision and goals, user types, functional and non-functional requirements, MVP scope, and features out of the initial scope. |
 | [docs/user-stories.md](docs/user-stories.md) | The MVP backlog: 14 user stories (one per MVP requirement) with priorities, Given / When / Then acceptance criteria, and exceptional cases. |
 | [docs/constraints.md](docs/constraints.md) | Known constraints, assumptions, security and privacy requirements, pending technical decisions, and scope limitations. |
-| [docs/architecture.md](docs/architecture.md) | Architecture alternatives, the chosen modular monolith, and its main components and responsibilities. |
+| [docs/architecture.md](docs/architecture.md) | Architecture alternatives, the chosen modular monolith, its main components and responsibilities, and how it is deployed. |
 | [docs/database.md](docs/database.md) | Conceptual data model: entities, relationships, integrity rules and traceability to the requirements. |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records (ADRs). |
 | [docs/ui/](docs/ui/design-decisions.md) | UI prototype ([prototype.html](docs/ui/prototype.html)) and UI/UX design decisions. |
@@ -146,13 +184,22 @@ docker compose stop       # stops PostgreSQL, keeps the data
 | [docs/verification.md](docs/verification.md) | Verification results: commands, cases 01–09 with evidence, bugs fixed, limitations and use of AI. |
 | [docs/test-plan.md](docs/test-plan.md) | Test plan for tasks and their permissions: scenarios, expected results, test levels and the tests that cover them. |
 | [docs/quality-security-review.md](docs/quality-security-review.md) | Code Review and Security Review: findings with evidence, access checks between accounts, static analysis, dependency scans and decisions. |
+| [CHANGELOG.md](CHANGELOG.md) | Changes in each version. |
+| [docs/releases/](docs/releases/1.1.0-rc.1.md) | Release notes, starting with the 1.1.0-rc.1 release candidate. |
 | [AGENTS.md](AGENTS.md) | Instructions for coding agents working on the project. |
 
 The documents are traceable: each user story (US-xx) is linked to a functional requirement (FR-xx) in the requirements.
 
 ## Current status
 
-**Phase: MVP complete.** All *Must* requirements are built and verified: sign-in, dashboard, projects and search, members, tasks with board, filters and late tasks, assignees, "My tasks", comments and account deletion. The results are in [docs/verification.md](docs/verification.md); the increments in the [implementation plan](docs/implementation-plan.md).
+**Phase: release candidate 1.1.0-rc.1.** All *Must* requirements are built and verified:
+- sign-in and the dashboard;
+- projects, search and members;
+- tasks, with the board, filters and late tasks;
+- assignees and "My tasks";
+- comments and account deletion.
+
+The application also runs with Docker Compose, is checked by CI, and is online. The results are in [docs/verification.md](docs/verification.md), and the increments in the [implementation plan](docs/implementation-plan.md). The changes are in the [changelog](CHANGELOG.md).
 
 - [x] Problem analysis and clarification
 - [x] Requirements and MVP scope
@@ -161,3 +208,6 @@ The documents are traceable: each user story (US-xx) is linked to a functional r
 - [x] Implementation plan
 - [x] MVP implementation
 - [x] Testing against the acceptance criteria
+- [x] Docker images, Docker Compose and CI
+- [x] Online deployment (Render and Neon)
+- [ ] Release 1.1.0 (after the release candidate is validated)

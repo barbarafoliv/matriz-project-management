@@ -23,7 +23,7 @@ title: Implementation Plan
 | 10 | Docker images | — | Done |
 | 11 | Docker Compose | — | Done |
 | 12 | CI pipeline | — | Done |
-| 13 | Documentation and release candidate 1.1.0-rc.1 | — | Planned |
+| 13 | Documentation and release candidate 1.1.0-rc.1 | — | Done |
 | 14 | Final validation | All | Planned |
 | 15 | Online deployment (Render and Neon) | — | Planned |
 
@@ -207,6 +207,19 @@ Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare
 - **Depends on:** Increment 12.
 - **Acceptance criteria:** every feature, technology, command and setting in the documentation matches the code. Anything that couldn't be confirmed is listed for review. The candidate version is proposed but not published.
 - **Checks:** follow every documented command; check the Mermaid diagram renders on GitHub.
+- **Result:**
+  - **README:** CI badge; the live site and its limits; running with Docker Compose, and for development with `docker compose up -d db`; the npm 11.6 requirement; CI; stopping; deployment; and the new documents. Status: release candidate 1.1.0-rc.1.
+  - **`docs/architecture.md`:** the component diagram in Mermaid; a new section 6, "Deployment", with a Mermaid diagram and a table comparing development, Docker Compose and online; and rows for containers, CI and hosting. The section headings that other documents link to are unchanged.
+  - **`CHANGELOG.md`:** 1.0.0, and 1.1.0-rc.1 with the changes since `v1.0.0`, including the Worksheet 04 fixes.
+  - **`docs/releases/1.1.0-rc.1.md`:** why the version is 1.1.0-rc.1, the highlights, how to upgrade from 1.0.0, and the known limitations.
+  - **`AGENTS.md`:** the Docker Compose, CI and deployment commands.
+  - **`docs/openapi.yaml`:** the Docker Compose and online addresses added to `servers`. The endpoints and data are unchanged since 1.0.0, so it stays at version 1.0.0. Redocly lint: valid, with the same 3 warnings as before (no license, a `localhost` server, a missing 4xx response).
+  - **Commands checked:**
+    - `docker compose up -d --wait`: all three services healthy. Inside the frontend container, `/api/actuator/health` returned `db: UP`.
+    - `docker compose stop frontend backend` left `db` running; `docker compose stop` stopped everything.
+    - No database change since `v1.0.0` (no changelog files changed), as the release notes say.
+  - **Found during the check:** an `npm start` already running on the machine had port 4200 on `127.0.0.1`, so `localhost:4200` reached it instead of Docker. This is the conflict the README describes.
+  - **Not published:** no tag or GitHub release for 1.1.0-rc.1. That is left to the developer (Increment 14).
 
 ### 14. Final validation
 

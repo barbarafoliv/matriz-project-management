@@ -33,22 +33,28 @@ Matriz is built as a **modular monolith** ([ADR 0001](decisions/0001-use-modular
 
 ## 4. Components
 
+```mermaid
+flowchart TB
+    client["Client (Angular, in the browser)"]
+    subgraph app["Matriz application (Spring Boot)"]
+        api["REST API"]
+        accounts["Accounts"]
+        projects["Projects"]
+        tasks["Tasks"]
+        api --> accounts
+        api --> projects
+        api --> tasks
+        tasks --> projects
+        projects --> tasks
+        accounts --> projects
+        accounts --> tasks
+    end
+    db[("PostgreSQL")]
+    client -- "REST / JSON over HTTP(S)" --> api
+    app --> db
 ```
-        Client
-          |
-          | REST / JSON over HTTP
-          v
-+-------------------------------------+
-|  Matriz application                 |
-|                                     |
-|  REST API                           |
-|     |          |          |         |
-|  Accounts   Projects    Tasks       |
-+-------------------------------------+
-          |
-          v
-      PostgreSQL
-```
+
+The arrows between modules are the calls described in [Rules between modules](#rules-between-modules).
 
 | Component | Responsibilities | Requirements |
 |---|---|---|
@@ -70,7 +76,8 @@ Matriz is built as a **modular monolith** ([ADR 0001](decisions/0001-use-modular
 ## 5. Technologies and hosting
 
 - Spring Boot (backend) and Angular (client) ([ADR 0005](decisions/0005-use-spring-boot-and-angular.md)).
-- Runs locally, without HTTPS ([ADR 0006](decisions/0006-run-locally.md)). The session cookie is `HttpOnly` and `SameSite=Lax`, but not `Secure`, because there is no HTTPS.
+- Runs locally with Docker Compose, and online on Render and Neon ([ADR 0007](decisions/0007-run-with-docker-compose-and-check-with-github-actions.md), [ADR 0008](decisions/0008-host-on-render-and-neon.md)); see [section 6](#6-deployment).
+- The session cookie is `HttpOnly` and `SameSite=Lax`. Online, the session and CSRF cookies are also `Secure` (HTTPS). Locally they aren't, because there is no HTTPS (`COOKIES_SECURE`, off by default).
 
 ### Implementation choices
 
@@ -82,8 +89,48 @@ Matriz is built as a **modular monolith** ([ADR 0001](decisions/0001-use-modular
 | Schema | Liquibase changelogs in formatted SQL (`backend/src/main/resources/db/changelog/`), including the Spring Session JDBC tables. |
 | Demo data | A Liquibase changeset with the `demo` context. It runs once, so restarting doesn't delete or duplicate data. Demo passwords are stored as hashes; the fake demo password is in the README. |
 | Failed sign-ins | Counted in a `sign_in_attempt` table by the Accounts module. Spring Security doesn't provide this. |
-| Database | PostgreSQL 18 in a local Docker container (`docker-compose.yml`), with a named volume so data is kept. Connection set with the `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` variables, read from `.env`; `.env.example` has fake values. |
+| Database | PostgreSQL 18 in a local Docker container (`docker-compose.yml`), with a named volume so data is kept. Online: Neon, over SSL. Connection set with the `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` variables: read from `.env` locally (`.env.example` has fake values), and set in the Render dashboard online. |
+| Containers | Multi-stage Dockerfiles: the backend runs on a Java 21 JRE, the frontend on nginx (`nginx-unprivileged`), both as non-root users. nginx forwards `/api` to the backend. |
+| Continuous integration | GitHub Actions (`.github/workflows/ci.yml`), on every push and pull request, with read-only permissions: backend tests and SpotBugs; frontend lint, tests and build; the end-to-end test; then the Docker images. |
+| Hosting | Render: a static site for the frontend, which forwards `/api` to a web service built from `backend/Dockerfile` (`render.yaml`). Free plans, Frankfurt. Deployed after CI passes. |
 | Health check | Spring Boot Actuator, only the `health` endpoint (`/api/actuator/health`), to check that the backend reaches the database. |
 | Frontend | Angular 21 (current LTS). The API address is set in one place, and the dev server proxies `/api` to the backend so the session cookie stays on the same origin. |
 | Tests | JUnit 5, Spring Boot Test and MockMvc, with Testcontainers for PostgreSQL (needs Docker). Angular's default unit test runner (Vitest). End-to-end: Gherkin scenarios run by Playwright (Chromium) with playwright-bdd, with a separate in-memory PostgreSQL (`db-e2e`, Docker Compose profile `e2e`). |
 | Static analysis and dependency checks | ESLint with angular-eslint (frontend); SpotBugs with FindSecBugs (backend, run on demand); `npm audit`, and OSV-Scanner run with Docker for the backend dependencies. |
+
+## 6. Deployment
+
+The same code runs in three places. In each one, the browser sees one origin: the frontend forwards `/api` to the backend, so the session cookie and CSRF work without CORS ([ADR 0004](decisions/0004-use-email-password-with-server-side-sessions.md)).
+
+```mermaid
+flowchart LR
+    subgraph dev["Development"]
+        b1["Browser"] --> ng["ng serve :4200<br/>(proxy /api)"]
+        ng --> mvn["./mvnw spring-boot:run :8080"]
+        mvn --> pg1[("PostgreSQL 18<br/>docker compose up -d db")]
+    end
+    subgraph compose["Docker Compose: docker compose up -d"]
+        b2["Browser"] --> nginx["frontend: nginx :4200<br/>(forwards /api)"]
+        nginx --> be["backend :8080<br/>(not published)"]
+        be --> pg2[("db: PostgreSQL 18<br/>volume matriz-db")]
+    end
+    subgraph online["Online: Render + Neon"]
+        b3["Browser"] -- HTTPS --> site["Static site<br/>matriz-c1ft.onrender.com<br/>(rewrites /api)"]
+        site -- HTTPS --> web["Web service<br/>matriz-api-8rzw.onrender.com"]
+        web -- SSL --> neon[("Neon PostgreSQL<br/>Frankfurt")]
+    end
+```
+
+| | Development | Docker Compose | Online |
+|---|---|---|---|
+| **Started with** | `docker compose up -d db`, `./mvnw spring-boot:run`, `npm start` | `docker compose up -d` | Render, after CI passes on `main` |
+| **Address** | http://localhost:4200 | http://localhost:4200 | https://matriz-c1ft.onrender.com |
+| **Database** | PostgreSQL in Docker, volume `matriz-db` | The same | Neon |
+| **Settings** | `.env` | `.env` | Render dashboard (`render.yaml` lists them) |
+| **Cookies** | Not `Secure` | Not `Secure` | `Secure` |
+
+In every case, Liquibase creates the schema and the demo data on the first start, and skips what has already run.
+
+- Each Compose service waits until the one it depends on is healthy (`db`, then `backend`, then `frontend`).
+- The free Render backend sleeps after about 15 minutes without requests, and the next request takes about a minute.
+- `npm start` and the Docker Compose frontend both use port 4200, so only one of them can run at a time.

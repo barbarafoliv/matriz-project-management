@@ -35,11 +35,13 @@ These documents are the source of truth. The `course-notes/` folder is not produ
 ## Validation
 
 - Use the build and test commands in the README. If they aren't defined yet, say so.
-  - Database: `docker compose up -d` (from the repository root, needs `.env`).
+  - Whole application: `docker compose up -d` (from the repository root, needs `.env`), on http://localhost:4200; check with `docker compose ps` and `docker compose logs --tail=50`.
+  - Database only, for development: `docker compose up -d db`.
   - Backend: `cd backend && ./mvnw verify` (needs Docker running), run with `./mvnw spring-boot:run`.
   - Frontend: `cd frontend && npx ng build` and `npx ng test --watch=false`, run with `npm start`.
   - End-to-end: `cd frontend && E2E_PASSWORD=<demo password from the README> npm run e2e` (needs Docker and `.env`; uses its own database and servers).
   - Static analysis: `cd frontend && npm run lint`, and `cd backend && ./mvnw compile spotbugs:check`. Dependency checks: `npm audit`, and OSV-Scanner for the backend (README, Test).
+  - CI: every push runs `.github/workflows/ci.yml` (results in GitHub's Actions tab). Online deployment: `render.yaml`, deployed by Render after CI passes; its secrets are only in the Render dashboard.
   - The backend tests need Docker running (Testcontainers). Record new results in `docs/verification.md`.
 - Add or update tests for any behaviour you change, based on the acceptance criteria where they exist.
 - Report the commands you ran and their results, the files you changed, and any assumptions you made.

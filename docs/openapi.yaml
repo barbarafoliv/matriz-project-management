@@ -45,7 +45,9 @@ info:
 
 servers:
   - url: http://localhost:8080/api
-    description: Local (ADR 0006)
+    description: Local development (ADR 0006); http://localhost:4200/api with Docker Compose
+  - url: https://matriz-c1ft.onrender.com/api
+    description: Online, on Render (ADR 0008)
 
 security:
   - sessionCookie: []
