@@ -22,7 +22,7 @@ title: Implementation Plan
 | 9 | Verification and delivery | All | Done |
 | 10 | Docker images | — | Done |
 | 11 | Docker Compose | — | Done |
-| 12 | CI pipeline | — | Planned |
+| 12 | CI pipeline | — | Done |
 | 13 | Documentation and release candidate 1.1.0-rc.1 | — | Planned |
 | 14 | Final validation | All | Planned |
 
@@ -183,6 +183,16 @@ Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare
 - **Depends on:** Increment 11.
 - **Acceptance criteria:** the workflow passes on GitHub; it fails when a required test fails; images are built only after the checks pass; no secrets are used or printed.
 - **Checks:** a passing run in the Actions tab; a temporary commit that breaks a test makes the run fail and skips `docker`; reverting it makes the run pass again.
+- **Result:** before pushing, actionlint (with shellcheck) found no problems, and `./mvnw compile spotbugs:check` and `npm run lint` passed locally. Runs on GitHub:
+  - [First run](https://github.com/barbarafoliv/matriz-project-management/actions/runs/43093051120) (`9519d01`): failed. The frontend job passed, but `./mvnw` exited with code 126 in the backend and e2e jobs, and `docker` was skipped.
+  - [Passing run](https://github.com/barbarafoliv/matriz-project-management/actions/runs/43094065698) (`de6c1b5`): all four jobs passed. Backend 85 s, frontend 36 s, e2e 99 s, then `docker` 48 s.
+  - [Controlled failure](https://github.com/barbarafoliv/matriz-project-management/actions/runs/43094808256) (`0ed961e`, a test that expects one saved task where the title rule saves none): `./mvnw verify` failed, SpotBugs and `docker` were skipped, and the frontend and e2e jobs passed. Reverted in `715fddd`.
+  - The run on `715fddd` was cancelled by GitHub before any job started: it was queued from 11 to 15 November. The run on the commit that records this result checks that the pipeline passes again.
+  - No secrets are used. The only password in the workflow is the fake demo password for the end-to-end test, which is also in the README.
+- **Found and fixed:**
+  - `backend/mvnw` was stored in Git without the executable bit, so `./mvnw` failed with "permission denied" on Linux, and would on macOS too. Windows ignores the bit, so it wasn't noticed locally. The file mode is fixed in `de6c1b5`.
+  - CI installs npm 11.6.2 before `npm ci`, for the same lock-file reason as the frontend image (Increment 10).
+- **Note:** a newer push to the same branch cancels the run in progress (`concurrency`), so the revert was pushed only after the failing run had finished.
 
 ### 13. Documentation and release candidate 1.1.0-rc.1
 
