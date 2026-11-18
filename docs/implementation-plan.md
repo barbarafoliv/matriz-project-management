@@ -25,7 +25,7 @@ title: Implementation Plan
 | 12 | CI pipeline | — | Done |
 | 13 | Documentation and release candidate 1.1.0-rc.1 | — | Done |
 | 14 | Final validation | All | Planned |
-| 15 | Online deployment (Render and Neon) | — | Planned |
+| 15 | Online deployment (Render and Neon) | — | Done |
 
 Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare the delivery with Docker, Docker Compose and GitHub Actions ([ADR 0007](decisions/0007-run-with-docker-compose-and-check-with-github-actions.md)). They don't change any feature. Increment 15 puts Matriz online ([ADR 0008](decisions/0008-host-on-render-and-neon.md)). It is done before Increment 13, so the documentation and release notes include it.
 
@@ -252,3 +252,23 @@ Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare
   - No credentials are in the repository.
   - Local development, Docker Compose and CI are unchanged.
 - **Checks:** `./mvnw verify` and CI; manual check on the live site (health, sign-in, task, cookies in the browser's developer tools); gitleaks.
+- **Result:**
+  - **Backend:** `COOKIES_SECURE` (default `false`) sets `server.servlet.session.cookie.secure`, and `SecurityConfig` applies the same value to the `XSRF-TOKEN` cookie. Both cookies are then `Secure` whatever headers the proxy sends, so `X-Forwarded-Proto` isn't needed.
+    - `SecureCookieTests` (new) checks both cookies with the setting on. It failed when the `XSRF-TOKEN` part was removed.
+    - `SessionCookieTests` now also checks that the cookies aren't `Secure` locally.
+    - `./mvnw verify`: 142 tests passed, and `spotbugs:check` found nothing.
+  - **Neon:** project in AWS Europe Central 1 (Frankfurt), database `matrizdb`, direct connection (not pooled). The Neon CLI wasn't used: its install was refused by the agent's permission check, and the developer gave the connection string instead.
+    - The backend was first run locally against Neon on port 8090. Liquibase ran the 9 changesets; health returned `db: UP`.
+    - Through the API: sign-in (CSRF) as Alice, create a task, change its status. After a restart, Liquibase ran 0 changesets and the task and session were still there. The test task was then deleted.
+    - The connection string, with its password, was pasted into the AI chat, so the developer reset the password afterwards. The new one is only in the Render dashboard.
+  - **Render:** Blueprint from `render.yaml`. Backend https://matriz-api-8rzw.onrender.com, frontend https://matriz-c1ft.onrender.com.
+    - Health through the frontend: `db: UP`.
+    - In the browser, Alice signed in, created a task (task 10) and moved it to In Progress.
+    - `SESSION` was `Secure`, `HttpOnly`, `SameSite=Lax` and `Path=/api`; `XSRF-TOKEN` was `Secure`, readable by scripts and `Path=/`. Both were on the frontend's address, so the browser sees one origin.
+    - After the backend was redeployed (`d104a43`), task 10 was still In Progress. It was then deleted, and the demo counts are back to the seed's.
+  - **No credentials in the repository:** gitleaks found no leaks in 61 commits, and the old Neon password isn't in the history or the working tree.
+  - Local development, Docker Compose and CI are unchanged (CI passed on `369f065`, `8b617f4` and `d104a43`).
+- **Found and fixed:**
+  - The name `matriz-api` was taken on Render, so the backend became `matriz-api-8rzw`. The `/api` rewrite still pointed to `matriz-api.onrender.com`, which isn't this project's service, so requests could have gone to someone else's service. Fixed in `100da23`.
+  - Render only redeploys a service automatically when files inside its `rootDir` change, so commits that only change docs or CI don't redeploy the backend. The rewrite change was applied without a CI pass, because routes are a setting, not a build.
+  - CI failed twice in the backend tests, on commits that didn't change the backend. The cause was a race when adding a member or assigning one (F9 in [quality-security-review.md](quality-security-review.md)), fixed in `d104a43`.
