@@ -41,7 +41,7 @@ Decided so far:
 - Database: PostgreSQL ([ADR 0002](decisions/0002-use-postgresql.md)).
 - Sign-in: email and password, with server-side sessions ([ADR 0004](decisions/0004-use-email-password-with-server-side-sessions.md)).
 - Application stack: Spring Boot (backend) and Angular (frontend) ([ADR 0005](decisions/0005-use-spring-boot-and-angular.md)).
-- Hosting: local only ([ADR 0006](decisions/0006-run-locally.md)).
+- Hosting: Render and Neon, on free plans ([ADR 0008](decisions/0008-host-on-render-and-neon.md), which supersedes [ADR 0006](decisions/0006-run-locally.md)). Development runs locally.
 - Containers and continuous integration: Docker Compose and GitHub Actions ([ADR 0007](decisions/0007-run-with-docker-compose-and-check-with-github-actions.md)).
 - API contract: [openapi.yaml](openapi.yaml).
 - Implementation choices (build tool, data access, migrations, seed, tests): [architecture.md, section 5](architecture.md#5-technologies-and-hosting).

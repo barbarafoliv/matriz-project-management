@@ -25,8 +25,9 @@ title: Implementation Plan
 | 12 | CI pipeline | — | Done |
 | 13 | Documentation and release candidate 1.1.0-rc.1 | — | Planned |
 | 14 | Final validation | All | Planned |
+| 15 | Online deployment (Render and Neon) | — | Planned |
 
-Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare the delivery with Docker, Docker Compose and GitHub Actions ([ADR 0007](decisions/0007-run-with-docker-compose-and-check-with-github-actions.md)). They don't change any feature.
+Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare the delivery with Docker, Docker Compose and GitHub Actions ([ADR 0007](decisions/0007-run-with-docker-compose-and-check-with-github-actions.md)). They don't change any feature. Increment 15 puts Matriz online ([ADR 0008](decisions/0008-host-on-render-and-neon.md)). It is done before Increment 13, so the documentation and release notes include it.
 
 ## 2. Increments
 
@@ -218,3 +219,23 @@ Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare
   - The logs have been reviewed.
   - No credentials are in the tracked files.
 - **Checks:** clean-clone run; `docker compose ps` and `logs`; manual check of the main features; gitleaks; an AI review of the documentation, Docker configuration, pipeline and test results.
+
+### 15. Online deployment (Render and Neon)
+
+- **Components:**
+  - Backend: the session and CSRF cookies become `Secure` through a setting that is off by default and on in Render. Behind Render's HTTPS proxy, the backend may also need to trust the `X-Forwarded-Proto` header; this is checked on the live site.
+  - `render.yaml` (Render Blueprint), both services in Frankfurt on free plans:
+    - Static Site for the frontend: `npm ci` (with npm 11.6.2) and `ng build`. Rewrites `/api/*` to the backend and other paths to `index.html`.
+    - Web Service for the backend, from `backend/Dockerfile`, with its health check on `/api/actuator/health`. Deployed after the CI checks pass. `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` are set in the Render dashboard, not in the file.
+  - Tests for the cookie setting.
+- **Done by the developer, in the dashboards:**
+  - Create the Neon project (Frankfurt) and copy its connection details.
+  - Create the Render Blueprint from the GitHub repository and enter the database settings.
+- **Depends on:** Increment 12.
+- **Acceptance criteria:**
+  - The frontend is reachable at its `onrender.com` HTTPS address, and `/api/actuator/health` returns `db: UP` through it.
+  - Alice signs in, opens a project, creates a task and changes its status; the task is still there after a backend redeploy.
+  - The `SESSION` and `XSRF-TOKEN` cookies are `Secure` online, and stay non-secure locally.
+  - No credentials are in the repository.
+  - Local development, Docker Compose and CI are unchanged.
+- **Checks:** `./mvnw verify` and CI; manual check on the live site (health, sign-in, task, cookies in the browser's developer tools); gitleaks.

@@ -34,3 +34,7 @@ Until now, only PostgreSQL ran in Docker. The backend and frontend were started 
 - Hosting stays local ([ADR 0006](0006-run-locally.md)). The CI workflow builds and tests, but doesn't deploy anything.
 - `docker compose up -d` now starts the whole application on http://localhost:4200, the same address as `npm start`, so the two can't run at the same time. The development flow changes to `docker compose up -d db`.
 - The CI run takes several minutes, mainly because of the end-to-end test and Testcontainers.
+
+## Notes
+
+- Matriz is now also hosted online ([ADR 0008](0008-host-on-render-and-neon.md)). Render deploys `main` after this workflow passes; the workflow itself still doesn't deploy anything.

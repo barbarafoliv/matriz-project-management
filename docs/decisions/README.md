@@ -13,3 +13,4 @@ permalink: /decisions/
 - [0005 - Use Spring Boot and Angular](./0005-use-spring-boot-and-angular.md)
 - [0006 - Run Locally](./0006-run-locally.md)
 - [0007 - Run with Docker Compose and Check with GitHub Actions](./0007-run-with-docker-compose-and-check-with-github-actions.md)
+- [0008 - Host on Render and Neon](./0008-host-on-render-and-neon.md)
