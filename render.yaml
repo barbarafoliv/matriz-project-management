@@ -44,10 +44,10 @@ services:
       - key: NODE_VERSION
         value: "24"
     routes:
-      # Must match the backend's address in the Render dashboard.
+      # The backend's address in Render (the name "matriz-api" was taken, so Render added a suffix).
       - type: rewrite
         source: /api/*
-        destination: https://matriz-api.onrender.com/api/*
+        destination: https://matriz-api-8rzw.onrender.com/api/*
       # Angular routes: unknown paths load the app.
       - type: rewrite
         source: /*
