@@ -24,7 +24,7 @@ title: Implementation Plan
 | 11 | Docker Compose | — | Done |
 | 12 | CI pipeline | — | Done |
 | 13 | Documentation and release candidate 1.1.0-rc.1 | — | Done |
-| 14 | Final validation | All | Planned |
+| 14 | Final validation | All | Done |
 | 15 | Online deployment (Render and Neon) | — | Done |
 
 Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare the delivery with Docker, Docker Compose and GitHub Actions ([ADR 0007](decisions/0007-run-with-docker-compose-and-check-with-github-actions.md)). They don't change any feature. Increment 15 puts Matriz online ([ADR 0008](decisions/0008-host-on-render-and-neon.md)). It is done before Increment 13, so the documentation and release notes include it.
@@ -232,6 +232,10 @@ Increments 10 to 14 are Exercises 2 to 6 of Practical Worksheet 05. They prepare
   - The logs have been reviewed.
   - No credentials are in the tracked files.
 - **Checks:** clean-clone run; `docker compose ps` and `logs`; manual check of the main features; gitleaks; an AI review of the documentation, Docker configuration, pipeline and test results.
+- **Result:** see [verification.md, section 8](verification.md#8-release-candidate-110-rc1-practical-worksheet-05).
+  - A clean clone of `022b9e1` passed the README steps and test commands: 145 backend tests, 96 frontend tests, lint, build, the end-to-end test and SpotBugs. The online checks are in increment 15.
+  - The independent AI review found 0 High, 3 Medium and 6 Low findings. The documentation findings were fixed; F10 to F12 are recorded as open in [quality-security-review.md](quality-security-review.md), section 7.
+  - Found during the check: `docker compose up -d` reuses old local images (the README now says to use `--build`), and `npm audit` reports 24 new advisories, in development tools only (F12).
 
 ### 15. Online deployment (Render and Neon)
 

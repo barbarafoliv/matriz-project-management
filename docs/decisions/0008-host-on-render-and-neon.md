@@ -39,3 +39,8 @@ Matriz is hosted on **Render**, with the database on **Neon**. Both are on free 
 - Anyone with the public demo password can sign in and change or delete the demo data. Only fake data is used. The database can be reset before the presentation, and Liquibase then loads the demo data again.
 - Hosting, deployment and their accounts become something to maintain. The Render and Neon accounts belong to the developer and are set up in their dashboards.
 - Local development and Docker Compose don't change.
+
+## Notes
+
+- "Deployed after CI passes" applies to builds. Changes to the Blueprint's settings, such as the `/api` rewrite, are applied when `render.yaml` changes, even if CI fails (Increment 15).
+- A service is only rebuilt when files inside its `rootDir` change (`backend/` or `frontend/`). Commits that only change documentation or CI don't redeploy it.

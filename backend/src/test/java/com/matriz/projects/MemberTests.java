@@ -131,7 +131,8 @@ class MemberTests {
 	@Test
 	void savingANewMembershipThatAlreadyExistsIsRejectedAndChangesNothing() {
 		// Ben is already a member. A new membership with the same key must be inserted, so the
-		// primary key rejects it; merging it would silently update Ben's row instead.
+		// primary key rejects it; merging it instead would succeed silently, and the caller would
+		// be told Ben was added.
 		assertThatThrownBy(() -> this.members.saveAndFlush(new ProjectMember(this.project, this.ben.id(), Role.MEMBER)))
 			.isInstanceOf(DataIntegrityViolationException.class);
 

@@ -57,7 +57,7 @@ It runs on free plans (Render and Neon), so after about 15 minutes without visit
 From the repository root:
 
 ```sh
-cp .env.example .env      # then change the two passwords in .env (local values, never committed)
+cp .env.example .env      # then change both passwords in .env to the same new value (local, never committed)
 ```
 
 ### Run with Docker Compose
@@ -67,7 +67,7 @@ docker compose up -d      # builds the images and starts db, backend and fronten
 docker compose ps         # all three should be "healthy"
 ```
 
-The application is on **http://localhost:4200**. The frontend (nginx) forwards `/api` to the backend, which isn't published on its own port. The data is kept in the `matriz-db` volume. `docker compose logs --tail=50` shows the latest logs, and `docker compose up -d --build` rebuilds the images after a code change.
+The application is on **http://localhost:4200**. The frontend (nginx) forwards `/api` to the backend, which isn't published on its own port. The data is kept in the `matriz-db` volume. `docker compose logs --tail=50` shows the latest logs. Compose only builds the images when they don't exist yet, so after a code change, or a `git pull`, use `docker compose up -d --build`.
 
 ### Run for development
 

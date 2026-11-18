@@ -22,7 +22,7 @@ services:
       - key: JAVA_TOOL_OPTIONS
         value: "-XX:MaxRAMPercentage=75"
       # Neon, direct (not pooled) connection:
-      # jdbc:postgresql://<host>/<database>?sslmode=require
+      # jdbc:postgresql://<host>/<database>?sslmode=require&channelBinding=require
       - key: DB_URL
         sync: false
       - key: DB_USERNAME

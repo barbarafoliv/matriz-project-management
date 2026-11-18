@@ -209,7 +209,8 @@ class AssigneeTests {
 				this.ben.id());
 
 		// A new assignment with the same key must be inserted, so the primary key rejects it;
-		// merging it would update the existing row instead (here, when it was made).
+		// merging it instead would succeed silently (its time can't be updated, so nothing changes),
+		// and the caller would be told the member was assigned.
 		assertThatThrownBy(() -> this.assignments.saveAndFlush(new TaskAssignee(this.task, this.ben.id(), Instant.EPOCH)))
 			.isInstanceOf(DataIntegrityViolationException.class);
 
